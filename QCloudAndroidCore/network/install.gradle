@@ -1,0 +1,38 @@
+apply plugin: 'com.github.dcendents.android-maven'
+
+group = 'com.tencent.qcloud' // CREATE A GROUP ID FOR YOUR LIBRARY
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                groupId 'com.tencent.qcloud' // CREATE A GROUP ID FOR YOUR LIBRARY
+                artifactId 'network' // THE NAME OF YOUR MODULE
+                name 'qcloud-core-android-sdk' // YOUR LIBRARY NAME
+                description 'tencent core sdk for android.' // YOUR LIBRARY DESCRIPTION
+                url 'https://github.com/tencentyun/cos_xml_android_sdk' // YOUR SITE
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'tencent' //YOUR ID
+                        name 'tencentqcloudterminal' //YOUR NAME
+                        email 'maggieyimengying@gmail.com' //YOUR EMAIL
+                    }
+                }
+                scm {
+                    connection 'https://github.com/tencentyun/cos_xml_android_sdk.git' // YOUR GIT REPO
+                    developerConnection 'https://github.com/tencentyun/cos_xml_android_sdk.git' // YOUR GIT REPO
+                    url 'https://github.com/tencentyun/cos_xml_android_sdk' // YOUR SITE
+
+                }
+            }
+        }
+    }
+}

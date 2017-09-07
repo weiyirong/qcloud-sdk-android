@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/CosXmlAndroidSdk.iml" filepath="$PROJECT_DIR$/CosXmlAndroidSdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CosXmlDemo/CosXmlDemo.iml" filepath="$PROJECT_DIR$/CosXmlDemo/CosXmlDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/QCloudCosXml.iml" filepath="$PROJECT_DIR$/QCloudCosXml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cosxml/cosxml.iml" filepath="$PROJECT_DIR$/cosxml/cosxml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../QCloudAndroidCore/network/network.iml" filepath="$PROJECT_DIR$/../QCloudAndroidCore/network/network.iml" />
+    </modules>
+  </component>
+</project>

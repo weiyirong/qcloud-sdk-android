@@ -1,0 +1,2 @@
+include ':cosxml', ':network'
+project(':network').projectDir = new File(rootDir, '../QCloudAndroidCore/network')
