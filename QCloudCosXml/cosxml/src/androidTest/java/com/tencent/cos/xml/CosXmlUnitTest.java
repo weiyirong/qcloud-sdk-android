@@ -130,7 +130,7 @@ public class CosXmlUnitTest extends ApplicationTestCase<Application> {
             CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig(appid,region);
             cosXmlServiceConfig.setSocketTimeout(450000);
             cosXmlService = new CosXmlService(getContext(),cosXmlServiceConfig,
-                    new CosXmlLocalCredentialProvider("AKIDPiqmW3qcgXVSKN8jngPzRhvxzYyDL5qP","EH8oHoLgpmJmBQUM1Uoywjmv7EFzd5OJ",600));
+                    new CosXmlLocalCredentialProvider("xxx","xxx",600));
             hasInit = true;
         }
     }
