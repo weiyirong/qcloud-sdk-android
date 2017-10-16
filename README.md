@@ -34,3 +34,5 @@ SDK 需要网络访问相关的一些权限，需要在 AndroidManifest.xml 中�
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
 
+
+
