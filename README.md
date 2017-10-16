@@ -29,8 +29,6 @@
 
 - compile 'com.alibaba:fastjson:1.1.62.android'
 
-- compile 'com.google.code.gson:gson:2.8.0'
-
 - compile ('com.thoughtworks.xstream:xstream:1.4.7') {
 exclude group: 'xmlpull', module: 'xmlpull'
 }
