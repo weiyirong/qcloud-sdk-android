@@ -97,37 +97,33 @@ class RecordLog {
         }
     }
 
-    public String getLogRootDir(){
-        return logRootDir;
-    }
-
     //获取时间格式
-    public String getTodayDate(){
+    String getTodayDate(){
         String simple_date_formate = "yyyy-MM-dd";
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(simple_date_formate, Locale.getDefault());
         return simpleDateFormat.format(date);
     }
 
-    public String getLongDate(long times){
+    String getLongDate(long times){
         String simple_date_formate = "yyyy-MM-dd";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(simple_date_formate,Locale.getDefault());
         return simpleDateFormat.format(times);
     }
 
     //log文件夹
-    public String getLogFileDir(){
+    File getLogFileDir(){
         String dir = logRootDir + File.separator + getTodayDate();
         File file = new File(dir);
         if(!file.exists()){
             //noinspection ResultOfMethodCallIgnored
             file.mkdirs();
         }
-        return file.getPath();
+        return file;
     }
 
     //log 文件(最新的）
-    private File getLogFile(long times){
+    File getLogFile(long times){
 
         String dirName =logRootDir + File.separator + getLongDate(times);
         //log文件夹是否存在
@@ -162,7 +158,7 @@ class RecordLog {
         }
     }
     //获取文件分片的索引
-    public int getIndexFromFile(File file){
+    int getIndexFromFile(File file){
         try{
             String filename = file.getName();
             int point = filename.indexOf('.');
@@ -174,7 +170,7 @@ class RecordLog {
         }
     }
     //写入日志(同步)
-    public void write(List<Record> listInfo){
+    void write(List<Record> listInfo){
         synchronized (object){
             if(listInfo == null) return;
             FileOutputStream fos = null;
@@ -208,19 +204,18 @@ class RecordLog {
         bufferRecord.add(r);
         mBufferSize += r.getLength();
         //有消息进入，发送一个通知
-        Message message = handler.obtainMessage();
-        message.what = MSG_FLUSH_CONTENT;
-        handler.sendMessage(message);
+        handler.removeMessages(MSG_FLUSH_CONTENT);
+        handler.sendEmptyMessageDelayed(MSG_FLUSH_CONTENT, 500);
     }
 
-    public synchronized void flush(){
+    synchronized void flush(){
         if(mBufferSize <= 0)return;
         write(bufferRecord);
         bufferRecord.clear();
         mBufferSize = 0;
     }
 
-    public synchronized void input(){
+    synchronized void input(){
         if(mBufferSize > BUFFER_SIZE ){
             flush();
         }
