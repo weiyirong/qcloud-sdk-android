@@ -294,6 +294,62 @@ try {
        Log.w("TEST","CosXmlServiceException =" + e.toString());
 }
 ````
+ 
+### 下载文件
+````java
+
+String bucket = "存储桶名称";
+String cosPath = "远端路径，即存储到cos上的绝对路径";
+String savePath = "下载到本地的路径";
+
+GetObjectRequest getObjectRequest = GetObjectRequest(bucket, cosPath, savePath);
+
+getObjectRequest.setSign(signDuration,null,null);
+getObjectRequest.setProgressListener(new QCloudProgressListener() {
+    @Override
+    public void onProgress(long progress, long max) {
+        float result = (float) (progress * 100.0/max);
+        Log.w("TEST","progress =" + (long)result + "%");
+    }
+});
+
+//使用同步方法下载
+try {
+   GetObjectResult getObjectResult =cosXmlService.getObject(getObjectRequest);
+	
+	Log.w("TEST","success： " + getObjectResult.xCOSStorageClass);
+       
+  } catch (CosXmlClientException e) {
+
+      Log.w("TEST","CosXmlClientException =" + e.toString());
+
+   } catch (CosXmlServiceException e) {
+
+       Log.w("TEST","CosXmlServiceException =" + e.toString());
+}
+
+
+//**使用异步回调请求**
+/**
+
+cosXmlService.getObjectAsync(getObjectRequest, new CosXmlResultListener() {
+    @Override
+    public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
+
+		Log.w("TEST","success");
+     }
+
+     @Override
+     public void onFail(CosXmlRequest cosXmlRequest, CosXmlClientException clientException, CosXmlServiceException serviceException)  {
+        
+		String errorMsg = clientException != null ? clientException.toString() : serviceException.toString();
+		Log.w("TEST",errorMsg);
+    }
+});
+
+*/
+````
+
 
 ## 生成签名
 
