@@ -6,7 +6,7 @@
 
 SDK API 说明文档，请查阅[SDK API Document](https://github.com/tencentyun/qcloud-sdk-android/blob/master/COS_XML_Android_SDK.md)
 
-##SDK 下载包 [SDK Libs](https://github.com/tencentyun/qcloud-sdk-android/releases)
+## SDK 下载包 [SDK Libs](https://github.com/tencentyun/qcloud-sdk-android/releases)
 
 ## 集成SDK
 
@@ -27,11 +27,16 @@ xstream-1.4.7.jar
 fastjson-1.1.60.android.jar
 
 
-##SDK 需要网络访问相关的一些权限，需要在 AndroidManifest.xml 中增加如下权限声明：
+## SDK 需要网络访问相关的一些权限，需要在 AndroidManifest.xml 中增加如下权限声明：
 
 <uses-permission android:name="android.permission.INTERNET"/>
+
 <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
 
