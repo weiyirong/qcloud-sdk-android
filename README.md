@@ -18,7 +18,7 @@
 
 - cos-xml-android-sdk-1.2.jar
 
-- qcloud-network-android-sdk-1.2.jar
+- qcloud-core-1.2.jar
 
 # SDK 依赖的第三方包:
 
