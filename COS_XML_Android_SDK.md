@@ -26,7 +26,7 @@
  
 - xstream-1.4.7.jar
 
-- fastjson-1.1.60.android.jar
+- fastjson-1.1.62.android.jar
 
 SDK 需要网络、存储等相关的一些访问权限，需要在 AndroidManifest.xml 中增加如下权限声明：
 ```html
