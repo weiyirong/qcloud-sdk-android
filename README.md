@@ -26,7 +26,7 @@ xstream-1.4.7.jar
 
 fastjson-1.1.60.android.jar
 
-SDK 需要网络访问相关的一些权限，需要在 AndroidManifest.xml 中增加如下权限声明：
+SDK 需要网络访问相关的一些权限，需要在 AndroidManifest.xml 中增加如下权限声明:
 11
 <uses-permission android:name="android.permission.INTERNET"/>
 <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
