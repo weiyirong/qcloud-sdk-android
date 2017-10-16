@@ -9,7 +9,7 @@
 
 # SDK API 说明文档，请查阅 [SDK API Document](https://github.com/tencentyun/qcloud-sdk-android/blob/master/COS_XML_Android_SDK.md).
 
-# SDK 变更说明， 请查阅 [SDK Chanage Documnet](https://github.com/tencentyun/qcloud-sdk-android/blob/master/CHANGELOG.md).
+# SDK 变更说明， 请查阅 [SDK Change Documnet](https://github.com/tencentyun/qcloud-sdk-android/blob/master/CHANGELOG.md).
 
 # SDK 下载包 [SDK Libs](https://github.com/tencentyun/qcloud-sdk-android/releases).
 
