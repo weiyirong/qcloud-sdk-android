@@ -1,0 +1,33 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.tencent.qcloud.core.network">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application android:allowBackup="true" android:label="@string/app_name"
+        android:supportsRtl="true">
+
+        <meta-data
+            android:name="com.tencent.qcloud.appid"
+            android:value="myappid" />
+
+        <meta-data
+            android:name="com.tencent.qcloud.region"
+            android:value="myregion" />
+
+        <meta-data
+            android:name="com.tencent.qcloud.secretid"
+            android:value="mysecretid" />
+
+        <meta-data
+            android:name="com.tencent.qcloud.secretkey"
+            android:value="mysecretkey" />
+
+        <meta-data
+            android:name="com.tencent.qcloud.somekey"
+            android:value="somevalue" />
+
+    </application>
+
+</manifest>
