@@ -39,10 +39,6 @@ public class UpdateCredentialTest {
     @Before public void setUp() {
 
         countDownLatch = new CountDownLatch(4);
-//        localSessionCredentialProvider = new LocalSessionCredentialProvider(new SessionCredential("AKIDgAWeYF6vueARTGI7B0aw3wZx61h9xK3Y", "PaWEhwxjGXYKq68wVptiJfmeHfnfIfme",
-//                "6b6f5c4038e760f1b3d66797b1fbd6e4de1aeef23", 1504274278));
-//        CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig(appid,region);
-//        cosXmlService = new CosXmlService(InstrumentationRegistry.getContext(), cosXmlServiceConfig, localSessionCredentialProvider);
 
     }
 

@@ -20,9 +20,10 @@ public class QBaseServe {
     public  String bucket = "xy2";
     public  String appid = "1253653367";
     public  String region = "cn-south";
-//    public  String bucket = "xy2";
-//    public  String appid = "1254389479";
-//    public  String region = "cn-south";
+    public  String secretId = "xxxxx";
+    public  String secretKey = "xxxxx";
+    public  long secretKeyDuration = 600;
+
     public  CosXmlService cosXmlService;
     private static QBaseServe instance;
     private QBaseServe(Context context){
@@ -34,10 +35,7 @@ public class QBaseServe {
                 .build();
 
         cosXmlService = new CosXmlService(context,cosXmlServiceConfig,
-                new LocalCredentialProvider("AKIDPiqmW3qcgXVSKN8jngPzRhvxzYyDL5qP","EH8oHoLgpmJmBQUM1Uoywjmv7EFzd5OJ",600));
-//
-//        cosXmlService = new CosXmlService(context,cosXmlServiceConfig,
-//                new LocalCredentialProvider("AKID2wfIqDeYuQq5B7alXAeO3Xq23xldbwKW","9C5nJfqws02tZ8VhhkfQ5ZszwhGeszvg",600));
+                new LocalCredentialProvider(secretId,secretKey,secretKeyDuration));
     }
 
     public static QBaseServe getInstance(Context context){
