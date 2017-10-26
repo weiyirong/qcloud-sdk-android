@@ -10,7 +10,7 @@ import com.tencent.cos.xml.model.tag.DeleteObject;
 import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
 import com.tencent.qcloud.core.network.QCloudRequestPriority;
 import com.tencent.qcloud.core.network.action.QCloudBodyMd5Action;
-import com.tencent.qcloud.core.network.request.serializer.RequestXmlBodySerializer;
+import com.tencent.cos.xml.model.RequestXmlBodySerializer;
 
 
 import java.util.ArrayList;

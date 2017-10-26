@@ -1,8 +1,9 @@
-package com.tencent.qcloud.core.network.request.serializer;
+package com.tencent.cos.xml.model;
 
-import com.tencent.qcloud.core.network.annotation.SequenceFieldKeySorter;
 import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
 import com.tencent.qcloud.core.network.exception.QCloudClientException;
+import com.tencent.qcloud.core.network.request.serializer.RequestBodySerializer;
+import com.tencent.qcloud.core.network.request.serializer.RequestStringSerializer;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.reflection.FieldDictionary;
 import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider;

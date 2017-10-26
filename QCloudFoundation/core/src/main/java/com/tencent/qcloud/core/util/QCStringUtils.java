@@ -10,22 +10,18 @@ import java.nio.charset.Charset;
 public class QCStringUtils {
 
     public static boolean isEmpty(CharSequence str) {
-        if (str == null || str.length() == 0)
-            return true;
-        else
-            return false;
+        return str == null || str.length() == 0;
     }
 
     public static boolean equals(CharSequence cs1, CharSequence cs2) {
-        return cs1 == cs2 ? true :
-                (cs1 != null && cs2 != null ?
+        return cs1 == cs2 ||
+                ((cs1 != null && cs2 != null) &&
                         (cs1 instanceof String && cs2 instanceof String ?
                                 cs1.equals(cs2) : regionMatches(cs1, false, 0, cs2,
-                                0, Math.max(cs1.length(), cs2.length())))
-                        : false);
+                                0, Math.max(cs1.length(), cs2.length()))));
     }
 
-    public static boolean regionMatches(CharSequence cs, boolean ignoreCase, int thisStart,
+    static boolean regionMatches(CharSequence cs, boolean ignoreCase, int thisStart,
                                         CharSequence substring, int start, int length) {
         if (cs instanceof String && substring instanceof String) {
             return ((String) cs).regionMatches(ignoreCase, thisStart, (String) substring, start, length);

@@ -1,6 +1,7 @@
 package com.tencent.qcloud.core.util;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -12,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -81,6 +83,21 @@ public class QCHttpParameterUtils {
             first = false;
         }
         return source.toString();
+    }
+
+    // 先url encode编码，然后转化为小写，最后进行排序
+    public static Map<String, String> letterDownSort(Map<String, String> keyValues, Set<String> keys)  {
+        Map<String, String> sortedMap = new TreeMap<>();
+        for (String key : keys) {
+            String value = keyValues.get(key);
+            if (!TextUtils.isEmpty(value)) { // 如果不为空
+                key = QCHttpParameterUtils.urlEncodeString(key).toLowerCase();
+                value = QCHttpParameterUtils.urlEncodeString(value).toLowerCase();
+                sortedMap.put(key, value);
+
+            }
+        }
+        return sortedMap;
     }
 
     public static String queryStringForKeys(HttpUrl httpUrl, Set<String> keys, Set<String> realKeys) {

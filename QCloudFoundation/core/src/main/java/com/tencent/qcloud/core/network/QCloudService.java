@@ -6,6 +6,7 @@ import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.network.action.QCloudSignatureAction;
 import com.tencent.qcloud.core.network.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.network.exception.QCloudClientException;
+import com.tencent.qcloud.core.network.request.serializer.RequestStreamBodySerializer;
 import com.tencent.qcloud.core.util.QCStringUtils;
 
 /**
@@ -25,7 +26,7 @@ public final class QCloudService {
     private final QCloudServiceConfig serviceConfig;
 
     /**
-     *
+     * credential provider
      */
     private final QCloudCredentialProvider credentialProvider;
 
@@ -34,14 +35,21 @@ public final class QCloudService {
      */
     private final QCloudMetadata metadata;
 
+    /**
+     * app context
+     */
+    private final Context context;
+
     public static final class Builder {
         private QCloudServiceConfig serviceConfig;
         private QCloudMetadata metadata;
         private QCloudCredentialProvider credentialProvider;
+        private Context context;
 
         public Builder(Context context) {
             metadata = QCloudMetadata.with(context);
             QCloudLogger.setUp(context);
+            this.context = context.getApplicationContext();
         }
 
         public Builder serviceConfig(QCloudServiceConfig serviceConfig) {
@@ -70,6 +78,7 @@ public final class QCloudService {
         this.metadata = builder.metadata;
         this.serviceConfig = builder.serviceConfig;
         this.credentialProvider = builder.credentialProvider;
+        this.context = builder.context;
 
         this.requestManager = new QCloudRequestManager(serviceConfig);
     }
@@ -123,6 +132,11 @@ public final class QCloudService {
 
             if (request.signSourceProvider != null) {
                 request.requestActions.add(new QCloudSignatureAction(credentialProvider, request.getSignerType()));
+            }
+
+            if (request.requestOriginBuilder.requestBodySerializer instanceof RequestStreamBodySerializer) {
+                RequestStreamBodySerializer serializer = (RequestStreamBodySerializer) request.requestOriginBuilder.requestBodySerializer;
+                serializer.setTmpFileDir(context.getExternalCacheDir());
             }
 
             request.setBuildSuccess();

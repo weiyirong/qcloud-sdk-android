@@ -1,7 +1,6 @@
 package com.tencent.cos.xml.model;
 
 import com.tencent.qcloud.core.network.QCloudResult;
-import com.tencent.qcloud.core.network.annotation.SequenceFieldKeySorter;
 import com.tencent.qcloud.core.network.exception.QCloudClientException;
 import com.tencent.qcloud.core.network.response.serializer.ResponseBodySerializer;
 import com.tencent.qcloud.core.network.response.serializer.ResponseHelper;

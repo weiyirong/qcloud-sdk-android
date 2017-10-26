@@ -156,6 +156,9 @@ public abstract class CosXmlRequest<T extends QCloudResult> extends QCloudHttpRe
         checkParameters();
         requestOriginBuilder.scheme(CosXmlServiceConfig.getInstance().getScheme());
         requestOriginBuilder.hostAddFront(CosXmlServiceConfig.getInstance().getHttpHost());
+        if(signSourceProvider == null){
+            setSign(2 * 60);
+        }
     }
 
     protected abstract void checkParameters() throws CosXmlClientException;

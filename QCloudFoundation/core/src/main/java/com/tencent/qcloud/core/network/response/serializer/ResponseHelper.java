@@ -3,8 +3,6 @@ package com.tencent.qcloud.core.network.response.serializer;
 import com.tencent.qcloud.core.network.QCloudResult;
 import com.tencent.qcloud.core.network.exception.QCloudClientException;
 
-import java.util.Locale;
-
 import okhttp3.Response;
 
 /**
@@ -14,12 +12,6 @@ import okhttp3.Response;
  */
 
 public class ResponseHelper {
-    public static QCloudResult noBodyResult(Response response) {
-        QCloudResult result = new QCloudResult(response.code(), response.message());
-        result.setHeaders(response.headers().toMultimap());
-
-        return result;
-    }
 
     public static <T extends QCloudResult> T noBodyResult(Class<T> cls, Response response) throws QCloudClientException {
         T result;

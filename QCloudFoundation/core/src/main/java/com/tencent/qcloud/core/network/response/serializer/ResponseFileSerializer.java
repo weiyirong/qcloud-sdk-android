@@ -76,8 +76,6 @@ public class ResponseFileSerializer implements ResponseBodySerializer {
                 fileOutputStream.flush();
 
                 return ResponseHelper.noBodyResult(cls, response);
-            } catch (FileNotFoundException e) {
-                throw new QCloudClientException("local file not found", e);
             } catch (IOException e) {
                 throw new QCloudClientException("write local file error", e);
             } finally {

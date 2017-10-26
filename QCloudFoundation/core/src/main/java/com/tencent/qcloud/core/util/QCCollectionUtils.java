@@ -1,13 +1,10 @@
 package com.tencent.qcloud.core.util;
 
-import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -16,7 +13,7 @@ import java.util.TreeSet;
 
 public class QCCollectionUtils {
 
-    public static String joinSemicolon(Set<String> values) {
+    public static String sortAndJoinSemicolon(Set<String> values) {
 
         if (values == null) {
             return "";
@@ -61,31 +58,5 @@ public class QCCollectionUtils {
         }
 
         return null;
-    }
-
-
-    // 先url encode编码，然后转化为小写，最后进行排序
-    public static Map<String, String> letterDownSort(Map<String, String> keyValues, Set<String> keys)  {
-        Map<String, String> sortedMap = new TreeMap<>();
-        for (String key : keys) {
-            String value = keyValues.get(key);
-            if (!TextUtils.isEmpty(value)) { // 如果不为空
-                key = QCHttpParameterUtils.urlEncodeString(key).toLowerCase();
-                value = QCHttpParameterUtils.urlEncodeString(value).toLowerCase();
-                sortedMap.put(key, value);
-
-            }
-        }
-        return sortedMap;
-    }
-
-    public static String map2String(Map<String, String> keyValues) {
-
-        Uri.Builder builder = new Uri.Builder();
-        for (Map.Entry<String, String> entry : keyValues.entrySet()) {
-            builder.appendQueryParameter(entry.getKey(), entry.getValue());
-        }
-
-        return builder.build().getQuery();
     }
 }

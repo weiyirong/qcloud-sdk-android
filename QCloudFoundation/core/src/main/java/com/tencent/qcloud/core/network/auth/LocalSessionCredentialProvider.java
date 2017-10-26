@@ -34,12 +34,15 @@ public class LocalSessionCredentialProvider extends BasicLifecycleCredentialProv
     private String secretKey;
     private String appid;
     private String userAgent;
+    private String region;
 
-    public LocalSessionCredentialProvider(String secretId, String secretKey, String appid, String userAgent) {
+    public LocalSessionCredentialProvider(String secretId, String secretKey, String appid, String region,
+                                          String userAgent) {
         this.secretId = secretId;
         this.secretKey = secretKey;
         this.appid = appid;
         this.userAgent = userAgent;
+        this.region = region;
     }
 
     @Override
@@ -83,8 +86,8 @@ public class LocalSessionCredentialProvider extends BasicLifecycleCredentialProv
         TreeMap<String, Object> params = new TreeMap<String, Object>();
 
         String policy = String.format("{\"statement\": [{\"action\": [\"name/cos:*\"],\"effect\": \"allow\"," +
-                        "\"resource\":[\"qcs::cos:cn-south:uid/%s:prefix//%s/*\"]}],\"version\": \"2.0\"}",
-                appid, appid);
+                        "\"resource\":[\"qcs::cos:%s:uid/%s:prefix//%s/*\"]}],\"version\": \"2.0\"}",
+                region, appid, appid);
         params.put("policy", policy);
         params.put("name", "Rabbitliu");
         params.put("Action", "GetFederationToken");

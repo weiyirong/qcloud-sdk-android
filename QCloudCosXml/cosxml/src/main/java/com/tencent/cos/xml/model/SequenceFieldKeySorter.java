@@ -1,4 +1,4 @@
-package com.tencent.qcloud.core.network.annotation;
+package com.tencent.cos.xml.model;
 
 import com.thoughtworks.xstream.converters.reflection.FieldKey;
 import com.thoughtworks.xstream.converters.reflection.FieldKeySorter;

@@ -207,7 +207,8 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
         stringToSign.append("\n");
 
         // 追加 sha1Hash(formatString)
-        String formatStringSha1 = new String(QCHexUtils.encodeHex(QCDigestUtils.sha1(formatString.toString())));
+        String formatStringSha1 = QCHexUtils.encodeHexString(QCDigestUtils.digest(formatString.toString(),
+                QCDigestUtils.DIGEST_ALGORITHM_SHA1));
         stringToSign.append(formatStringSha1);
         stringToSign.append("\n");
 
@@ -216,11 +217,11 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
 
 
     public String getRealHeaderList() {
-        return QCCollectionUtils.joinSemicolon(realSignHeader);
+        return QCCollectionUtils.sortAndJoinSemicolon(realSignHeader);
     }
 
     public String getRealParameterList() {
-        return QCCollectionUtils.joinSemicolon(realSignParas);
+        return QCCollectionUtils.sortAndJoinSemicolon(realSignParas);
     }
 
     public String getSignTime() {

@@ -9,7 +9,6 @@ import com.tencent.qcloud.core.network.ContentRange;
 import com.tencent.qcloud.core.network.Range;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -84,8 +83,6 @@ public class ResponseFilePartSerializer implements ResponseBodySerializer {
                 //fileOutputStream.flush();
                 return ResponseHelper.noBodyResult(cls, response);
 
-            } catch (FileNotFoundException e) {
-                throw new QCloudClientException("local file not found", e);
             } catch (IOException e) {
                 throw new QCloudClientException("write local file error", e);
             } finally {

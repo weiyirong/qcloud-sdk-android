@@ -28,21 +28,21 @@ public class QCJsonUtils {
     }
 
     public static String serialize(Object jsonObject) {
-        if (QCCompatibilityUtils.hasFastJsonClasspath()) {
-            return JSON.toJSONString(jsonObject);
-        } else if (QCCompatibilityUtils.hasGsonClasspath()) {
+        if (QCCompatibilityUtils.hasGsonClasspath()) {
             return new Gson().toJson(jsonObject);
-        }  else {
+        } else if (QCCompatibilityUtils.hasFastJsonClasspath()) {
+            return JSON.toJSONString(jsonObject);
+        } else {
             throw new RuntimeException("could not find gson or fastjson in classpath");
         }
     }
 
     public static Object deSerialize(String json, Class cls) {
-        if (QCCompatibilityUtils.hasFastJsonClasspath()) {
-            return JSON.parseObject(json, cls);
-        } else if (QCCompatibilityUtils.hasGsonClasspath()) {
+        if (QCCompatibilityUtils.hasGsonClasspath()) {
             return new Gson().fromJson(json, cls);
-        }  else {
+        } else if (QCCompatibilityUtils.hasFastJsonClasspath()) {
+            return JSON.parseObject(json, cls);
+        } else {
             throw new RuntimeException("could not find gson or fastjson in classpath");
         }
     }

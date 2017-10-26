@@ -1,4 +1,4 @@
-package com.tencent.qcloud.core.network.annotation;
+package com.tencent.cos.xml.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

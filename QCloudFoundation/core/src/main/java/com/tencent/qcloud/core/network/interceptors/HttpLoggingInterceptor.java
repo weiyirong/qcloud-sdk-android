@@ -195,7 +195,7 @@ public final class HttpLoggingInterceptor implements Interceptor {
                 logger.log("--> END " + request.method());
             } else if (bodyEncoded(request.headers())) {
                 logger.log("--> END " + request.method() + " (encoded body omitted)");
-            } else {
+            } else if (outputBodyContent(requestBody.contentType(), requestBody.contentLength())) {
                 Buffer buffer = new Buffer();
                 requestBody.writeTo(buffer);
 
@@ -206,7 +206,7 @@ public final class HttpLoggingInterceptor implements Interceptor {
                 }
 
                 logger.log("");
-                if (isPlaintext(buffer) && outputBodyContent(contentType, requestBody.contentLength())) {
+                if (isPlaintext(buffer)) {
                     logger.log(buffer.readString(charset));
                     logger.log("--> END " + request.method()
                             + " (" + requestBody.contentLength() + "-byte body)");
@@ -284,7 +284,7 @@ public final class HttpLoggingInterceptor implements Interceptor {
     }
 
     private boolean outputBodyContent(MediaType contentType, long contentLength) {
-        return contentLength < 100 * 1024;
+        return contentLength < 2 * 1024;
     }
 
     /**

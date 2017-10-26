@@ -42,8 +42,9 @@ public class FileRequestBody extends RequestBody {
             offset = 0;
         }
         this.offset = offset;
-        if(length < 0){
-            length = file.length();
+        long fileLen = file.length();
+        if(length < 0 || length > fileLen){
+            length = fileLen;
         }
         this.length = length;
     }
@@ -82,6 +83,8 @@ public class FileRequestBody extends RequestBody {
                             progressListener.onProgress(all - remain, all);
                         }
                     }
+                } else {
+                    break;
                 }
                 bufferedSink.flush();
             }
