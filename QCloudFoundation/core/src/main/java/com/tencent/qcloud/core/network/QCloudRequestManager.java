@@ -49,8 +49,8 @@ public final class QCloudRequestManager {
         int httpWriteTimeout = config.socketTimeout;
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                .followRedirects(false)
-                .followSslRedirects(false)
+                .followRedirects(true)
+                .followSslRedirects(true)
                 .cache(null)
                 .hostnameVerifier(new HostnameVerifier() {
                     @Override
