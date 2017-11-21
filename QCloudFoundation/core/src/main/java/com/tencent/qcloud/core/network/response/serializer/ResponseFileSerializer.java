@@ -49,7 +49,11 @@ public class ResponseFileSerializer implements ResponseBodySerializer {
         long hasRead = 0;
         long max = 0;
         if (contentRange != null) {
+            //206
             max = contentRange.getEnd() - contentRange.getStart() + 1;
+        }else {
+            //200
+            max = response.body().contentLength();
         }
 
         File downloadFilePath = new File(downloadPath);
