@@ -22,12 +22,12 @@ public class CosXmlClientException extends QCloudClientException {
         super(throwable);
     }
 
-    @Override
-    public String toString(){
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        this.printStackTrace(printWriter);
-        return stringWriter.toString();
-    }
+//    @Override
+//    public String toString(){
+//        StringWriter stringWriter = new StringWriter();
+//        PrintWriter printWriter = new PrintWriter(stringWriter);
+//        this.printStackTrace(printWriter);
+//        return stringWriter.toString();
+//    }
 
 }
