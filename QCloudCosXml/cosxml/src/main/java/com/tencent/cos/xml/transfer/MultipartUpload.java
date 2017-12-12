@@ -283,7 +283,7 @@ public class MultipartUpload {
             partStruct.offset = (i - 1) * sliceSize;
             partStruct.sliceSize = (int) (fileLength - partStruct.offset);
             partStructMap.put(i, partStruct);
-            UPLOAD_PART_COUNT.set(count);
+            UPLOAD_PART_COUNT.set(i);
         }
     }
 
