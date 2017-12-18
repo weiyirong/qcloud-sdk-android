@@ -42,7 +42,7 @@ final public class UploadPartRequest extends CosXmlRequest {
     private QCloudProgressListener progressListener;
 
     public UploadPartRequest(String bucket, String cosPath, int partNumber, String srcPath, String uploadId){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.partNumber = partNumber;
         this.srcPath = srcPath;
@@ -55,7 +55,7 @@ final public class UploadPartRequest extends CosXmlRequest {
 
     public UploadPartRequest(String bucket, String cosPath, int partNumber, String srcPath, long offset, long length,
                              String uploadId){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.partNumber = partNumber;
         setSrcPath(srcPath, offset, length);
@@ -65,7 +65,7 @@ final public class UploadPartRequest extends CosXmlRequest {
     }
 
     public UploadPartRequest(String bucket, String cosPath,int partNumber, byte[] data, String uploadId){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.partNumber = partNumber;
         this.data = data;
@@ -77,7 +77,7 @@ final public class UploadPartRequest extends CosXmlRequest {
     }
 
     public UploadPartRequest(String bucket, String cosPath, int partNumber, InputStream inputStream, long sendLength, String uploadId){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.partNumber = partNumber;
         this.inputStream = inputStream;

@@ -29,7 +29,7 @@ final public class ListPartsRequest extends CosXmlRequest {
     private String cosPath;
 
     public ListPartsRequest(String bucket, String cosPath, String uploadId){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.uploadId = uploadId;
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;

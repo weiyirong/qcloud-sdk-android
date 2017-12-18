@@ -39,7 +39,7 @@ final public class PutObjectRequest extends CosXmlRequest {
     private QCloudProgressListener progressListener;
 
     public PutObjectRequest(String bucket, String cosPath, String srcPath){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.srcPath = srcPath;
         contentType = QCloudNetWorkConstants.ContentType.TEXT_PLAIN;
@@ -47,7 +47,7 @@ final public class PutObjectRequest extends CosXmlRequest {
     }
 
     public PutObjectRequest(String bucket, String cosPath, byte[] data){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.data = data;
         contentType = QCloudNetWorkConstants.ContentType.TEXT_PLAIN;
@@ -55,7 +55,7 @@ final public class PutObjectRequest extends CosXmlRequest {
     }
 
     public PutObjectRequest(String bucket, String cosPath, InputStream inputStream, long sendLength){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.inputStream = inputStream;
         this.fileLength = sendLength;

@@ -37,12 +37,22 @@ final public class GetObjectRequest extends CosXmlRequest {
     private QCloudProgressListener progressListener;
     private String savePath; //保留本地文件夹路径
 
+    private String downloadUrl;
+    private String host;
+
     public GetObjectRequest(String bucket, String cosPath, String savePath){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
         this.savePath = savePath;
+    }
+
+    public GetObjectRequest(String downloadUrl, String savePath){
+        this.downloadUrl = downloadUrl;
+        this.savePath = savePath;
+        parseDownloadUrl();
+        setBucket(null);
     }
 
     @Override
@@ -57,7 +67,11 @@ final public class GetObjectRequest extends CosXmlRequest {
         setRequestPath();
         requestOriginBuilder.pathAddRear(requestPath);
 
-        requestOriginBuilder.hostAddFront(bucket);
+        if(downloadUrl != null){
+            requestOriginBuilder.host(host);
+        }else {
+            requestOriginBuilder.hostAddFront(bucket);
+        }
 
         setRequestQueryParams();
         if(requestQueryParams.size() > 0){
@@ -74,7 +88,6 @@ final public class GetObjectRequest extends CosXmlRequest {
             }
         }
 
-
         if(range != null){
             ResponseFilePartSerializer responseFileSerializer  = new ResponseFilePartSerializer(getDownloadPath(),
                     range, GetObjectResult.class);
@@ -86,6 +99,12 @@ final public class GetObjectRequest extends CosXmlRequest {
             responseBodySerializer = responseFileSerializer;
         }
 
+    }
+
+    @Override
+    public void setBucket(String bucket) {
+       if(downloadUrl != null)return;
+       else super.setBucket(bucket);
     }
 
     @Override
@@ -112,8 +131,8 @@ final public class GetObjectRequest extends CosXmlRequest {
 
     @Override
     protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
+        if(bucket == null && downloadUrl== null){
+            throw new CosXmlClientException("bucket or url must not be null");
         }
         if(cosPath == null){
             throw new CosXmlClientException("cosPath must not be null");
@@ -377,4 +396,26 @@ final public class GetObjectRequest extends CosXmlRequest {
         }
         return path;
     }
+
+    private void parseDownloadUrl(){
+        if(downloadUrl == null)return;
+        int index = downloadUrl.indexOf("://");
+        int last = downloadUrl.indexOf("/", index + 3);
+        host = downloadUrl.substring(index + 3, last);
+        index = last;
+        last = downloadUrl.indexOf("?", index);
+        cosPath = downloadUrl.substring(index, last == -1? downloadUrl.length() : last);
+        if(last > 0){
+            String[] queryArray = downloadUrl.substring(last + 1).split("&");
+            for(String str : queryArray){
+                String[] keyAndValue = str.split("=");
+                if(keyAndValue.length == 2){
+                    requestQueryParams.put(keyAndValue[0], keyAndValue[1]);
+                }else if(keyAndValue[0].length() > 0){
+                    requestQueryParams.put(keyAndValue[0], null);
+                }
+            }
+        }
+    }
+
 }

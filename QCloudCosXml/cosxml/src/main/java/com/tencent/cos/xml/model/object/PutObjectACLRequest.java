@@ -28,7 +28,7 @@ import java.util.Map;
 final public class PutObjectACLRequest extends CosXmlRequest {
     private String cosPath;
     public PutObjectACLRequest(String bucket, String cosPath){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         contentType = QCloudNetWorkConstants.ContentType.XML;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);

@@ -39,7 +39,7 @@ final public class GetBucketRequest extends CosXmlRequest {
     private String maxKeys = "1000";
 
     public GetBucketRequest(String bucket){
-        this.bucket = bucket;
+        setBucket(bucket);
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }

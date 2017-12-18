@@ -1,38 +1,40 @@
 package com.tencent.cos.xml.model.bucket;
 
-
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.model.CosXmlResultListener;
+import com.tencent.cos.xml.model.RequestXmlBodySerializer;
 import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
+import com.tencent.cos.xml.model.tag.VersioningConfiguration;
 import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
 import com.tencent.qcloud.core.network.QCloudRequestPriority;
-
 
 import java.util.Map;
 
 /**
+ * Created by bradyxiao on 2017/11/6.
  * <p>
- * 删除Bucket。
+ *     Put Bucket Versioning 接口实现启用或者暂停存储桶的版本控制功能。
  * </p>
- * <p>
- * 删除的Bucket必须是一个空的Bucket，否则会删除失败。
- * </p>
+ * <H1>一旦开启，无法关闭，是不可逆操作</H1>
  *
- * @see com.tencent.cos.xml.CosXml#deleteBucket(DeleteBucketRequest)
- * @see com.tencent.cos.xml.CosXml#deleteBucketAsync(DeleteBucketRequest, CosXmlResultListener)
+ *  @see com.tencent.cos.xml.CosXml#putBucketVersioning(PutBucketVersioningRequest)
+ * @see com.tencent.cos.xml.CosXml#putBucketVersionAsync(PutBucketVersioningRequest, CosXmlResultListener)
  */
-final public class DeleteBucketRequest extends CosXmlRequest {
 
+public class PutBucketVersioningRequest extends CosXmlRequest {
 
-    public DeleteBucketRequest(String bucket) {
+    private VersioningConfiguration versioningConfiguration;
+
+    public PutBucketVersioningRequest(String bucket){
         setBucket(bucket);
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+        versioningConfiguration = new VersioningConfiguration();
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
+    protected void build() throws CosXmlClientException{
         super.build();
 
         priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
@@ -60,14 +62,24 @@ final public class DeleteBucketRequest extends CosXmlRequest {
             }
         }
 
+        requestOriginBuilder.body(new RequestXmlBodySerializer(versioningConfiguration));
 
-        responseBodySerializer = new ResponseXmlS3BodySerializer(DeleteBucketResult.class);
+        responseBodySerializer = new ResponseXmlS3BodySerializer(PutBucketVersioningResult.class);
+    }
 
+    @Override
+    protected void setRequestMethod() {
+        requestMethod = QCloudNetWorkConstants.RequestMethod.PUT;
+    }
+
+    @Override
+    protected void setRequestPath() {
+        requestPath = "/";
     }
 
     @Override
     protected void setRequestQueryParams() {
-
+        requestQueryParams.put("versioning", null);
     }
 
     @Override
@@ -77,13 +89,12 @@ final public class DeleteBucketRequest extends CosXmlRequest {
         }
     }
 
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.DELETE ;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        requestPath = "/";
+    /** 版本是否开启，true:开启，false:不开启*/
+    public void setEnableVersion(boolean isEnable){
+        if(isEnable){
+            versioningConfiguration.status = "Enabled";
+        }else {
+            versioningConfiguration.status = "Suspended";
+        }
     }
 }

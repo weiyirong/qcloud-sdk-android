@@ -34,7 +34,7 @@ final public class OptionObjectRequest extends CosXmlRequest {
     private String accessControlHeaders;
     private String cosPath;
     public OptionObjectRequest(String bucket, String cosPath, String origin, String accessControlMethod){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.origin = origin;
         this.accessControlMethod = accessControlMethod;

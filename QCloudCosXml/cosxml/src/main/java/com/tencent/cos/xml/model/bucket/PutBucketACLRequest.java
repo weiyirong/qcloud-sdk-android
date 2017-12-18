@@ -27,8 +27,7 @@ import java.util.Map;
 final public class PutBucketACLRequest extends CosXmlRequest {
 
     public PutBucketACLRequest(String bucket){
-
-        this.bucket = bucket;
+        setBucket(bucket);
         contentType = QCloudNetWorkConstants.ContentType.XML;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }
@@ -44,6 +43,7 @@ final public class PutBucketACLRequest extends CosXmlRequest {
 
         setRequestPath();
         requestOriginBuilder.pathAddRear(requestPath);
+
 
         requestOriginBuilder.hostAddFront(bucket);
 

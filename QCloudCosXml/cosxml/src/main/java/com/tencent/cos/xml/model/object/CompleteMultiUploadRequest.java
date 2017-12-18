@@ -44,7 +44,7 @@ final public class CompleteMultiUploadRequest extends CosXmlRequest<CompleteMult
     private String uploadId;
     private String cosPath;
     public CompleteMultiUploadRequest(String bucket, String cosPath, String uploadId, Map<Integer,String> partNumberAndETag ){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.uploadId = uploadId;
         contentType = QCloudNetWorkConstants.ContentType.XML;

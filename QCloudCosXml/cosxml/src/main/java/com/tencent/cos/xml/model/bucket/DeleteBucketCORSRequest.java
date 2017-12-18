@@ -23,7 +23,7 @@ final public class DeleteBucketCORSRequest extends CosXmlRequest {
 
 
     public DeleteBucketCORSRequest(String bucket) {
-        this.bucket = bucket;
+        setBucket(bucket);
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }

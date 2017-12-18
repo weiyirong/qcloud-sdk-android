@@ -31,7 +31,7 @@ final public class AbortMultiUploadRequest extends CosXmlRequest<AbortMultiUploa
     // cos path
     private String cosPath;
     public AbortMultiUploadRequest(String bucket, String cosPath, String uploadId){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.uploadId = uploadId;
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;

@@ -51,7 +51,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
     private QCloudProgressListener progressListener;
 
     public AppendObjectRequest(String bucket, String cosPath, String srcPath, long position){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.srcPath = srcPath;
         this.position = position;
@@ -60,7 +60,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
     }
 
     public AppendObjectRequest(String bucket, String cosPath, byte[] data, long position){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.data = data;
         this.position = position;
@@ -69,7 +69,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
     }
 
     public AppendObjectRequest(String bucket, String cosPath, InputStream inputStream, long sendLength, long position){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.inputStream = inputStream;
         this.fileLength = sendLength;

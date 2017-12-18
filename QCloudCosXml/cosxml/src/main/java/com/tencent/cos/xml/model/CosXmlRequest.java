@@ -60,6 +60,9 @@ public abstract class CosXmlRequest<T extends QCloudResult> extends QCloudHttpRe
      * @param bucket, bucket for cos.<a href= "https://www.qcloud.com/document/product/436/6225"></a>
      */
     public void setBucket(String bucket) {
+        if(bucket.endsWith("-" + CosXmlServiceConfig.SUFFIX)){
+            bucket = bucket.substring(0, bucket.lastIndexOf("-"));
+        }
         this.bucket = bucket;
     }
 

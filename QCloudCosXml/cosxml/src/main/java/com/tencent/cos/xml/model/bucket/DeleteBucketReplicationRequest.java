@@ -1,5 +1,4 @@
-package com.tencent.cos.xml.model.object;
-
+package com.tencent.cos.xml.model.bucket;
 
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.CosXmlRequest;
@@ -8,28 +7,27 @@ import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
 import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
 import com.tencent.qcloud.core.network.QCloudRequestPriority;
 
-
 import java.util.Map;
 
 /**
- * <p>
- * 删除一个Object
- * </p>
+ * Created by bradyxiao on 2017/11/6.
  *
- * @see com.tencent.cos.xml.CosXml#deleteObject(DeleteObjectRequest)
- * @see com.tencent.cos.xml.CosXml#deleteObjectAsync(DeleteObjectRequest, CosXmlResultListener)
+ * <p>实现删除存储桶中用户跨区域复制配置</p>
+ *
+ * @see com.tencent.cos.xml.CosXml#deleteBucketReplication(DeleteBucketReplicationRequest)
+ * @see com.tencent.cos.xml.CosXml#deleteBucketReplicationAsync(DeleteBucketReplicationRequest, CosXmlResultListener)
  */
-final public class DeleteObjectRequest extends CosXmlRequest {
-    private String cosPath;
-    public DeleteObjectRequest(String bucket, String cosPath){
+
+public class DeleteBucketReplicationRequest extends CosXmlRequest {
+
+    public DeleteBucketReplicationRequest(String bucket){
         setBucket(bucket);
-        this.cosPath = cosPath;
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
+        contentType = QCloudNetWorkConstants.ContentType.XML;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
+    protected void build() throws CosXmlClientException{
         super.build();
 
         priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
@@ -57,22 +55,7 @@ final public class DeleteObjectRequest extends CosXmlRequest {
             }
         }
 
-        responseBodySerializer = new ResponseXmlS3BodySerializer(DeleteObjectResult.class);
-    }
-
-    @Override
-    protected void setRequestQueryParams() {
-
-    }
-
-    @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-        if(cosPath == null){
-            throw new CosXmlClientException( "cosPath must not be null");
-        }
+        responseBodySerializer = new ResponseXmlS3BodySerializer(DeleteBucketReplicationResult.class);
     }
 
     @Override
@@ -82,24 +65,18 @@ final public class DeleteObjectRequest extends CosXmlRequest {
 
     @Override
     protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
-            }
+        requestPath = "/";
+    }
+
+    @Override
+    protected void setRequestQueryParams() {
+        requestQueryParams.put("replication", null);
+    }
+
+    @Override
+    protected void checkParameters() throws CosXmlClientException {
+        if(bucket == null){
+            throw new CosXmlClientException("bucket must not be null");
         }
-    }
-
-    /**
-     *  set cosPath for object.
-     * @param cosPath
-     */
-    public void setCosPath(String cosPath) {
-        this.cosPath = cosPath;
-    }
-
-    public String getCosPath() {
-        return cosPath;
     }
 }

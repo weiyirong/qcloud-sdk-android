@@ -25,12 +25,15 @@ public class CosXmlServiceConfig  extends QCloudServiceConfig {
 
     final String region;
 
+    public static String SUFFIX;
+
     private CosXmlServiceConfig(Builder builder) {
         super(builder);
 
         appid = builder.appid;
         region = builder.region;
         scheme = builder.scheme;
+        SUFFIX = appid;
     }
 
     public static CosXmlServiceConfig getInstance() {

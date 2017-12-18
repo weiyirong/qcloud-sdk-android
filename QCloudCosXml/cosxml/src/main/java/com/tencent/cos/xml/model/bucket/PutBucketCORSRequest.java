@@ -35,8 +35,7 @@ final public class PutBucketCORSRequest extends CosXmlRequest {
     private CORSConfiguration corsConfiguration;
 
     public PutBucketCORSRequest(String bucket) {
-
-        this.bucket = bucket;
+        setBucket(bucket);
         contentType = QCloudNetWorkConstants.ContentType.XML;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
         corsConfiguration = new CORSConfiguration();

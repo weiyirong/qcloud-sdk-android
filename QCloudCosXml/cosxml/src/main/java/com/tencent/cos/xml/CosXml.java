@@ -8,6 +8,8 @@ import com.tencent.cos.xml.model.bucket.DeleteBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketLifecycleRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketLifecycleResult;
+import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationRequest;
+import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingRequest;
@@ -20,10 +22,14 @@ import com.tencent.cos.xml.model.bucket.GetBucketLifecycleRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLifecycleResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationResult;
+import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketResult;
 import com.tencent.cos.xml.model.bucket.GetBucketTaggingRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketTaggingResult;
+import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
 import com.tencent.cos.xml.model.bucket.HeadBucketResult;
 import com.tencent.cos.xml.model.bucket.ListMultiUploadsRequest;
@@ -34,10 +40,14 @@ import com.tencent.cos.xml.model.bucket.PutBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketCORSResult;
 import com.tencent.cos.xml.model.bucket.PutBucketLifecycleRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketLifecycleResult;
+import com.tencent.cos.xml.model.bucket.PutBucketReplicationRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.PutBucketRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketResult;
 import com.tencent.cos.xml.model.bucket.PutBucketTaggingRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketTaggingResult;
+import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
 import com.tencent.cos.xml.model.object.AbortMultiUploadRequest;
 import com.tencent.cos.xml.model.object.AbortMultiUploadResult;
 import com.tencent.cos.xml.model.object.AppendObjectRequest;
@@ -66,6 +76,8 @@ import com.tencent.cos.xml.model.object.PutObjectACLRequest;
 import com.tencent.cos.xml.model.object.PutObjectACLResult;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 import com.tencent.cos.xml.model.object.PutObjectResult;
+import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
+import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
@@ -507,6 +519,23 @@ public interface CosXml {
     void copyObjectAsync(CopyObjectRequest request, final CosXmlResultListener cosXmlResultListener);
 
 
+    /**
+     * Upload Part Copy Object for cos
+     * synchronous request
+     * @param request, {@link UploadPartCopyRequest}
+     * @return CopyObjectResult, {@link CopyObjectResult}
+     * @throws CosXmlClientException {@link CosXmlClientException}
+     * @throws CosXmlServiceException {@link CosXmlServiceException}
+     */
+    UploadPartCopyResult copyObject(UploadPartCopyRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * asynchronous request
+     * @param request, {@link UploadPartCopyRequest}
+     * @param cosXmlResultListener, {@link CosXmlResultListener}
+     */
+    void copyObjectAsync(UploadPartCopyRequest request,final CosXmlResultListener cosXmlResultListener);
+
     //COS Bucket API
 
     /**
@@ -876,6 +905,106 @@ public interface CosXml {
      */
     void putBucketTaggingAsync(PutBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener);
 
+
+    /**
+     * <p>
+     * 获取指定Bucket的版本控制信息。
+     * </p>
+     *
+     * @param request {@link GetBucketVersioningRequest}
+     * @return GetBucketVersioningResult {@link GetBucketVersioningResult}
+     * @throws CosXmlClientException {@link CosXmlClientException}
+     * @throws CosXmlServiceException {@link CosXmlServiceException}
+     */
+    GetBucketVersioningResult getBucketVersioning(GetBucketVersioningRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * {@link CosXml#getBucketVersioning(GetBucketVersioningRequest)} 的异步接口。
+     *
+     * @param request {@link GetBucketVersioningRequest}
+     * @param cosXmlResultListener {@link CosXmlResultListener}
+     */
+    void getBucketVersioningAsync(GetBucketVersioningRequest request, CosXmlResultListener cosXmlResultListener);
+
+    /**
+     * <p>
+     * 设置指定Bucket的版本控制功能。
+     * </p>
+     *
+     * @param request {@link PutBucketVersioningRequest}
+     * @return PutBucketVersioningResult {@link PutBucketVersioningResult}
+     * @throws CosXmlClientException {@link CosXmlClientException}
+     * @throws CosXmlServiceException {@link CosXmlServiceException}
+     */
+    PutBucketVersioningResult putBucketVersioning(PutBucketVersioningRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * {@link CosXml#putBucketVersioning(PutBucketVersioningRequest)} 的异步接口。
+     *
+     * @param request {@link PutBucketVersioningRequest}
+     * @param cosXmlResultListener {@link CosXmlResultListener}
+     */
+    void putBucketVersionAsync(PutBucketVersioningRequest request, CosXmlResultListener cosXmlResultListener);
+
+    /**
+     * <p>
+     * 获取指定Bucket的跨区域复制配置信息。
+     * </p>
+     *
+     * @param request {@link GetBucketReplicationRequest}
+     * @return GetBucketReplicationResult {@link GetBucketReplicationResult}
+     * @throws CosXmlClientException {@link CosXmlClientException}
+     * @throws CosXmlServiceException {@link CosXmlServiceException}
+     */
+    GetBucketReplicationResult getBucketReplication(GetBucketReplicationRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * {@link CosXml#getBucketReplication(GetBucketReplicationRequest)} 的异步接口。
+     *
+     * @param request {@link GetBucketReplicationRequest}
+     * @param cosXmlResultListener {@link CosXmlResultListener}
+     */
+    void getBucketReplicationAsync(GetBucketReplicationRequest request, CosXmlResultListener cosXmlResultListener);
+
+    /**
+     * <p>
+     * 设置指定Bucket的跨区域复制配置信息。
+     * </p>
+     *
+     * @param request {@link PutBucketReplicationRequest}
+     * @return PutBucketReplicationResult {@link PutBucketReplicationResult}
+     * @throws CosXmlClientException {@link CosXmlClientException}
+     * @throws CosXmlServiceException {@link CosXmlServiceException}
+     */
+    PutBucketReplicationResult putBucketReplication(PutBucketReplicationRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * {@link CosXml#putBucketReplication(PutBucketReplicationRequest)} 的异步接口。
+     *
+     * @param request {@link PutBucketReplicationRequest}
+     * @param cosXmlResultListener {@link CosXmlResultListener}
+     */
+    void putBucketReplicationAsync(PutBucketReplicationRequest request, CosXmlResultListener cosXmlResultListener);
+
+    /**
+     * <p>
+     * 删除指定Bucket的跨区域复制配置信息。
+     * </p>
+     *
+     * @param request {@link DeleteBucketReplicationRequest}
+     * @return DeleteBucketReplicationResult {@link DeleteBucketReplicationResult}
+     * @throws CosXmlClientException {@link CosXmlClientException}
+     * @throws CosXmlServiceException {@link CosXmlServiceException}
+     */
+    DeleteBucketReplicationResult deleteBucketReplication(DeleteBucketReplicationRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * {@link CosXml#deleteBucketReplication(DeleteBucketReplicationRequest)} 的异步接口。
+     *
+     * @param request {@link DeleteBucketReplicationRequest}
+     * @param cosXmlResultListener {@link CosXmlResultListener}
+     */
+    void deleteBucketReplicationAsync(DeleteBucketReplicationRequest request, CosXmlResultListener cosXmlResultListener);
 //    /**
 //     * <p>
 //     * 取消单个请求。

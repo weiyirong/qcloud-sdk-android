@@ -33,7 +33,7 @@ import java.util.Map;
 final public class DeleteMultiObjectRequest extends CosXmlRequest {
     private Delete delete;
     public DeleteMultiObjectRequest(String bucket, List<String> deleteObjectList){
-        this.bucket = bucket;
+        setBucket(bucket);
         delete = new Delete();
         contentType = QCloudNetWorkConstants.ContentType.XML;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);

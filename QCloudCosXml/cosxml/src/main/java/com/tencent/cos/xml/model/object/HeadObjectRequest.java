@@ -20,7 +20,7 @@ import java.util.Map;
 final public class HeadObjectRequest extends CosXmlRequest {
     private String cosPath;
     public HeadObjectRequest(String bucket, String cosPath){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);

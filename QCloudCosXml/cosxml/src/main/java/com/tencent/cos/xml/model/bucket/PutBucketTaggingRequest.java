@@ -31,8 +31,7 @@ final public class PutBucketTaggingRequest extends CosXmlRequest {
     private Tagging tagging;
 
     public PutBucketTaggingRequest(String bucket){
-
-        this.bucket = bucket;
+        setBucket(bucket);
         contentType = QCloudNetWorkConstants.ContentType.XML;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
         tagging = new Tagging();

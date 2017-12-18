@@ -8,11 +8,13 @@ import com.tencent.cos.xml.common.MetaDataDirective;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
+import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
 import com.tencent.qcloud.core.network.QCloudRequestPriority;
 import com.tencent.qcloud.core.network.request.serializer.RequestByteArraySerializer;
 
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +35,7 @@ public class CopyObjectRequest extends CosXmlRequest {
     // cos destination object's cosPath
     private String cosPath;
     public CopyObjectRequest(String bucket, String cosPath, CopySourceStruct copySourceStruct){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         this.copySourceStruct = copySourceStruct;
         contentType = QCloudNetWorkConstants.ContentType.TEXT_PLAIN;
@@ -107,7 +109,11 @@ public class CopyObjectRequest extends CosXmlRequest {
 
         requestOriginBuilder.body(new RequestByteArraySerializer(new byte[0], "text/plain"));
 
-        responseBodySerializer = new ResponseXmlS3BodySerializer(CopyObjectResult.class);
+        if(this instanceof UploadPartCopyRequest){
+            responseBodySerializer = new ResponseXmlS3BodySerializer(UploadPartCopyResult.class);
+        }else {
+            responseBodySerializer = new ResponseXmlS3BodySerializer(CopyObjectResult.class);
+        }
     }
 
     /**
@@ -304,10 +310,10 @@ public class CopyObjectRequest extends CosXmlRequest {
     }
 
     public static class CopySourceStruct{
-         private String appid;
-         private String bucket;
-         private String region;
-         private String cosPath;
+        public String appid;
+        public String bucket;
+        public String region;
+        public String cosPath;
 
         public CopySourceStruct(String appid, String bucket, String region, String cosPath){
             this.appid = appid;
@@ -329,6 +335,11 @@ public class CopyObjectRequest extends CosXmlRequest {
             if(region == null){
                 throw new CosXmlClientException("copy source region must not be null");
             }
+            try {
+                cosPath = URLEncodeUtils.cosPathEncode(cosPath);
+            } catch (UnsupportedEncodingException e) {
+               throw new CosXmlClientException(e);
+            }
         }
 
         @Override
@@ -339,9 +350,13 @@ public class CopyObjectRequest extends CosXmlRequest {
                 }
             }
             StringBuilder copySource = new StringBuilder();
-            copySource.append(bucket).append("-")
-                    .append(appid).append(".")
-                    .append("cos").append(".")
+            if(bucket.endsWith("-" + appid)){
+                copySource.append(bucket).append(".");
+            }else {
+                copySource.append(bucket).append("-")
+                        .append(appid).append(".");
+            }
+            copySource.append("cos").append(".")
                     .append(region).append(".")
                     .append("myqcloud.com")
                     .append(cosPath);

@@ -23,7 +23,7 @@ final public class GetObjectACLRequest extends CosXmlRequest{
 
     private String cosPath;
     public GetObjectACLRequest(String bucket, String cosPath){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);

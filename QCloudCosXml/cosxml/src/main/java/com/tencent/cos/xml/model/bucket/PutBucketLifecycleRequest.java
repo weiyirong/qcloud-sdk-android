@@ -49,8 +49,7 @@ final public class PutBucketLifecycleRequest extends CosXmlRequest {
     private LifecycleConfiguration lifecycleConfiguration;
 
     public PutBucketLifecycleRequest(String bucket){
-
-        this.bucket = bucket;
+        setBucket(bucket);
         contentType = QCloudNetWorkConstants.ContentType.XML;
         requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
         lifecycleConfiguration = new LifecycleConfiguration();

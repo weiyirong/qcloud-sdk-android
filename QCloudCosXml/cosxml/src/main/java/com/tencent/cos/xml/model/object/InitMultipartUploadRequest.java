@@ -31,7 +31,7 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
     private String cosPath;
 
     public InitMultipartUploadRequest(String bucket, String cosPath){
-        this.bucket = bucket;
+        setBucket(bucket);
         this.cosPath = cosPath;
         contentType = QCloudNetWorkConstants.ContentType.MULTIPART_FORM_DATA;
     }
