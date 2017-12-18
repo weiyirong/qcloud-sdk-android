@@ -4,7 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.tencent.qcloud.core.network.BuildConfig;
+import com.tencent.qcloud.core.http.BuildConfig;
 
 /**
  *
