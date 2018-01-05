@@ -312,28 +312,20 @@ public class MultipartUpload {
         if(mInitMultipartUploadRequest != null){
             cosXmlService.cancel(mInitMultipartUploadRequest);
         }
-        mInitMultipartUploadRequest = null;
         if(mListPartsRequest != null){
             cosXmlService.cancel(mListPartsRequest);
         }
-        mListPartsRequest = null;
         if(uploadPartRequestLongMap != null){
             Set<UploadPartRequest> set = uploadPartRequestLongMap.keySet();
             Iterator<UploadPartRequest> iterator = set.iterator();
             while(iterator.hasNext()){
                 cosXmlService.cancel(iterator.next());
             }
-            uploadPartRequestLongMap.clear();
         }
-        uploadPartRequestLongMap = null;
+
         if(mCompleteMultiUploadRequest != null){
             cosXmlService.cancel(mCompleteMultiUploadRequest);
         }
-        mCompleteMultiUploadRequest = null;
-        if(partStructMap != null){
-            partStructMap.clear();
-        }
-        partStructMap = null;
     }
 
     public ResumeData cancel(){

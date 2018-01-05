@@ -335,11 +335,7 @@ public class CopyObjectRequest extends CosXmlRequest {
             if(region == null){
                 throw new CosXmlClientException("copy source region must not be null");
             }
-            try {
-                cosPath = URLEncodeUtils.cosPathEncode(cosPath);
-            } catch (UnsupportedEncodingException e) {
-               throw new CosXmlClientException(e);
-            }
+            cosPath = URLEncodeUtils.cosPathEncode(cosPath);
         }
 
         @Override
