@@ -25,8 +25,8 @@ public class QBaseServe {
     public static String bucket = "androidtest";
     public static String region = "ap-guangzhou";
     public static String appId = "1253960454";   // 请替换成你的app id
-    public static String secretId = "AKIDtgHguxSsaEykZHoIfqtlT1NY0MWTn4B5";  // 请替换成你的secret id
-    public static String secretKey = "rWyGVcXHpCjDOSMaheQSNGyMfstiOAqu";  // 请替换成你的secret key
+    public static String secretId = "XXX";  // 请替换成你的secret id
+    public static String secretKey = "XXX";  // 请替换成你的secret key
 
     public CosXmlService cosXmlService;
     private CosXmlServiceConfig cosXmlServiceConfig;
