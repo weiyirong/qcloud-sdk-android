@@ -66,7 +66,7 @@ public class XmlParser {
                     }else if(tagName.equalsIgnoreCase("Location")){
                         xmlPullParser.next();
                         bucket.location = xmlPullParser.getText();
-                    }else if(tagName.equalsIgnoreCase("CreateDate")){
+                    }else if(tagName.equalsIgnoreCase("CreationDate")){
                         xmlPullParser.next();
                         bucket.createDate = xmlPullParser.getText();
                     }

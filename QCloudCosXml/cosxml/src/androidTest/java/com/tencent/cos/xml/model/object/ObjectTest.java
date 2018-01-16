@@ -85,6 +85,7 @@ public class ObjectTest extends ApplicationTestCase {
         String cosPath = "xml.txt";
         String savePath = Environment.getExternalStorageDirectory().getPath() + "/";
         GetObjectRequest request = new GetObjectRequest(bucket, cosPath, savePath);
+        request.setRange(1);
         request.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {

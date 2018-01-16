@@ -55,6 +55,7 @@ public class GetServiceRequestTest extends ApplicationTestCase {
 
     @Test
     public void testGetService() throws CosXmlServiceException, CosXmlClientException {
+        getServiceRequest.setSign(600, null, null);
         GetServiceResult getServiceResult = QService.getCosXmlClient(getContext()).getService(getServiceRequest);
         Log.d(TAG, getServiceResult.printResult());
     }

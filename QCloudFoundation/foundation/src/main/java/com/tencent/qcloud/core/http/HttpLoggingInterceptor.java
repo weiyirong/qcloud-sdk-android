@@ -195,24 +195,29 @@ final class HttpLoggingInterceptor implements Interceptor {
                 logger.log("--> END " + request.method());
             } else if (bodyEncoded(request.headers())) {
                 logger.log("--> END " + request.method() + " (encoded body omitted)");
-            } else  {
-                Buffer buffer = new Buffer();
-                requestBody.writeTo(buffer);
+            } else {
+                try {
+                    Buffer buffer = new Buffer();
+                    requestBody.writeTo(buffer);
 
-                Charset charset = UTF8;
-                MediaType contentType = requestBody.contentType();
-                if (contentType != null) {
-                    charset = contentType.charset(UTF8);
-                }
+                    Charset charset = UTF8;
+                    MediaType contentType = requestBody.contentType();
+                    if (contentType != null) {
+                        charset = contentType.charset(UTF8);
+                    }
 
-                logger.log("");
-                if (isPlaintext(buffer)) {
-                    logger.log(buffer.readString(charset));
-                    logger.log("--> END " + request.method()
-                            + " (" + requestBody.contentLength() + "-byte body)");
-                } else {
-                    logger.log("--> END " + request.method() + " (binary "
-                            + requestBody.contentLength() + "-byte body omitted)");
+                    logger.log("");
+                    if (isPlaintext(buffer)) {
+                        logger.log(buffer.readString(charset));
+                        logger.log("--> END " + request.method()
+                                + " (" + requestBody.contentLength() + "-byte body)");
+                    } else {
+                        logger.log("--> END " + request.method() + " (binary "
+                                + requestBody.contentLength() + "-byte body omitted)");
+                    }
+                } catch (Exception e) {
+                    // we don't want logger crash.
+                    logger.log("--> END " + request.method());
                 }
             }
         }
@@ -247,36 +252,41 @@ final class HttpLoggingInterceptor implements Interceptor {
             } else if (bodyEncoded(response.headers())) {
                 logger.log("<-- END HTTP (encoded body omitted)");
             } else {
-                BufferedSource source = responseBody.source();
-                source.request(Long.MAX_VALUE); // Buffer the entire body.
-                Buffer buffer = source.buffer();
+                try {
+                    BufferedSource source = responseBody.source();
+                    source.request(Long.MAX_VALUE); // Buffer the entire body.
+                    Buffer buffer = source.buffer();
 
-                Charset charset = UTF8;
-                MediaType contentType = responseBody.contentType();
-                if (contentType != null) {
-                    try {
-                        charset = contentType.charset(UTF8);
-                    } catch (UnsupportedCharsetException e) {
+                    Charset charset = UTF8;
+                    MediaType contentType = responseBody.contentType();
+                    if (contentType != null) {
+                        try {
+                            charset = contentType.charset(UTF8);
+                        } catch (UnsupportedCharsetException e) {
+                            logger.log("");
+                            logger.log("Couldn't decode the response body; charset is likely malformed.");
+                            logger.log("<-- END HTTP");
+
+                            return response;
+                        }
+                    }
+
+                    if (!isPlaintext(buffer)) {
                         logger.log("");
-                        logger.log("Couldn't decode the response body; charset is likely malformed.");
-                        logger.log("<-- END HTTP");
-
+                        logger.log("<-- END HTTP (binary " + buffer.size() + "-byte body omitted)");
                         return response;
                     }
-                }
 
-                if (!isPlaintext(buffer)) {
-                    logger.log("");
-                    logger.log("<-- END HTTP (binary " + buffer.size() + "-byte body omitted)");
-                    return response;
-                }
+                    if (contentLength != 0) {
+                        logger.log("");
+                        logger.log(buffer.clone().readString(charset));
+                    }
 
-                if (contentLength != 0) {
-                    logger.log("");
-                    logger.log(buffer.clone().readString(charset));
+                    logger.log("<-- END HTTP (" + buffer.size() + "-byte body)");
+                } catch (Exception e) {
+                    // we don't want logger crash.
+                    logger.log("<-- END HTTP");
                 }
-
-                logger.log("<-- END HTTP (" + buffer.size() + "-byte body)");
             }
         }
 
