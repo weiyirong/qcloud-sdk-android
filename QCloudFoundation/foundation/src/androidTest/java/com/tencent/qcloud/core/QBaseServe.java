@@ -3,10 +3,10 @@ package com.tencent.qcloud.core;
 import android.content.Context;
 import android.os.Environment;
 
+import com.tencent.cos.xml.CosXmlService;
+import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.SessionCredentialProvider;
-import com.tencent.qcloud.core.cos.CosXmlService;
-import com.tencent.qcloud.core.cos.CosXmlServiceConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,7 +37,7 @@ public class QBaseServe {
         mockResponseInterceptor = new MockResponseInterceptor();
         cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
                 .setAppidAndRegion(appId, region)
-                .build();
+                .builder();
         cosXmlService = new CosXmlService(context, cosXmlServiceConfig,
                 new SessionCredentialProvider(secretId, secretKey, appId, region, "cosxml"));
     }
