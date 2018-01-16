@@ -49,7 +49,7 @@ dependencies {
 
 task Jar(type: Copy, dependsOn: build){
     delete 'build/libs/'
-    from('build/intermediates/bundles/default/')
+    from('build/intermediates/bundles/release/')
     into('build/libs/')
     rename ('classes.jar', 'cos-xml-android-sdk.' + android.defaultConfig.versionName + '.jar')
 }
