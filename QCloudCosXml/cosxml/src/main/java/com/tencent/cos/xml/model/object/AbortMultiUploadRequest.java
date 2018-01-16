@@ -1,16 +1,10 @@
 package com.tencent.cos.xml.model.object;
 
-
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.util.Map;
-
 
 /**
  * <p>
@@ -21,89 +15,42 @@ import java.util.Map;
  * 则 Upload Parts 会返回失败。当该 UploadId 不存在时，会返回 404 NoSuchUpload。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#abortMultiUpload(AbortMultiUploadRequest)
- * @see com.tencent.cos.xml.CosXml#abortMultiUploadAsync(AbortMultiUploadRequest, CosXmlResultListener)
- */
-final public class AbortMultiUploadRequest extends CosXmlRequest<AbortMultiUploadResult>{
+*/
+final public class AbortMultiUploadRequest extends ObjectRequest {
 
     // uploadId for aborting multi upload.
     private String uploadId;
-    // cos path
-    private String cosPath;
-    public AbortMultiUploadRequest(String bucket, String cosPath, String uploadId){
-        setBucket(bucket);
-        this.cosPath = cosPath;
+
+    public AbortMultiUploadRequest(String bucket, String cosPath, String uploadId) {
+        super(bucket, cosPath);
         this.uploadId = uploadId;
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+    }
+
+    @Override
+    public String getMethod() {
+        return RequestMethod.DELETE;
     }
 
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(AbortMultiUploadResult.class);
+    public Map<String, String> getQueryString() {
+        queryParameters.put("uploadID",uploadId);
+        return queryParameters;
     }
 
     @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("uploadID",uploadId);
+    public RequestBodySerializer getRequestBody() {
+        return null;
     }
 
     @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-        if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null");
-        }
+    public void checkParameters() throws CosXmlClientException {
+        super.checkParameters();
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
         }
     }
 
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.DELETE;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
-            }
-        }
-    }
 
     /**
      * 设置分片上传的uploadId
@@ -122,21 +69,4 @@ final public class AbortMultiUploadRequest extends CosXmlRequest<AbortMultiUploa
         return uploadId;
     }
 
-    /**
-     * 设置上传到COS的路径
-     *
-     * @param cosPath
-     */
-    public void setCosPath(String cosPath){
-        this.cosPath = cosPath;
-    }
-
-    /**
-     * 获取设置的COS上的路径
-     *
-     * @return
-     */
-    public String getCosPath() {
-        return cosPath;
-    }
 }

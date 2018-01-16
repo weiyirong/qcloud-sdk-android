@@ -1,16 +1,16 @@
 package com.tencent.cos.xml.model.tag;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
-
 import java.util.List;
 
 /**
- * Created by bradyxiao on 2017/5/31.
- * author bradyxiao
+ * Created by bradyxiao on 2017/11/24.
  */
-@XStreamAlias("CompleteMultipartUpload")
+
 public class CompleteMultipartUpload {
-    @XStreamImplicit(itemFieldName = "Part")
-    public List<Part> partList;
+    public List<Part> parts;
+
+    public static class Part{
+        public int partNumber;
+        public String eTag;
+    }
 }

@@ -2,9 +2,9 @@ package com.tencent.cos.xml.utils;
 
 
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.qcloud.core.network.auth.BasicQCloudCredentials;
-import com.tencent.qcloud.core.network.auth.CredentialProviderConst;
-import com.tencent.qcloud.core.network.auth.QCloudLifecycleCredentials;
+import com.tencent.qcloud.core.auth.AuthConstants;
+import com.tencent.qcloud.core.auth.BasicQCloudCredentials;
+import com.tencent.qcloud.core.auth.QCloudLifecycleCredentials;
 
 
 /**
@@ -60,9 +60,11 @@ public class GenerateGetObjectURLUtils {
         sign = URLEncodeUtils.cosPathEncode(sign);
         urlBuilder.append(sign);
 
-//        if(token != null){
-//            urlBuilder.append("&token=").append(token);
-//        }
+
+        if(token != null){
+            urlBuilder.append("&token=").append(token);
+        }
+
         return urlBuilder.toString();
     }
 
@@ -115,13 +117,14 @@ public class GenerateGetObjectURLUtils {
         String signature = DigestUtils.getHmacSha1(source, qCloudLifecycleCredentials.getSignKey());
         StringBuilder authorization = new StringBuilder();
 
-        authorization.append(CredentialProviderConst.Q_SIGN_ALGORITHM).append("=").append(CredentialProviderConst.SHA1).append("&")
-                .append(CredentialProviderConst.Q_AK).append("=").append(qCloudLifecycleCredentials.getSecretId()).append("&")
-                .append(CredentialProviderConst.Q_SIGN_TIME).append("=").append(signTime).append("&")
-                .append(CredentialProviderConst.Q_KEY_TIME).append("=").append(qCloudLifecycleCredentials.getKeyTime()).append("&")
-                .append(CredentialProviderConst.Q_HEADER_LIST).append("=").append("&")
-                .append(CredentialProviderConst.Q_URL_PARAM_LIST).append("=").append("&")
-                .append(CredentialProviderConst.Q_SIGNATURE).append("=").append(signature);
+        authorization.append(AuthConstants.Q_SIGN_ALGORITHM).append("=").append(AuthConstants.SHA1).append("&")
+                .append(AuthConstants.Q_AK).append("=").append(qCloudLifecycleCredentials.getSecretId()).append("&")
+                .append(AuthConstants.Q_SIGN_TIME).append("=").append(signTime).append("&")
+                .append(AuthConstants.Q_KEY_TIME).append("=").append(qCloudLifecycleCredentials.getKeyTime()).append("&")
+                .append(AuthConstants.Q_HEADER_LIST).append("=").append("&")
+                .append(AuthConstants.Q_URL_PARAM_LIST).append("=").append("&")
+                .append(AuthConstants.Q_SIGNATURE).append("=").append(signature);
+
 
         return authorization.toString();
     }

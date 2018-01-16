@@ -1,118 +1,96 @@
 package com.tencent.cos.xml;
 
 
-import com.tencent.qcloud.core.network.*;
-
-import java.util.Locale;
+import com.tencent.cos.xml.common.VersionInfo;
 
 /**
- * <p>
- * COS XML SDK配置项。
- * </p>
  *
- *
- *
- * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
+ * Client configuration options such as timeout settings, protocol string, max
+ * retry attempts, etc.
  */
 
-public class CosXmlServiceConfig  extends QCloudServiceConfig {
+public class CosXmlServiceConfig {
 
-    static CosXmlServiceConfig instance;
+    /** The default protocol to use when connecting to cos Services.*/
+    public static final String DEFAULT_PROTOCOL = "http";
 
-    final String scheme;
+    /** The default user agent header for cos android sdk clients. */
+    public static final String DEFAULT_USER_AGENT = VersionInfo.getUserAgent();
 
-    final String appid;
+    private String protocol;
+    private String userAgent;
 
-    final String region;
+    private String region;
+    private String appid;
 
-    public static String SUFFIX;
+    private boolean isDebuggable;
 
-    private CosXmlServiceConfig(Builder builder) {
-        super(builder);
-
+    public CosXmlServiceConfig(Builder builder){
+        protocol = builder.protocol;
+        userAgent = builder.userAgent;
         appid = builder.appid;
         region = builder.region;
-        scheme = builder.scheme;
-        SUFFIX = appid;
+        isDebuggable = builder.isDebuggable;
     }
 
-    public static CosXmlServiceConfig getInstance() {
-        return instance;
+    public String getProtocol() {
+        return protocol;
     }
 
-    public String getScheme(){
-        return scheme;
-    }
-
-    public String getAppid() {
-        return appid;
+    public String getUserAgent() {
+        return userAgent;
     }
 
     public String getRegion() {
         return region;
     }
 
-    public final static class Builder extends QCloudServiceConfig.Builder<Builder> {
-
-        private String scheme = "http";
-        private String appid;
-        private String region;
-
-        public Builder() {
-            setUserAgent("cos-xml-android-sdk-" + com.tencent.qcloud.core.network.BuildConfig.VERSION_NAME);
-        }
-
-        public Builder isHttps(){
-            this.scheme = "https";
-            return this;
-        }
-
-        /**
-         * construction method for CosXmlServiceConfig
-         * @param appid appid for cos {<a href= "https://www.qcloud.com/document/product/436/6225"></a>}
-         * @param region {@link com.tencent.cos.xml.common.Region}
-         * @return Builder
-         */
-        public Builder setAppidAndRegion(String appid, String region) {
-            this.appid = appid;
-            this.region = region;
-            setHost(getHttpHost(appid, region));
-            return this;
-        }
-
-        public CosXmlServiceConfig build() {
-            return new CosXmlServiceConfig(this);
-        }
-
-        /**
-         * 对于一些比较老的区域，域名不加入"cos"，否则会导致https证书验证出问题。
-         *
-         * @param appid
-         * @param region
-         * @return
-         */
-        private String getHttpHost(String appid, String region) {
-            // 如果用户设置的region以cos开头，自动认为是新区域
-            if (!region.startsWith("cos.")) {
-                boolean isOldRegion = false;
-                final String[] old_regions = new String[] {
-                        "cn-east", "cn-south", "cn-north", "cn-south-2", "cn-southwest", "sg"
-                };
-
-                for (String old_region : old_regions) {
-                    if (old_region.equals(region)) {
-                        isOldRegion = true;
-                        break;
-                    }
-                }
-
-                if (!isOldRegion) {
-                    region = "cos." + region;
-                }
-            }
-
-            return String.format(Locale.ENGLISH, "-%s.%s.myqcloud.com", appid, region);
-        }
+    public String getAppid() {
+        return appid;
     }
 
+    public boolean isDebuggable(){
+        return isDebuggable;
+    }
+
+    public final static class Builder{
+
+        private String protocol;
+        private String userAgent;
+
+        private String region;
+        private String appid;
+
+        private boolean isDebuggable;
+
+        public Builder(){
+            protocol = DEFAULT_PROTOCOL;
+            userAgent =DEFAULT_USER_AGENT;
+            isDebuggable = false;
+        }
+
+        public Builder isHttps(boolean isHttps){
+            if(isHttps){
+                protocol = "https";
+            }else {
+                protocol = "http";
+            }
+            return this;
+        }
+
+        public Builder setAppidAndRegion(String appid, String region){
+            this.appid = appid;
+            this.region = region;
+            return this;
+        }
+
+        public Builder setDebuggable(boolean isDebuggable){
+            this.isDebuggable = isDebuggable;
+            return this;
+        }
+
+        public CosXmlServiceConfig builder(){
+            return new CosXmlServiceConfig(this);
+        }
+    }
 }

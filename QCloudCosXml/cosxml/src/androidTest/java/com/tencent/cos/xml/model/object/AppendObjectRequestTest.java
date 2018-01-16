@@ -1,187 +1,231 @@
 package com.tencent.cos.xml.model.object;
 
-import android.support.test.InstrumentationRegistry;
+import android.app.Application;
+import android.content.Context;
+import android.os.Environment;
+import android.test.ApplicationTestCase;
 import android.util.Log;
 
-import com.tencent.cos.xml.QBaseServe;
-import com.tencent.qcloud.core.network.QCloudProgressListener;
+import com.tencent.cos.xml.CosXmlService;
+import com.tencent.cos.xml.QService;
+import com.tencent.cos.xml.exception.CosXmlClientException;
+import com.tencent.cos.xml.exception.CosXmlServiceException;
+import com.tencent.cos.xml.listener.CosXmlProgressListener;
+import com.tencent.cos.xml.listener.CosXmlResultListener;
+import com.tencent.cos.xml.model.CosXmlRequest;
+import com.tencent.cos.xml.model.CosXmlResult;
+import com.tencent.cos.xml.model.tag.Delete;
 
-
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import static org.junit.Assert.*;
 
 /**
- * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
+ * Created by bradyxiao on 2017/12/5.
  */
-public class AppendObjectRequestTest {
+public class AppendObjectRequestTest extends ApplicationTestCase {
 
-    private QBaseServe qBaseServe;
-    public volatile int hasCompleted = 0;
+    static final String TAG = "Unit_Test";
 
-    @Before
-    public void setUp() throws Exception {
+    volatile boolean isOver = false;
 
-        qBaseServe = QBaseServe.getInstance(InstrumentationRegistry.getContext());
+    public AppendObjectRequestTest() {
+        super(Application.class);
     }
 
-    @Test public void test1() throws Exception {
-
-        String srcPath = qBaseServe.crateFile(1024 * 1024);
-        String cosPath = "/putobject_" + System.currentTimeMillis() + ".txt";
-        InputStream inputStream = new FileInputStream(srcPath);
-
-        AppendObjectRequest request = new AppendObjectRequest(qBaseServe.bucket, cosPath, inputStream,
-                inputStream.available(), 0);
-
-//        request.setBucket(qBaseServe.bucket);
-//        request.setCosPath(cosPath);
-//        //request.setSrcPath(srcPath);
-//        request.setInputStream(inputStream, inputStream.available());
-
-
-        request.setSign(600,null,null);
-        request.setProgressListener(new QCloudProgressListener() {
-            @Override
-            public void onProgress(long l, long l1) {
-                Log.d("TAG", String.valueOf(l) +"/"+ String.valueOf(l1));
-            }
-        });
-        request.getProgressListener();
-        assertEquals(cosPath, request.getCosPath());
-        //assertEquals(srcPath, request.getSrcPath());
-        List<String> uinList = new LinkedList<>();
-        uinList.add("1059310888");
-
-
-        AppendObjectResult result =  qBaseServe.cosXmlService.appendObject(request);
-        String headers = result.printHeaders();
-        String body = result.printBody();
-        String error = result.printError();
-        String response = "Headers =" + headers + "|body =" + body + "|error =" + error;
-        Log.d("TAG",response);
-        assertEquals(true, qBaseServe.isSuccess(result.getHttpCode()));
+    @Test
+    public void getMethod() throws Exception {
     }
 
-    @Test public void test2() throws Exception {
-        String srcPath = qBaseServe.crateFile(1024 * 1024);
-        InputStream inputStream = new FileInputStream(srcPath);
-        String cosPath = "/putobject_" + System.currentTimeMillis() + ".txt";
-        AppendObjectRequest request = new AppendObjectRequest(qBaseServe.bucket, cosPath, inputStream, inputStream.available(), 0);
-        assertEquals(inputStream, request.getInputStream());
-        request.setSign(600,null,null);
-        request.setProgressListener(new QCloudProgressListener() {
-            @Override
-            public void onProgress(long l, long l1) {
-                Log.d("TAG", String.valueOf(l) +"/"+ String.valueOf(l1));
-            }
-        });
-        request.getProgressListener();
-        assertEquals(cosPath, request.getCosPath());
-        //assertEquals(srcPath, request.getSrcPath());
-        List<String> uinList = new LinkedList<>();
-        uinList.add("1059310888");
-
-
-        AppendObjectResult result =  qBaseServe.cosXmlService.appendObject(request);
-        String headers = result.printHeaders();
-        String body = result.printBody();
-        String error = result.printError();
-        String response = "Headers =" + headers + "|body =" + body + "|error =" + error;
-        Log.d("TAG",response);
-        assertEquals(true, qBaseServe.isSuccess(result.getHttpCode()));
+    @Test
+    public void getQueryString() throws Exception {
     }
 
-
-    @Test public void test3() throws Exception {
-        String cosPath = "/putobject_" + System.currentTimeMillis() + ".txt";
-        byte[] data = new byte[1024 * 1024];
-        AppendObjectRequest request = new AppendObjectRequest(qBaseServe.bucket, cosPath, data, 0);
-        request.getData();
-        request.setSign(600,null,null);
-        request.setProgressListener(new QCloudProgressListener() {
-            @Override
-            public void onProgress(long l, long l1) {
-                Log.d("TAG", String.valueOf(l) +"/"+ String.valueOf(l1));
-            }
-        });
-        request.getProgressListener();
-        assertEquals(cosPath, request.getCosPath());
-        //assertEquals(srcPath, request.getSrcPath());
-        List<String> uinList = new LinkedList<>();
-        uinList.add("1059310888");
-
-
-        AppendObjectResult result =  qBaseServe.cosXmlService.appendObject(request);
-        String headers = result.printHeaders();
-        String body = result.printBody();
-        String error = result.printError();
-        String response = "Headers =" + headers + "|body =" + body + "|error =" + error;
-        Log.d("TAG",response);
-        assertEquals(true, qBaseServe.isSuccess(result.getHttpCode()));
+    @Test
+    public void getRequestBody() throws Exception {
     }
 
-//    @Test public void checkParameters() throws Exception {
+    @Test
+    public void checkParameters() throws Exception {
+    }
+
+    @Test
+    public void setPosition() throws Exception {
+    }
+
+    @Test
+    public void getPosition() throws Exception {
+    }
+
+    @Test
+    public void setSrcPath() throws Exception {
+    }
+
+    @Test
+    public void getSrcPath() throws Exception {
+    }
+
+    @Test
+    public void setData() throws Exception {
+    }
+
+    @Test
+    public void getData() throws Exception {
+    }
+
+    @Test
+    public void setInputStream() throws Exception {
+    }
+
+    @Test
+    public void getInputStream() throws Exception {
+    }
+
+    @Test
+    public void getFileLength() throws Exception {
+    }
+
+    @Test
+    public void setProgressListener() throws Exception {
+    }
+
+    @Test
+    public void setContentDisposition() throws Exception {
+    }
+
+    @Test
+    public void setContentEncodeing() throws Exception {
+    }
+
+    @Test
+    public void setExpires() throws Exception {
+    }
+
+    @Test
+    public void setXCOSMeta() throws Exception {
+    }
+
+    @Test
+    public void setXCOSACL() throws Exception {
+    }
+
+    @Test
+    public void setXCOSACL1() throws Exception {
+    }
+
+    @Test
+    public void setXCOSGrantRead() throws Exception {
+    }
+
+    @Test
+    public void setXCOSGrantWrite() throws Exception {
+    }
+
+    @Test
+    public void setXCOSReadWrite() throws Exception {
+    }
+
+//    @Test
+//    public void test1() throws UnsupportedEncodingException, CosXmlServiceException, CosXmlClientException {
+//        String bucket = "androidtest";
+//        byte[] data = new byte[1024 * 1024];
+//        AppendObjectRequest appendObjectRequest = new AppendObjectRequest(bucket, "append.txt",
+//                data,0);
+//        appendObjectRequest.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d(TAG, " complete：" + complete + "| target: " + target);
+//            }
+//        });
+//        AppendObjectResult result = QService.getCosXmlClient(getContext()).appendObject(appendObjectRequest);
+//        Log.d(TAG, result.printResult());
 //
-//        AppendObjectRequest request = new AppendObjectRequest("", "", "", 0);
+//        QService.delete(QService.getCosXmlClient(getContext()), bucket, "append.txt");
+//    }
 //
-//        try {
-//            request.checkParameters();
-//        } catch (CosXmlClientException e) {
-//            assertEquals("bucket must not be null", e.getDetailMessage());
-//        }
-//        request.setBucket("bucket");
+//    @Test
+//    public void test2() throws IOException, CosXmlServiceException, CosXmlClientException {
+//        String bucket = "androidtest";
+//        String srcPath = QService.createFile(1024 * 1024);
+//        AppendObjectRequest appendObjectRequest = new AppendObjectRequest(bucket, "append.txt",
+//                srcPath,0);
+//        appendObjectRequest.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d(TAG, " complete：" + complete + "| target: " + target);
+//            }
+//        });
+//        AppendObjectResult result = QService.getCosXmlClient(getContext()).appendObject(appendObjectRequest);
+//        Log.d(TAG, result.printResult());
 //
-//        try {
-//            request.checkParameters();
-//        } catch (CosXmlClientException e) {
-//            assertEquals("cosPath must not be null", e.getDetailMessage());
-//        }
-//        request.setCosPath("");
-//        try {
-//            request.checkParameters();
-//        } catch (CosXmlClientException e) {
-//            assertEquals("Data Source must not be null", e.getDetailMessage());
-//        }
+//        QService.delete(QService.getCosXmlClient(getContext()), bucket, "append.txt");
+//    }
 //
-//        request.setSrcPath("");
-//        try {
-//            request.checkParameters();
-//        } catch (CosXmlClientException e) {
-//            assertEquals("upload file does not exist", e.getDetailMessage());
-//        }
+//    @Test
+//    public void test3() throws IOException, CosXmlServiceException, CosXmlClientException {
+//        final String bucket = "androidtest";
+//        String srcPath = QService.createFile(1024 * 1024);
+//        AppendObjectRequest appendObjectRequest = new AppendObjectRequest(bucket, "append.txt",
+//                srcPath,0);
+//        appendObjectRequest.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d(TAG, " complete：" + complete + "| target: " + target);
+//            }
+//        });
+//       QService.getCosXmlClient(getContext()).appendObjectAsync(appendObjectRequest, new CosXmlResultListener() {
+//           @Override
+//           public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+//               Log.d(TAG, result.printResult());
+//               try {
+//                   QService.delete(QService.getCosXmlClient(getContext()), bucket, "append.txt");
+//               } catch (CosXmlServiceException e) {
+//                   e.printStackTrace();
+//               } catch (CosXmlClientException e) {
+//                   e.printStackTrace();
+//               }
+//               isOver = true;
+//           }
+//
+//           @Override
+//           public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+//               Log.d(TAG, exception == null ? serviceException.getMessage() : exception.toString());
+//               isOver = true;
+//           }
+//       });
+//
+//       while (!isOver){
+//           try {
+//               Thread.sleep(1000);
+//           } catch (InterruptedException e) {
+//               e.printStackTrace();
+//           }
+//       }
 //
 //    }
 
-//    @Test public void setterAndGetter() throws Exception {
+//    public void test4() throws IOException, CosXmlServiceException, CosXmlClientException {
+//        String bucket = "androidtest";
+//        String srcPath = QService.createFile(1024 * 1024);
+//        FileInputStream fileInputStream = new FileInputStream(srcPath);
+//        AppendObjectRequest appendObjectRequest = new AppendObjectRequest(bucket, "append7.pdf",
+//                fileInputStream, 0);
+//        appendObjectRequest.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d(TAG, " complete：" + complete + "| target: " + target);
+//            }
+//        });
+//        AppendObjectResult result = QService.getCosXmlClient(getContext()).appendObject(appendObjectRequest);
+//        Log.d(TAG, result.printResult());
 //
-//        AppendObjectRequest putObjectRequest = new AppendObjectRequest();
-//        String cacheControl = "no-cache";
-//        String contentDisposition = "attach";
-//        String contentEncodeing = "utf-8";
-//        String expire = "expire";
-//        putObjectRequest.setCacheControl(cacheControl);
-//        putObjectRequest.setContentDisposition(contentDisposition);
-//        putObjectRequest.setContentEncodeing(contentEncodeing);
-//        putObjectRequest.setExpires(expire);
-//        putObjectRequest.setXCOSMeta("key", "value");
-//        putObjectRequest.setXCOSACL("acl");
-//        //putObjectRequest.setXCOSACL(new COSACL(""));
-//        List<String> list = new LinkedList<>();
-//        list.add("12");
-//        putObjectRequest.setXCOSGrantReadWithUIN(list);
-//        putObjectRequest.setXCOSGrantWriteWithUIN(list);
-//        putObjectRequest.setXCOSGrantWrite(list);
-//        putObjectRequest.setXCOSReadWriteWithUIN(list);
-//        putObjectRequest.setXCOSReadWrite(list);
+//        QService.delete(srcPath);
 //
+//        QService.delete(QService.getCosXmlClient(getContext()), bucket, "append.txt");
 //    }
-
 
 }

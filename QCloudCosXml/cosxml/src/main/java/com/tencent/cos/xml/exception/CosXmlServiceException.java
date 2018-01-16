@@ -1,61 +1,35 @@
 package com.tencent.cos.xml.exception;
 
-import com.tencent.cos.xml.model.tag.COSXMLError;
+import com.tencent.qcloud.core.common.QCloudServiceException;
 
 /**
- * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
+ * Created by bradyxiao on 2017/11/30.
  */
 
-public class CosXmlServiceException extends com.tencent.qcloud.core.network.exception.QCloudServiceException {
+public class CosXmlServiceException extends QCloudServiceException {
 
-    private String resource;
+    private String httpMsg;
 
-    private String traceId;
-
-    private String httpMessage;
-
-    public CosXmlServiceException(int httpCode, String httpMessage, COSXMLError cosxmlError) {
-        super(cosxmlError != null ? cosxmlError.message : httpMessage);
-        setStatusCode(httpCode);
-        this.httpMessage = httpMessage;
-        if(cosxmlError != null){
-            setErrorCode(cosxmlError.code);
-            resource = cosxmlError.resource;
-            setRequestId(cosxmlError.requestId);
-            traceId = cosxmlError.traceId;
-        }
+    public CosXmlServiceException(String httpMsg) {
+        super(null);
+        this.httpMsg = httpMsg;
     }
 
-    public String getHttpMessage() {
-        return httpMessage;
+    public CosXmlServiceException(String errorMessage, Exception cause) {
+        super(errorMessage, cause);
     }
 
-    public String getResource() {
-        return resource;
-    }
-
-    public void setResource(String resource) {
-        this.resource = resource;
-    }
-
-    public String getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
+    public String getHttpMessage(){
+        return httpMsg;
     }
 
     @Override
-    public String toString(){
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("code =").append(getErrorCode()).append("\n")
-                .append("message =").append(getErrorMessage()).append("\n")
-                .append("resource =").append(resource).append("\n")
-                .append("requestId =").append(getRequestId()).append("\n")
-                .append("traceId =").append(traceId).append("\n")
-                .append("http code =").append(getStatusCode()).append("\n")
-                .append("http message =").append(httpMessage).append("\n");
-        return stringBuilder.toString();
+    public String getMessage() {
+        return getErrorMessage()
+                + " (Service: " + getServiceName()
+                + "; Status Code: " + getStatusCode()
+                + "; Status Message: " + httpMsg
+                + "; Error Code: " + getErrorCode()
+                + "; Request ID: " + getRequestId() + ")";
     }
 }

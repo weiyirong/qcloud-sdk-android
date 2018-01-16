@@ -1,16 +1,14 @@
 package com.tencent.cos.xml.model.bucket;
 
-
+import com.tencent.cos.xml.exception.CosXmlClientException;
+import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
-import com.tencent.cos.xml.model.tag.Tagging;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.tencent.qcloud.core.http.HttpResponse;
 
 final public class GetBucketTaggingResult extends CosXmlResult {
 
-    @XStreamAlias("Tagging")
-    public Tagging tagging;
     @Override
-    public String printBody() {
-        return tagging != null ? tagging.toString() : super.printBody();
+    public void parseResponseBody(HttpResponse response) throws CosXmlServiceException, CosXmlClientException {
+        super.parseResponseBody(response);
     }
 }

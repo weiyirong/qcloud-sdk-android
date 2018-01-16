@@ -19,13 +19,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Created by bradyxiao on 2017/11/16.
+ * Created by bradyxiao on 2017/12/4.
  */
 
 public class CopyObjectService {
 
     private CosXmlService cosXmlService;
-
     private long maxSliceSize = 5 * 1024 * 1024;
 
     public CopyObjectService(CosXmlService cosXmlService){
@@ -33,7 +32,8 @@ public class CopyObjectService {
     }
 
     public CosXmlResult copyObject(String bucket, String cosPath,
-                                   CopyObjectRequest.CopySourceStruct copySourceStruct) throws CosXmlClientException, CosXmlServiceException {
+                                   CopyObjectRequest.CopySourceStruct copySourceStruct)
+            throws CosXmlClientException, CosXmlServiceException{
         // head- get length for source
 
         long sourceLength = headObject(copySourceStruct.bucket, copySourceStruct.cosPath);
@@ -46,22 +46,40 @@ public class CopyObjectService {
         }
     }
 
-    private long headObject(String bucket, String cosPath) throws CosXmlServiceException, CosXmlClientException {
+    public CosXmlResult copyObject(String bucket, String cosPath,
+                                   CopyObjectRequest.CopySourceStruct copySourceStruct, long sourceObjectLength)
+            throws CosXmlClientException, CosXmlServiceException{
+
+        //select which CopyObject by length
+        if(sourceObjectLength >= maxSliceSize){
+            return copyObjectForLargeFile(bucket, cosPath, copySourceStruct, sourceObjectLength);
+        }else {
+            return copyObjectForSmallFile(bucket, cosPath, copySourceStruct);
+        }
+    }
+
+    private long headObject(String bucket, String cosPath) throws CosXmlServiceException,
+            CosXmlClientException {
         HeadObjectRequest headObjectRequest = new HeadObjectRequest(bucket, cosPath);
         HeadObjectResult headObjectResult = cosXmlService.headObject(headObjectRequest);
         if(headObjectResult != null){
-            String length = headObjectResult.getHeaders().get("Content-Length").get(0);
+            String length = headObjectResult.headers.get("Content-Length").get(0);
             return Long.valueOf(length);
         }
         return -1;
     }
 
-    private CopyObjectResult copyObjectForSmallFile(String bucket, String cosPath, CopyObjectRequest.CopySourceStruct copySourceStruct) throws CosXmlServiceException, CosXmlClientException {
+    private CopyObjectResult copyObjectForSmallFile(String bucket, String cosPath,
+                                                    CopyObjectRequest.CopySourceStruct copySourceStruct)
+            throws CosXmlServiceException, CosXmlClientException {
         CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucket, cosPath, copySourceStruct);
         return cosXmlService.copyObject(copyObjectRequest);
     }
 
-    private CompleteMultiUploadResult copyObjectForLargeFile(String bucket, String cosPath, CopyObjectRequest.CopySourceStruct copySourceStruct, long sourceLength) throws CosXmlClientException, CosXmlServiceException {
+    private CompleteMultiUploadResult copyObjectForLargeFile(String bucket, String cosPath,
+                                                             CopyObjectRequest.CopySourceStruct copySourceStruct,
+                                                             long sourceLength)
+            throws CosXmlClientException, CosXmlServiceException {
         String uploadId = initMultiUpload(bucket, cosPath);
         Map<Integer, String> partNumberAndEtag = new LinkedHashMap<>();
         int partNumber = 1;
@@ -91,8 +109,11 @@ public class CopyObjectService {
         return uploadId;
     }
 
-    private UploadPartCopyResult copyObjectForLargeFile(String bucket, String cosPath, int partNumber, String uploadId,
-                                                        CopyObjectRequest.CopySourceStruct copySourceStruct, long start, long end)
+
+    private UploadPartCopyResult copyObjectForLargeFile(String bucket, String cosPath, int partNumber,
+                                                        String uploadId, CopyObjectRequest.CopySourceStruct copySourceStruct,
+                                                        long start, long end)
+
             throws CosXmlServiceException, CosXmlClientException {
         UploadPartCopyRequest uploadPartCopyRequest = new UploadPartCopyRequest(bucket, cosPath, partNumber, uploadId, copySourceStruct,
                 start, end);
@@ -107,5 +128,4 @@ public class CopyObjectService {
         CompleteMultiUploadResult completeMultiUploadResult = cosXmlService.completeMultiUpload(completeMultiUploadRequest);
         return completeMultiUploadResult;
     }
-
 }

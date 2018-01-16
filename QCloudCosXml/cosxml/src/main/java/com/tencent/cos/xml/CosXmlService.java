@@ -2,11 +2,12 @@ package com.tencent.cos.xml;
 
 import android.content.Context;
 
+import com.tencent.cos.xml.common.Range;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
+import com.tencent.cos.xml.listener.CosXmlResultListener;
 import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.model.CosXmlResult;
-import com.tencent.cos.xml.model.CosXmlResultListener;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketLifecycleRequest;
@@ -35,6 +36,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
 import com.tencent.cos.xml.model.bucket.HeadBucketResult;
+import com.tencent.cos.xml.model.bucket.ListBucketVersionsRequest;
+import com.tencent.cos.xml.model.bucket.ListBucketVersionsResult;
 import com.tencent.cos.xml.model.bucket.ListMultiUploadsRequest;
 import com.tencent.cos.xml.model.bucket.ListMultiUploadsResult;
 import com.tencent.cos.xml.model.bucket.PutBucketACLRequest;
@@ -47,8 +50,6 @@ import com.tencent.cos.xml.model.bucket.PutBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.PutBucketRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketResult;
-import com.tencent.cos.xml.model.bucket.PutBucketTaggingRequest;
-import com.tencent.cos.xml.model.bucket.PutBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
 import com.tencent.cos.xml.model.object.AbortMultiUploadRequest;
@@ -85,1009 +86,586 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.model.service.GetServiceResult;
-import com.tencent.qcloud.core.network.QCloudRequest;
-import com.tencent.qcloud.core.network.QCloudResult;
-import com.tencent.qcloud.core.network.QCloudResultListener;
-import com.tencent.qcloud.core.network.QCloudService;
-import com.tencent.qcloud.core.network.auth.QCloudCredentialProvider;
-import com.tencent.qcloud.core.network.exception.QCloudClientException;
+import com.tencent.cos.xml.transfer.ResponseFileBodySerializer;
+import com.tencent.cos.xml.transfer.ResponseXmlS3BodySerializer;
+import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
+import com.tencent.qcloud.core.common.QCloudClientException;
+import com.tencent.qcloud.core.common.QCloudResultListener;
+import com.tencent.qcloud.core.common.QCloudServiceException;
+import com.tencent.qcloud.core.http.HttpConstants;
+import com.tencent.qcloud.core.http.HttpResult;
+import com.tencent.qcloud.core.http.HttpTask;
+import com.tencent.qcloud.core.http.QCloudHttpClient;
+import com.tencent.qcloud.core.http.QCloudHttpRequest;
+import com.tencent.qcloud.core.logger.QCloudLogger;
 
+import java.util.List;
 
 /**
- *
- * <p>
- * {@link CosXml}接口实现类。
- * </p>
- * <p>
- * 注意：在整个app的生命周期内，CosXmlService最好只初始化一个实例。
- * </p>
- *
- * <p>
- * 对请求签名是COS服务中重要的一步，本SDK给您提供了多种签名方式供您选用，详情请参见{}
- * </p>
- *
- * <br>
- * 示例代码：
- * <pre>
- * // 1、初始化CosXml
- * CosXml cosXml = new CosXmlService(appContext, cosXmlServiceConfig, basicCredentialProvider);
- *
- * // 2、初始化发送请求
- * GetServiceRequest getServiceRequest = new GetServiceRequest();
- * getServiceRequest.setSign(600, null, null);
- *
- * // 3、同步发送请求
- * // 注意：同步发送请求是一个阻塞操作，请不要直接在主线程中执行。
- * GetServiceResult getServiceResult = cosXml.getService(getServiceRequest);
- *
- * // 3、您也可以异步发送请求
- * //cosXmlService.getServiceAsync(null, new CosXmlResultListener() {
- * //  public void onSuccess(CosXmlRequest request, CosXmlResult result) {
- * //
- * //  }
- * //
- * //  public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
- * //
- * //  }
- * //});
- *
- * </pre>
- *
- *
+ * Created by bradyxiao on 2017/11/30.
  */
 
 public class CosXmlService implements CosXml {
+    private QCloudHttpClient client;
+    private QCloudCredentialProvider credentialProvider;
+    private String scheme;
+    private String region;
+    private String appid;
+    private String tag = "CosXml";
+    public CosXmlService(Context context, CosXmlServiceConfig configuration, QCloudCredentialProvider qCloudCredentialProvider){
+        QCloudLogger.setUp(context);
+        client = QCloudHttpClient.getDefault();
+        client.addVerifiedHost("*.myqcloud.com");
+        client.setDebuggable(configuration.isDebuggable());
+        scheme = configuration.getProtocol();
+        region = configuration.getRegion();
+        appid = configuration.getAppid();
+        credentialProvider = qCloudCredentialProvider;
+    }
+    private<T1 extends CosXmlRequest, T2 extends CosXmlResult> QCloudHttpRequest buildHttpRequest(T1 cosXmlRequest, T2 cosXmlResult) throws CosXmlClientException {
+        cosXmlRequest.checkParameters();
+        String host = cosXmlRequest.getHost(appid, region);
+        QCloudHttpRequest.Builder<T2> httpRequestBuilder = new QCloudHttpRequest.Builder<T2>()
+                .method(cosXmlRequest.getMethod())
+                .scheme(scheme)
+                .host(host)
+                .path(cosXmlRequest.getPath())
+                .addHeader(HttpConstants.Header.HOST, host)
+                .userAgent(CosXmlServiceConfig.DEFAULT_USER_AGENT)
+                .setUseCache(false)
+                .tag(tag)
+                .signer("CosXmlSigner", cosXmlRequest.getSignSourceProvider());
 
-    private QCloudService mService;
-    /**
-     * 初始化COS XML 服务实例
-     *
-     * @param context  应用Context
-     * @param serviceConfig  cos xml服务的配置
-     * @param basicCredentialProvider cos xml服务的签名，详情参见{@link QCloudCredentialProvider}
-     *
-     */
-    public CosXmlService(Context context, CosXmlServiceConfig serviceConfig, QCloudCredentialProvider basicCredentialProvider) {
-        mService = new QCloudService.Builder(context)
-                .serviceConfig(serviceConfig)
-                .credentialProvider(basicCredentialProvider)
-                .build();
-        CosXmlServiceConfig.instance = serviceConfig;
+        httpRequestBuilder.query(cosXmlRequest.getQueryString());
+        httpRequestBuilder.addHeaders(cosXmlRequest.getRequestHeaders());
+
+        if(cosXmlRequest.isNeedMD5()){
+            httpRequestBuilder.contentMD5();
+        }
+
+        if(cosXmlRequest.getRequestBody() != null){
+              httpRequestBuilder.body(cosXmlRequest.getRequestBody());
+        }
+
+        if(cosXmlRequest instanceof GetObjectRequest){
+            String absolutePath = ((GetObjectRequest) cosXmlRequest).getDownloadPath();
+            Range range = ((GetObjectRequest) cosXmlRequest).getRange();
+            long start = 0;
+            if(range != null){
+                start = range.getStart();
+            }
+            httpRequestBuilder.converter(new ResponseFileBodySerializer<T2>((GetObjectResult) cosXmlResult, absolutePath, start));
+        }else {
+            httpRequestBuilder.converter(new ResponseXmlS3BodySerializer<T2>(cosXmlResult));
+        }
+
+        QCloudHttpRequest httpRequest = httpRequestBuilder.build();
+        return httpRequest;
     }
 
-    //COS Service API
+    private<T1 extends CosXmlRequest, T2 extends  CosXmlResult> T2 execute(T1 cosXmlRequest, T2 cosXmlResult)
+            throws CosXmlClientException, CosXmlServiceException {
+        try {
+            QCloudHttpRequest<T2> httpRequest = buildHttpRequest(cosXmlRequest, cosXmlResult);
+            HttpTask<T2> httpTask = client.resolveRequest(httpRequest, credentialProvider);
 
-    /**
-     * Synchronous request
-     * Get Service API for cos
-     * @param request {@link GetServiceRequest}
-     * @return GetServiceResult {@link GetServiceResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+            cosXmlRequest.setTask(httpTask);
+
+            if(cosXmlRequest instanceof AppendObjectRequest){
+                httpTask.addProgressListener(((AppendObjectRequest) cosXmlRequest).getProgressListener());
+            }else if(cosXmlRequest instanceof PutObjectRequest){
+                httpTask.addProgressListener(((PutObjectRequest) cosXmlRequest).getProgressListener());
+            }else if(cosXmlRequest instanceof UploadPartRequest){
+                httpTask.addProgressListener(((UploadPartRequest) cosXmlRequest).getProgressListener());
+            }else if(cosXmlRequest instanceof GetObjectRequest){
+                httpTask.addProgressListener(((GetObjectRequest) cosXmlRequest).getProgressListener());
+            }
+            return httpTask.executeNow().content();
+        } catch (QCloudServiceException e) {
+            throw (CosXmlServiceException) e;
+        } catch (QCloudClientException e) {
+           throw new CosXmlClientException(e);
+        }
+    }
+
+    private  <T1 extends CosXmlRequest, T2 extends  CosXmlResult> void schedule(final T1 cosXmlRequest, T2 cosXmlResult,
+                                                                              final CosXmlResultListener cosXmlResultListener) {
+
+        QCloudResultListener<HttpResult<T2>> qCloudResultListener = new QCloudResultListener<HttpResult<T2>>() {
+            @Override
+            public void onSuccess(HttpResult<T2> result) {
+                cosXmlResultListener.onSuccess(cosXmlRequest, result.content());
+            }
+
+            @Override
+            public void onFailure(QCloudClientException clientException, QCloudServiceException serviceException) {
+                if(clientException != null){
+                    cosXmlResultListener.onFail(cosXmlRequest, new CosXmlClientException(clientException), null);
+                }else {
+                    cosXmlResultListener.onFail(cosXmlRequest,null, (CosXmlServiceException)serviceException);
+                }
+
+            }
+        };
+
+        try {
+            QCloudHttpRequest<T2> httpRequest = buildHttpRequest(cosXmlRequest, cosXmlResult);
+            HttpTask<T2> httpTask = client.resolveRequest(httpRequest, credentialProvider);
+
+            cosXmlRequest.setTask(httpTask);
+
+            if(cosXmlRequest instanceof AppendObjectRequest){
+                httpTask.addProgressListener(((AppendObjectRequest) cosXmlRequest).getProgressListener());
+            }else if(cosXmlRequest instanceof PutObjectRequest){
+                httpTask.addProgressListener(((PutObjectRequest) cosXmlRequest).getProgressListener());
+            }else if(cosXmlRequest instanceof UploadPartRequest){
+                httpTask.addProgressListener(((UploadPartRequest) cosXmlRequest).getProgressListener());
+            }else if(cosXmlRequest instanceof GetObjectRequest){
+                httpTask.addProgressListener(((GetObjectRequest) cosXmlRequest).getProgressListener());
+            }
+
+            httpTask.schedule().addResultListener(qCloudResultListener);
+        }catch (QCloudClientException e) {
+            cosXmlResultListener.onFail(cosXmlRequest, new CosXmlClientException(e),
+                    null);
+        }
+    }
+
+    public String getAccessUrl(CosXmlRequest cosXmlRequest){
+        String host = cosXmlRequest.getHost(appid, region);
+        String path = cosXmlRequest.getPath();
+        return host + path;
+    }
+
+    @Override
     public GetServiceResult getService(GetServiceRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetServiceResult) sendRequest(request);
+        return execute(request, new GetServiceResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetServiceRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getServiceAsync(GetServiceRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void getServiceAsync(GetServiceRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetServiceResult(), cosXmlResultListener);
     }
 
-    //COS Object API
-
-    /**
-     *  Synchronous request
-     *  Abort MultiUpload API for cos
-     * @param request {@link AbortMultiUploadRequest}
-     * @return AbortMultiUploadResult {@link AbortMultiUploadResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public AbortMultiUploadResult abortMultiUpload(AbortMultiUploadRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (AbortMultiUploadResult) sendRequest(request);
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link AbortMultiUploadRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void abortMultiUploadAsync(AbortMultiUploadRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * Append Object for cos
-     * Synchronous request
-     * @param request {@link AppendObjectRequest}
-     * @return AppendObjectResult {@link AppendObjectResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public AppendObjectResult appendObject(AppendObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        AppendObjectResult appendObjectResult = (AppendObjectResult) sendRequest(request);
-        generateAccessUrl(request, appendObjectResult);
-        return appendObjectResult;
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link AppendObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void appendObjectAsync(AppendObjectRequest request, final CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * Complete MultiUpload for cos
-     * synchronous request
-     * @param request {@link CompleteMultiUploadRequest}
-     * @return CompleteMultiUploadResult {@link CompleteMultiUploadResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public CompleteMultiUploadResult completeMultiUpload(CompleteMultiUploadRequest request) throws CosXmlClientException, CosXmlServiceException {
-        CompleteMultiUploadResult completeMultiUploadResult = (CompleteMultiUploadResult) sendRequest(request);
-        generateAccessUrl(request, completeMultiUploadResult);
-        return completeMultiUploadResult;
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link CompleteMultiUploadRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void completeMultiUploadAsync(CompleteMultiUploadRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * Delete Multi objects for cos
-     * synchronous request
-     * @param request {@link DeleteMultiObjectRequest}
-     * @return DeleteMultiObjectResult {@link DeleteMultiObjectResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public DeleteMultiObjectResult deleteMultiObject(DeleteMultiObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (DeleteMultiObjectResult) sendRequest(request);
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link DeleteMultiObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void deleteMultiObjectAsync(DeleteMultiObjectRequest request, final CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * Delete object for cos
-     * synchronous request
-     * @param request {@link DeleteObjectRequest}
-     * @return DeleteObjectResult {@link DeleteObjectResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public DeleteObjectResult deleteObject(DeleteObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (DeleteObjectResult) sendRequest(request);
-    }
-
-
-    /**
-     * asynchronous request
-     * @param request {@link DeleteObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void deleteObjectAsync(DeleteObjectRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * get object ACL for cos
-     * synchronous request
-     * @param request {@link GetObjectACLRequest}
-     * @return GetObjectACLResult {@link GetObjectACLResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public GetObjectACLResult getObjectACL(GetObjectACLRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetObjectACLResult) sendRequest(request);
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link GetObjectACLRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getObjectACLAsync(GetObjectACLRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * Get Object for cos
-     * synchronous request
-     * @param request {@link GetObjectRequest}
-     * @return GetObjectResult {@link GetObjectResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public GetObjectResult getObject(GetObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetObjectResult) sendRequest(request);
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link GetObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getObjectAsync(GetObjectRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * Head Object for cos
-     * synchronous request
-     * @param request {@link HeadObjectRequest}
-     * @return HeadObjectResult {@link HeadObjectResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public HeadObjectResult headObject(HeadObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (HeadObjectResult) sendRequest(request);
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link HeadObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void headObjectAsync(HeadObjectRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * Init multipart upload for cos
-     * synchronous request
-     * @param request {@link InitMultipartUploadRequest}
-     * @return InitMultipartUploadResult {@link InitMultipartUploadResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public InitMultipartUploadResult initMultipartUpload(InitMultipartUploadRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (InitMultipartUploadResult) sendRequest(request);
+        return execute(request, new InitMultipartUploadResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link InitMultipartUploadRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void initMultipartUploadAsync(InitMultipartUploadRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void initMultipartUploadAsync(InitMultipartUploadRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new InitMultipartUploadResult(), cosXmlResultListener);
     }
 
-    /**
-     * List parts for cos
-     * synchronous request
-     * @param request {@link ListPartsRequest}
-     * @return ListPartsResult {@link ListPartsResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public ListPartsResult listParts(ListPartsRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (ListPartsResult) sendRequest(request);
+        return execute(request, new ListPartsResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link ListPartsRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void listPartsAsync(ListPartsRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void listPartsAsync(ListPartsRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new ListPartsResult(), cosXmlResultListener);
     }
 
-    /**
-     * Option Object for cos
-     * synchronous request
-     * @param request {@link OptionObjectRequest}
-     * @return OptionObjectResult {@link OptionObjectResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
+    public UploadPartResult uploadPart(UploadPartRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new UploadPartResult());
+    }
+
+    @Override
+    public void uploadPartAsync(UploadPartRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new UploadPartResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public AbortMultiUploadResult abortMultiUpload(AbortMultiUploadRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new AbortMultiUploadResult());
+    }
+
+    @Override
+    public void abortMultiUploadAsync(AbortMultiUploadRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new AbortMultiUploadResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public CompleteMultiUploadResult completeMultiUpload(CompleteMultiUploadRequest request) throws CosXmlClientException, CosXmlServiceException {
+        CompleteMultiUploadResult completeMultiUploadResult =  new CompleteMultiUploadResult();
+        completeMultiUploadResult.accessUrl = getAccessUrl(request);
+        return execute(request, completeMultiUploadResult);
+    }
+
+    @Override
+    public void completeMultiUploadAsync(CompleteMultiUploadRequest request, CosXmlResultListener cosXmlResultListener) {
+        CompleteMultiUploadResult completeMultiUploadResult =  new CompleteMultiUploadResult();
+        completeMultiUploadResult.accessUrl = getAccessUrl(request);
+        schedule(request, completeMultiUploadResult, cosXmlResultListener);
+    }
+
+    @Override
+    public AppendObjectResult appendObject(AppendObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
+        AppendObjectResult appendObjectResult =  new AppendObjectResult();
+        appendObjectResult.accessUrl = getAccessUrl(request);
+        return execute(request, appendObjectResult);
+    }
+
+    @Override
+    public void appendObjectAsync(AppendObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+        AppendObjectResult appendObjectResult =  new AppendObjectResult();
+        appendObjectResult.accessUrl = getAccessUrl(request);
+        schedule(request, appendObjectResult, cosXmlResultListener);
+    }
+
+    @Override
+    public DeleteMultiObjectResult deleteMultiObject(DeleteMultiObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new DeleteMultiObjectResult());
+    }
+
+    @Override
+    public void deleteMultiObjectAsync(DeleteMultiObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new DeleteMultiObjectResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public DeleteObjectResult deleteObject(DeleteObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new DeleteObjectResult());
+    }
+
+    @Override
+    public void deleteObjectAsync(DeleteObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new DeleteObjectResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public GetObjectACLResult getObjectACL(GetObjectACLRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new GetObjectACLResult());
+    }
+
+    @Override
+    public void getObjectACLAsync(GetObjectACLRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetObjectACLResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public GetObjectResult getObject(GetObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new GetObjectResult());
+    }
+
+    @Override
+    public void getObjectAsync(GetObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetObjectResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public HeadObjectResult headObject(HeadObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new HeadObjectResult());
+    }
+
+    @Override
+    public void headObjectAsync(HeadObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new HeadObjectResult(), cosXmlResultListener);
+    }
+
+    @Override
     public OptionObjectResult optionObject(OptionObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (OptionObjectResult) sendRequest(request);
+        return execute(request, new OptionObjectResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link OptionObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void optionObjectAsync(OptionObjectRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void optionObjectAsync(OptionObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new OptionObjectResult(), cosXmlResultListener);
     }
 
-    /**
-     * Put object ACL for cos
-     * synchronous request
-     * @param request {@link PutObjectACLRequest}
-     * @return PutObjectACLResult {@link PutObjectACLResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public PutObjectACLResult putObjectACL(PutObjectACLRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutObjectACLResult) sendRequest(request);
+        return execute(request, new PutObjectACLResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutObjectACLRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void putObjectACLAsync(PutObjectACLRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void putObjectACLAsync(PutObjectACLRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new PutObjectACLResult(), cosXmlResultListener);
     }
 
-    /**
-     * Put objcet for cos
-     * synchronous request
-     * @param request {@link PutObjectRequest}
-     * @return PutObjectResult {@link PutObjectResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public PutObjectResult putObject(PutObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        PutObjectResult putObjectResult = (PutObjectResult) sendRequest(request);
-        generateAccessUrl(request, putObjectResult);
-        return putObjectResult;
+        PutObjectResult putObjectResult =  new PutObjectResult();
+        putObjectResult.accessUrl = getAccessUrl(request);
+        return execute(request, putObjectResult);
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void putObjectAsync(PutObjectRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void putObjectAsync(PutObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+        PutObjectResult putObjectResult =  new PutObjectResult();
+        putObjectResult.accessUrl = getAccessUrl(request);
+        schedule(request, putObjectResult, cosXmlResultListener);
     }
 
-    /**
-     * Copy Object for cos
-     * synchronous request
-     * @param request, {@link CopyObjectRequest}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
     @Override
     public CopyObjectResult copyObject(CopyObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (CopyObjectResult) sendRequest(request);
+        return execute(request, new CopyObjectResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link CopyObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
     @Override
     public void copyObjectAsync(CopyObjectRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new CopyObjectResult(), cosXmlResultListener);
     }
 
-    /**
-     * Upload Part Copy Object for cos
-     * synchronous request
-     * @param request, {@link UploadPartCopyRequest}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
     @Override
     public UploadPartCopyResult copyObject(UploadPartCopyRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (UploadPartCopyResult) sendRequest(request);
+        return execute(request, new UploadPartCopyResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link CopyObjectRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
     @Override
     public void copyObjectAsync(UploadPartCopyRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new UploadPartCopyResult(), cosXmlResultListener);
     }
 
-    /**
-     * Upload parts for cos
-     * synchronous request
-     * @param request {@link UploadPartRequest}
-     * @return UploadPartResult {@link UploadPartResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public UploadPartResult uploadPart(UploadPartRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (UploadPartResult) sendRequest(request);
-    }
-
-    /**
-     * asynchronous request
-     * @param request {@link UploadPartRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void uploadPartAsync(UploadPartRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    //COS Bucket API
-
-    /**
-     * Delete Bucket for cos
-     * synchronous request
-     * @param request {@link DeleteBucketCORSRequest}
-     * @return DeleteBucketCORSResult {@link DeleteBucketCORSResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public DeleteBucketCORSResult deleteBucketCORS(DeleteBucketCORSRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (DeleteBucketCORSResult) sendRequest(request);
+        return execute(request, new DeleteBucketCORSResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link DeleteBucketCORSRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void deleteBucketCORSAsync(DeleteBucketCORSRequest request, final CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void deleteBucketCORSAsync(DeleteBucketCORSRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new DeleteBucketCORSResult(), cosXmlResultListener);
     }
 
-    /**
-     * Delete Bucket Lifecycle for cos
-     * synchronous request
-     * @param request {@link DeleteBucketLifecycleRequest}
-     * @return DeleteBucketLifecycleResult {@link DeleteBucketLifecycleResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public DeleteBucketLifecycleResult deleteBucketLifecycle(DeleteBucketLifecycleRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (DeleteBucketLifecycleResult) sendRequest(request);
+        return execute(request, new DeleteBucketLifecycleResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link DeleteBucketLifecycleRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void deleteBucketLifecycleAsync(DeleteBucketLifecycleRequest request,CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void deleteBucketLifecycleAsync(DeleteBucketLifecycleRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new DeleteBucketLifecycleResult(), cosXmlResultListener);
     }
 
-    /**
-     * Delete Bucket for cos
-     * synchronous request
-     * @param request {@link DeleteBucketRequest}
-     * @return DeleteBucketResult {@link DeleteBucketResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public DeleteBucketResult deleteBucket(DeleteBucketRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (DeleteBucketResult) sendRequest(request);
+        return execute(request, new DeleteBucketResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link DeleteBucketRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void deleteBucketAsync(DeleteBucketRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void deleteBucketAsync(DeleteBucketRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new DeleteBucketResult(), cosXmlResultListener);
     }
 
-    /**
-     * Delete bucket Tag for cos
-     * synchronous request
-     * @param request {@link DeleteBucketTaggingRequest}
-     * @return DeleteBucketTaggingResult {@link DeleteBucketTaggingResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public DeleteBucketTaggingResult deleteBucketTagging(DeleteBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (DeleteBucketTaggingResult) sendRequest(request);
+        return execute(request, new DeleteBucketTaggingResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link DeleteBucketTaggingRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void deleteBucketTaggingAsync(DeleteBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void deleteBucketTaggingAsync(DeleteBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new DeleteBucketTaggingResult(), cosXmlResultListener);
     }
 
-    /**
-     * Get bucket ACL for cos
-     * synchronous request
-     * @param request {@link GetBucketACLRequest}
-     * @return GetBucketACLResult {@link GetBucketACLResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public GetBucketACLResult getBucketACL(GetBucketACLRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketACLResult) sendRequest(request);
+        return execute(request, new GetBucketACLResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getBucketACLAsync(GetBucketACLRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void getBucketACLAsync(GetBucketACLRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketACLResult(), cosXmlResultListener);
     }
 
-    /**
-     * Get bucket cors for cos
-     * synchronous request
-     * @param request {@link GetBucketCORSRequest}
-     * @return GetBucketCORSResult {@link GetBucketCORSResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public GetBucketCORSResult getBucketCORS(GetBucketCORSRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketCORSResult) sendRequest(request);
+        return execute(request, new GetBucketCORSResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetBucketCORSRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getBucketCORSAsync(GetBucketCORSRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void getBucketCORSAsync(GetBucketCORSRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketCORSResult(), cosXmlResultListener);
     }
 
-    /**
-     * Get bucket lifecycle for cos
-     * synchronous request
-     * @param request {@link GetBucketLifecycleRequest}
-     * @return GetBucketLifecycleResult {@link GetBucketLifecycleResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public GetBucketLifecycleResult getBucketLifecycle(GetBucketLifecycleRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketLifecycleResult) sendRequest(request);
+        return execute(request, new GetBucketLifecycleResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetBucketLifecycleRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getBucketLifecycleAsync(GetBucketLifecycleRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void getBucketLifecycleAsync(GetBucketLifecycleRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketLifecycleResult(), cosXmlResultListener);
     }
 
-    /**
-     * Get Bucket Location for cos
-     * synchronous request
-     * @param request {@link GetBucketLocationRequest}
-     * @return GetBucketLocationResult {@link GetBucketLocationResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public GetBucketLocationResult getBucketLocation(GetBucketLocationRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketLocationResult) sendRequest(request);
+        return execute(request, new GetBucketLocationResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetBucketLocationRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getBucketLocationAsync(GetBucketLocationRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void getBucketLocationAsync(GetBucketLocationRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketLocationResult(), cosXmlResultListener);
     }
 
-    /**
-     * Get bucket for cos
-     * synchronous request
-     * @param request {@link GetBucketRequest}
-     * @return GetBucketResult {@link GetBucketResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public GetBucketResult getBucket(GetBucketRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketResult) sendRequest(request);
+        return execute(request, new GetBucketResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetBucketRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getBucketAsync(GetBucketRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void getBucketAsync(GetBucketRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketResult(), cosXmlResultListener);
     }
 
-    /**
-     * get bucket tag for cos
-     * synchronous request
-     * @param request {@link GetBucketTaggingRequest}
-     * @return GetBucketTaggingResult {@link GetBucketTaggingResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public GetBucketTaggingResult getBucketTagging(GetBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketTaggingResult) sendRequest(request);
+        return execute(request, new GetBucketTaggingResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetBucketTaggingRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void getBucketTaggingAsync(GetBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void getBucketTaggingAsync(GetBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketTaggingResult(), cosXmlResultListener);
     }
 
-    /**
-     * Head bucket for cos
-     * synchronous request
-     * @param request {@link HeadBucketRequest}
-     * @return HeadBucketResult {@link HeadBucketResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public HeadBucketResult headBucket(HeadBucketRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (HeadBucketResult) sendRequest(request);
+        return execute(request, new HeadBucketResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link HeadBucketRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void headBucketAsync(HeadBucketRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void headBucketAsync(HeadBucketRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new HeadBucketResult(), cosXmlResultListener);
     }
 
-    /**
-     * List MultiUploads for cos
-     * synchronous request
-     * @param request {@link ListMultiUploadsRequest}
-     * @return ListMultiUploadsResult {@link ListMultiUploadsResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public ListMultiUploadsResult listMultiUploads(ListMultiUploadsRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (ListMultiUploadsResult) sendRequest(request);
+        return execute(request, new ListMultiUploadsResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link ListMultiUploadsRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void listMultiUploadsAsync(ListMultiUploadsRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void listMultiUploadsAsync(ListMultiUploadsRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new ListMultiUploadsResult(), cosXmlResultListener);
     }
 
-    /**
-     * Put Bucket ACL for cos
-     * synchronous request
-     * @param request {@link PutBucketACLRequest}
-     * @return PutBucketACLResult {@link PutBucketACLResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public PutBucketACLResult putBucketACL(PutBucketACLRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutBucketACLResult) sendRequest(request);
+        return execute(request, new PutBucketACLResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutBucketACLRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void putBucketACLAsync(PutBucketACLRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void putBucketACLAsync(PutBucketACLRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new PutBucketACLResult(), cosXmlResultListener);
     }
 
-    /**
-     * Put Bucket cors for cos
-     * synchronous request
-     * @param request {@link PutBucketCORSRequest}
-     * @return PutBucketCORSResult {@link PutBucketCORSResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public PutBucketCORSResult putBucketCORS(PutBucketCORSRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutBucketCORSResult) sendRequest(request);
+        return execute(request, new PutBucketCORSResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutBucketCORSRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
+    @Override
     public void putBucketCORSAsync(PutBucketCORSRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new PutBucketCORSResult(), cosXmlResultListener);
     }
 
-    /**
-     * Put bucket LifeCycle
-     * synchronous request
-     * @param request {@link PutBucketLifecycleRequest}
-     * @return PutBucketLifecycleResult {@link PutBucketLifecycleResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public PutBucketLifecycleResult putBucketLifecycle(PutBucketLifecycleRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutBucketLifecycleResult) sendRequest(request);
+        return execute(request, new PutBucketLifecycleResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutBucketLifecycleRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void putBucketLifecycleAsync(PutBucketLifecycleRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void putBucketLifecycleAsync(PutBucketLifecycleRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new PutBucketLifecycleResult(), cosXmlResultListener);
     }
 
-    /**
-     * Put bucket for cos
-     * synchronous request
-     * @param request {@link PutBucketRequest}
-     * @return PutBucketResult {@link PutBucketResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
+    @Override
     public PutBucketResult putBucket(PutBucketRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutBucketResult) sendRequest(request);
+        return execute(request, new PutBucketResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutBucketRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void putBucketAsync(PutBucketRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
+    @Override
+    public void putBucketAsync(PutBucketRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new PutBucketResult(), cosXmlResultListener);
     }
 
-    /**
-     * Put Bucket Tag for cos
-     * synchronous request
-     * @param request {@link PutBucketTaggingRequest}
-     * @return PutBucketTaggingResult {@link PutBucketTaggingResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    public PutBucketTaggingResult putBucketTagging(PutBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutBucketTaggingResult) sendRequest(request);
-    }
+//    @Override
+//    public PutBucketTaggingResult putBucketTagging(PutBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException {
+//        return execute(request, new PutBucketTaggingResult());
+//    }
+//
+//    @Override
+//    public void putBucketTaggingAsync(PutBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener) {
+//        schedule(request, new UploadPartResult(), cosXmlResultListener);
+//    }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutBucketTaggingRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    public void putBucketTaggingAsync(PutBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener){
-        sendRequestAsync(request, cosXmlResultListener );
-    }
-
-    /**
-     * get Bucket Versioning for cos
-     * synchronous request
-     * @param request {@link GetBucketVersioningRequest}
-     * @return GetBucketVersioningResult {@link GetBucketVersioningResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
     @Override
     public GetBucketVersioningResult getBucketVersioning(GetBucketVersioningRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketVersioningResult) sendRequest(request);
+        return execute(request, new GetBucketVersioningResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetBucketVersioningRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
     @Override
     public void getBucketVersioningAsync(GetBucketVersioningRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new GetBucketVersioningResult(), cosXmlResultListener);
     }
 
-    /**
-     * put Bucket Versioning for cos
-     * synchronous request
-     * @param request {@link PutBucketVersioningRequest}
-     * @return PutBucketVersioningResult {@link PutBucketVersioningResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
     @Override
     public PutBucketVersioningResult putBucketVersioning(PutBucketVersioningRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutBucketVersioningResult) sendRequest(request);
+        return execute(request, new PutBucketVersioningResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutBucketVersioningRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
     @Override
     public void putBucketVersionAsync(PutBucketVersioningRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new PutBucketVersioningResult(), cosXmlResultListener);
     }
 
-    /**
-     * get Bucket Replication for cos
-     * synchronous request
-     * @param request {@link GetBucketReplicationRequest}
-     * @return GetBucketReplicationResult {@link GetBucketReplicationResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
     @Override
     public GetBucketReplicationResult getBucketReplication(GetBucketReplicationRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (GetBucketReplicationResult) sendRequest(request);
+        return execute(request, new GetBucketReplicationResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link GetBucketReplicationRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
     @Override
     public void getBucketReplicationAsync(GetBucketReplicationRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new GetBucketReplicationResult(), cosXmlResultListener);
     }
 
-    /**
-     * put Bucket Replication for cos
-     * synchronous request
-     * @param request {@link PutBucketReplicationRequest}
-     * @return PutBucketReplicationResult {@link PutBucketReplicationResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
     @Override
     public PutBucketReplicationResult putBucketReplication(PutBucketReplicationRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (PutBucketReplicationResult) sendRequest(request);
+        return execute(request, new PutBucketReplicationResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link PutBucketReplicationRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
     @Override
     public void putBucketReplicationAsync(PutBucketReplicationRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new PutBucketReplicationResult(), cosXmlResultListener);
     }
 
-    /**
-     * delete Bucket Replication for cos
-     * synchronous request
-     * @param request {@link DeleteBucketReplicationRequest}
-     * @return DeleteBucketReplicationResult {@link DeleteBucketReplicationResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
     @Override
     public DeleteBucketReplicationResult deleteBucketReplication(DeleteBucketReplicationRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return (DeleteBucketReplicationResult) sendRequest(request);
+        return execute(request, new DeleteBucketReplicationResult());
     }
 
-    /**
-     * asynchronous request
-     * @param request {@link DeleteBucketReplicationRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
     @Override
     public void deleteBucketReplicationAsync(DeleteBucketReplicationRequest request, CosXmlResultListener cosXmlResultListener) {
-        sendRequestAsync(request, cosXmlResultListener );
+        schedule(request, new DeleteBucketReplicationResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public ListBucketVersionsResult listBucketVersions(ListBucketVersionsRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new ListBucketVersionsResult());
+    }
+
+    @Override
+    public void listBucketVersionsAsync(ListBucketVersionsRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new ListBucketVersionsResult(), cosXmlResultListener);
     }
 
     @Override
     public void cancel(CosXmlRequest cosXmlRequest) {
-         mService.cancel(cosXmlRequest);
+        if (cosXmlRequest != null && cosXmlRequest.getHttpTask() != null) {
+            cosXmlRequest.getHttpTask().cancel();
+        }
     }
 
-
-    /**
-     * try to cancel all request
-     */
     @Override
     public void cancelAll() {
-        mService.cancelAll();
-    }
-
-    /**
-     *  release resource for sdk(such as shutdown thread pools)
-     */
-    public void release(){
-        mService.release();
-    }
-
-
-    private CosXmlResult sendRequest(CosXmlRequest request) throws CosXmlClientException, CosXmlServiceException {
-        CosXmlResult cosXmlResult = null;
-        try {
-            cosXmlResult = (CosXmlResult) mService.execute(request);
-        } catch (QCloudClientException e) {
-           throw new CosXmlClientException(e);
-        }
-        isServiceException(cosXmlResult);
-        return cosXmlResult;
-    }
-
-    private void isServiceException(CosXmlResult cosXmlResult) throws CosXmlServiceException {
-        if(cosXmlResult != null){
-            int httpCode = cosXmlResult.getHttpCode();
-            if(httpCode >=300 || httpCode < 200){
-                throw new CosXmlServiceException(httpCode, cosXmlResult.getHttpMessage(), cosXmlResult.error);
-            }
+        List<HttpTask> tasks = client.getTasksByTag(tag);
+        for(HttpTask task : tasks){
+            task.cancel();
         }
     }
 
-    private void sendRequestAsync(final CosXmlRequest cosXmlRequest, final CosXmlResultListener cosXmlResultListener){
-        mService.enqueue(cosXmlRequest, new QCloudResultListener(){
-            @Override
-            public void onSuccess(QCloudRequest request, QCloudResult result) {
-                getResultByQCloudResult(cosXmlRequest, (CosXmlResult) result, cosXmlResultListener);
-            }
-
-            @Override
-            public void onFailed(QCloudRequest request, QCloudClientException clientException, com.tencent.qcloud.core.network.exception.QCloudServiceException serviceException) {
-                cosXmlResultListener.onFail(cosXmlRequest, new CosXmlClientException(clientException), null);
-            }
-        });
+    @Override
+    public void release() {
+        cancelAll();
     }
-
-    private void getResultByQCloudResult(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult,
-                                         CosXmlResultListener cosXmlResultListener) {
-        if (cosXmlResult != null && cosXmlResultListener != null) {
-            try {
-                isServiceException(cosXmlResult);
-                if (cosXmlRequest instanceof AppendObjectRequest ||
-                        cosXmlRequest instanceof PutObjectRequest
-                        || cosXmlRequest instanceof CompleteMultiUploadRequest) {
-                    generateAccessUrl(cosXmlRequest, cosXmlResult);
-                }
-                cosXmlResultListener.onSuccess(cosXmlRequest, cosXmlResult);
-            } catch (CosXmlServiceException e) {
-                cosXmlResultListener.onFail(cosXmlRequest, null, e);
-            }
-        }
-    }
-
-    private void generateAccessUrl(final CosXmlRequest cosXmlRequest, final CosXmlResult cosXmlResult){
-            if(cosXmlRequest == null || cosXmlResult == null){
-                return;
-            }
-            if(cosXmlResult.getHttpCode() >= 200 && cosXmlResult.getHttpCode() < 300){
-                StringBuilder accessUrl = new StringBuilder();
-                CosXmlServiceConfig qCloudServiceConfig = CosXmlServiceConfig.getInstance();
-                if(qCloudServiceConfig != null){
-                    accessUrl.append(qCloudServiceConfig.getScheme())
-                            .append("://")
-                            .append(cosXmlRequest.getBucket())
-                            .append(qCloudServiceConfig.getHttpHost())
-                            .append(cosXmlRequest.getRequestPath());
-                }
-                cosXmlResult.accessUrl = accessUrl.toString();
-            }
-    }
-
 }

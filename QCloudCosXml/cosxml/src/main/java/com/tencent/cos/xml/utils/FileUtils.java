@@ -1,39 +1,43 @@
 package com.tencent.cos.xml.utils;
 
-import java.io.FileInputStream;
+import android.os.Environment;
+
+
+import com.tencent.cos.xml.exception.CosXmlClientException;
+
+import java.io.File;
+import java.io.FileOutputStream;
+
+import java.io.IOError;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Created by bradyxiao on 2017/6/5.
- * author bradyxiao
+ * Created by bradyxiao on 2017/12/14.
  */
+
 public class FileUtils {
 
-    public static byte[] getFileContent(String srcPath, long offset, int length ) throws IOException {
-        if(offset < 0 || length < 0){
-            throw new IllegalArgumentException("offset or length < 0");
-        }
-        FileInputStream fileInputStream = new FileInputStream(srcPath);
-        byte[] data = null;
-        byte[] temp = new byte[length];
+    public static String tempCache(InputStream inputStream) throws CosXmlClientException {
+        if(inputStream == null)return null;
+        FileOutputStream fileOutputStream = null;
         try {
-            fileInputStream.skip(offset);
-            int readLen = fileInputStream.read(temp,0,temp.length);
-            if(readLen < 0){
-                data = new byte[0];
-            }else {
-                if(readLen < length){
-                    data = new byte[readLen];
-                    System.arraycopy(temp,0,data,0,readLen);
-                }else{
-                    data = temp;
-                }
+            String tempPath = Environment.getExternalStorageDirectory().getPath() + File.separator + "temp.tmp";
+            File tempFile = new File(tempPath);
+            if(tempFile.exists())tempFile.delete();
+            fileOutputStream = new FileOutputStream(tempFile);
+            byte[] buffer = new byte[1024 * 64];
+            int receiveLen = -1;
+            while ((receiveLen = inputStream.read(buffer, 0, buffer.length))> 0){
+                fileOutputStream.write(buffer, 0, receiveLen);
             }
-        }catch (Exception e){
-            throw e;
+            fileOutputStream.flush();
+            return tempPath;
+        }catch (IOException e){
+            throw new CosXmlClientException(e);
         }finally {
-            fileInputStream.close();
+            CloseUtil.closeQuietly(fileOutputStream);
+            CloseUtil.closeQuietly(inputStream);
         }
-        return data;
     }
 }

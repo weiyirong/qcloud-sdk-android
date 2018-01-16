@@ -1,26 +1,18 @@
 package com.tencent.cos.xml.model.object;
 
-
-
 import com.tencent.cos.xml.common.COSACL;
-import com.tencent.cos.xml.common.RequestHeader;
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.cos.xml.model.tag.ACLAccounts;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudProgressListener;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.qcloud.core.network.request.serializer.RequestByteArraySerializer;
-import com.tencent.qcloud.core.network.request.serializer.RequestFormDataSerializer;
-import com.tencent.qcloud.core.network.request.serializer.RequestStreamBodySerializer;
+import com.tencent.cos.xml.listener.CosXmlProgressListener;
+import com.tencent.cos.xml.model.tag.ACLAccount;
+import com.tencent.cos.xml.utils.FileUtils;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-
 import java.util.Map;
-
 
 /**
  * <p>
@@ -35,133 +27,70 @@ import java.util.Map;
  * appendable 的对象不可以被复制，不参与版本管理，不参与生命周期管理，不可跨区域复制。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#appendObject(AppendObjectRequest)
- * @see com.tencent.cos.xml.CosXml#appendObjectAsync(AppendObjectRequest, CosXmlResultListener)
- */
-final public class AppendObjectRequest extends CosXmlRequest {
+*/
+final public class AppendObjectRequest extends ObjectRequest {
 
     /** 追加的起始点 */
     private long position = 0;
-    private String cosPath;
     private String srcPath;
     private byte[] data;
-    private InputStream inputStream;
     private long fileLength;
 
-    private QCloudProgressListener progressListener;
+    private CosXmlProgressListener progressListener;
 
+    private AppendObjectRequest(String bucket, String cosPath){
+        super(bucket, cosPath);
+    }
     public AppendObjectRequest(String bucket, String cosPath, String srcPath, long position){
-        setBucket(bucket);
-        this.cosPath = cosPath;
+        this(bucket, cosPath);
         this.srcPath = srcPath;
         this.position = position;
-        contentType = QCloudNetWorkConstants.ContentType.MULTIPART_FORM_DATA;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }
 
     public AppendObjectRequest(String bucket, String cosPath, byte[] data, long position){
-        setBucket(bucket);
-        this.cosPath = cosPath;
+        this(bucket, cosPath);
         this.data = data;
         this.position = position;
-        contentType = QCloudNetWorkConstants.ContentType.MULTIPART_FORM_DATA;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }
 
-    public AppendObjectRequest(String bucket, String cosPath, InputStream inputStream, long sendLength, long position){
-        setBucket(bucket);
-        this.cosPath = cosPath;
-        this.inputStream = inputStream;
-        this.fileLength = sendLength;
+    public AppendObjectRequest(String bucket, String cosPath, InputStream inputStream, long position) throws CosXmlClientException {
+        this(bucket, cosPath);
+        this.srcPath= FileUtils.tempCache(inputStream);
         this.position = position;
-        contentType = QCloudNetWorkConstants.ContentType.MULTIPART_FORM_DATA;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
+    public String getMethod() {
+        return RequestMethod.POST;
+    }
 
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_LOW;
+    @Override
+    public Map<String, String> getQueryString() {
+        queryParameters.put("append", null);
+        queryParameters.put("position", String.valueOf(position));
+        return queryParameters;
+    }
 
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
+    @Override
+    public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         if(srcPath != null){
-            RequestFormDataSerializer requestFormDataSerializer = new RequestFormDataSerializer();
-            requestFormDataSerializer.setProgressListener(progressListener);
-            requestFormDataSerializer.uploadFile(srcPath,"file");
-            requestOriginBuilder.body(requestFormDataSerializer);
+            return RequestBodySerializer.file(COSRequestHeaderKey.APPLICATION_OCTET_STREAM, new File(srcPath));
         }else if(data != null){
-            RequestByteArraySerializer requestByteArraySerializer = new RequestByteArraySerializer(data,"text/plain");
-            requestByteArraySerializer.setProgressListener(progressListener);
-            requestOriginBuilder.body(requestByteArraySerializer);
-        }else if(inputStream != null){
-            RequestStreamBodySerializer requestStreamBodySerializer = new RequestStreamBodySerializer(inputStream, fileLength, "text/plain");
-            requestStreamBodySerializer.setProgressListener(progressListener);
-            requestOriginBuilder.body(requestStreamBodySerializer);
+           return RequestBodySerializer.bytes(COSRequestHeaderKey.APPLICATION_OCTET_STREAM, data);
         }
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(AppendObjectResult.class);
+        return null;
     }
 
     @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("append",null);
-        requestQueryParams.put("position",String.valueOf(position));
-    }
-
-    @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-        if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null");
-        }
-        if(srcPath == null && data == null && inputStream == null){
+    public void checkParameters() throws CosXmlClientException {
+        super.checkParameters();
+        if(srcPath == null && data == null){
             throw new CosXmlClientException("Data Source must not be null");
         }
         if(srcPath != null){
             File file = new File(srcPath);
             if(!file.exists()){
                 throw new CosXmlClientException("upload file does not exist");
-            }
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.POST;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
             }
         }
     }
@@ -187,36 +116,16 @@ final public class AppendObjectRequest extends CosXmlRequest {
     }
 
     /**
-     *
-     * 设置COS上对应的路径。
-     *
-     * @param cosPath COS上对应的路径
-     */
-    public void setCosPath(String cosPath) {
-        this.cosPath = cosPath;
-    }
-
-    /**
-     * 获取设置的COS上对应的路径。
-     *
-     * @return COS上对应的路径
-     */
-    public String getCosPath() {
-        return cosPath;
-    }
-
-    /**
      * <p>
      * 设置上传的本地文件路径
      * </p>
      * <p>
      * 可以设置上传本地文件、字节数组或者输入流。每次只能上传一种类型，若同时设置，
-     * 则优先级为 本地文件&gt;字节数组&gt;输入流
+     * 则优先级为 本地文件 &gt; 字节数组
      * </p>
      *
      * @param srcPath 本地文件路径
      * @see AppendObjectRequest#setData(byte[])
-     * @see AppendObjectRequest#setInputStream(InputStream, long)
      */
     public void setSrcPath(String srcPath) {
         this.srcPath = srcPath;
@@ -256,37 +165,17 @@ final public class AppendObjectRequest extends CosXmlRequest {
     }
 
     /**
-     * <p>
-     * 设置上传的输入流
-     * </p>
-     * <p>
-     * 可以设置上传本地文件、字节数组或者输入流。每次只能上传一种类型，若同时设置，
-     * 则优先级为 本地文件&gt;字节数组&gt;输入流
-     * </p>
-     *
-     * @param inputStream 输入流
-     * @param fileLength 读取的字节长度
-     */
-    public void setInputStream(InputStream inputStream, long fileLength) {
-        this.inputStream = inputStream;
-        this.fileLength = fileLength;
-    }
-
-    /**
-     * 获取用户设置的输入流
-     *
-     * @return
-     */
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    /**
      * 获取用户设置的输入流读取的字节长度
      *
      * @return
      */
     public long getFileLength() {
+        if(srcPath != null){
+            File file = new File(srcPath);
+            fileLength = file.length();
+        }else if(data != null){
+            fileLength = data.length;
+        }
         return fileLength;
     }
 
@@ -295,7 +184,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      *
      * @param progressListener
      */
-    public void setProgressListener(QCloudProgressListener progressListener){
+    public void setProgressListener(CosXmlProgressListener progressListener){
         this.progressListener = progressListener;
     }
 
@@ -304,7 +193,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      *
      * @return
      */
-    public QCloudProgressListener getProgressListener() {
+    public CosXmlProgressListener getProgressListener() {
         return progressListener;
     }
 
@@ -320,7 +209,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      */
     public void setCacheControl(String cacheControl) {
         if(cacheControl == null)return;
-        requestHeaders.put("Cache-Control",cacheControl);
+        addHeader(COSRequestHeaderKey.CACHE_CONTROL,cacheControl);
     }
 
     /**
@@ -335,7 +224,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      */
     public void setContentDisposition(String contentDisposition) {
         if(contentDisposition == null)return;
-        requestHeaders.put("Content-Disposition",contentDisposition);
+        addHeader(COSRequestHeaderKey.CONTENT_DISPOSITION,contentDisposition);
     }
 
     /**
@@ -350,7 +239,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      */
     public void setContentEncodeing(String contentEncoding) {
         if(contentEncoding == null)return;
-        requestHeaders.put("Content-Encoding",contentEncoding);
+        addHeader(COSRequestHeaderKey.CONTENT_ENCODING,contentEncoding);
     }
 
     /**
@@ -365,7 +254,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      */
     public void setExpires(String expires) {
         if(expires == null)return;
-        requestHeaders.put("Expires", expires);
+        addHeader(COSRequestHeaderKey.EXPIRES, expires);
     }
 
     /**
@@ -381,7 +270,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      */
     public void setXCOSMeta(String key, String value){
         if(key != null && value != null){
-            requestHeaders.put(key,value);
+            addHeader(key,value);
         }
     }
 
@@ -403,7 +292,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      */
     public void setXCOSACL(String cosacl){
         if(cosacl != null){
-            requestHeaders.put("x-cos-acl",cosacl);
+            addHeader(COSRequestHeaderKey.X_COS_ACL,cosacl);
         }
     }
 
@@ -414,7 +303,7 @@ final public class AppendObjectRequest extends CosXmlRequest {
      */
     public void setXCOSACL(COSACL cosacl){
         if(cosacl != null){
-            requestHeaders.put("x-cos-acl",cosacl.getACL());
+            addHeader(COSRequestHeaderKey.X_COS_ACL,cosacl.getAcl());
         }
     }
 
@@ -423,11 +312,11 @@ final public class AppendObjectRequest extends CosXmlRequest {
      * 单独明确赋予用户读权限
      * </p>
      *
-     * @param aclAccounts 读权限用户列表
+     * @param aclAccount 读权限用户列表
      */
-    public void setXCOSGrantRead(ACLAccounts aclAccounts){
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_READ, aclAccounts.aclDesc());
+    public void setXCOSGrantRead(ACLAccount aclAccount){
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
         }
     }
 
@@ -437,27 +326,26 @@ final public class AppendObjectRequest extends CosXmlRequest {
      * 赋予被授权者写的权限
      * </p>
      *
-     * @param aclAccounts 写权限用户列表
+     * @param aclAccount 写权限用户列表
      */
-    public void setXCOSGrantWrite(ACLAccounts aclAccounts){
+    public void setXCOSGrantWrite(ACLAccount aclAccount){
 
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_WRITE, aclAccounts.aclDesc());
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
         }
     }
-
 
     /**
      * <p>
      * 赋予被授权者读写权限。
      * </p>
      *
-     * @param aclAccounts 读写用户权限列表
+     * @param aclAccount 读写用户权限列表
      */
-    public void setXCOSReadWrite(ACLAccounts aclAccounts){
+    public void setXCOSReadWrite(ACLAccount aclAccount){
 
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_FULL_CONTROL, aclAccounts.aclDesc());
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
         }
     }
 }

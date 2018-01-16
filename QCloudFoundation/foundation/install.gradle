@@ -1,0 +1,36 @@
+apply plugin: 'com.github.dcendents.android-maven'
+group = 'com.tencent.qcloud'
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                groupId 'com.tencent.qcloud' // CREATE A GROUP ID FOR YOUR LIBRARY
+                artifactId 'qcloud-foundation' // THE NAME OF YOUR MODULE
+                name 'qcloud-foundation-sdk' // YOUR LIBRARY NAME
+                description 'tencent qcloud foundationl sdk for android.' // YOUR LIBRARY DESCRIPTION
+                url 'https://github.com/tencentyun/qcloud-sdk-android' // YOUR SITE
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'tencent' //YOUR ID
+                        name 'tencentqcloudterminal' //YOUR NAME
+                        email 'maggieyimengying@gmail.com' //YOUR EMAIL
+                    }
+                }
+                scm {
+                    connection 'https://github.com/tencentyun/qcloud-sdk-android.git' // YOUR GIT REPO
+                    developerConnection 'https://github.com/tencentyun/qcloud-sdk-android.git' // YOUR GIT REPO
+                    url 'https://github.com/tencentyun/qcloud-sdk-android' // YOUR SITE
+
+                }
+            }
+        }
+    }
+}

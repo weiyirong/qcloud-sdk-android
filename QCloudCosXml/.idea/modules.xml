@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/QCloudCosXml.iml" filepath="$PROJECT_DIR$/QCloudCosXml.iml" />
       <module fileurl="file://$PROJECT_DIR$/cosxml/cosxml.iml" filepath="$PROJECT_DIR$/cosxml/cosxml.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../QCloudFoundation/core/network.iml" filepath="$PROJECT_DIR$/../QCloudFoundation/core/network.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../QCloudFoundation/foundation/foundation.iml" filepath="$PROJECT_DIR$/../QCloudFoundation/foundation/foundation.iml" />
     </modules>
   </component>
 </project>

@@ -1,17 +1,9 @@
 package com.tencent.cos.xml.model.object;
 
-
-
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.cos.xml.model.bucket.PutBucketCORSRequest;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-
-
-import java.util.Map;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 /**
  * <p>
@@ -25,91 +17,37 @@ import java.util.Map;
  * 可以通过 PutBucketCORS 接口来开启 Bucket 的 CORS 支持。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#putBucketCORS(PutBucketCORSRequest)
- * @see com.tencent.cos.xml.CosXml#putBucketCORSAsync(PutBucketCORSRequest, CosXmlResultListener)
  */
-final public class OptionObjectRequest extends CosXmlRequest {
+final public class OptionObjectRequest extends ObjectRequest {
     private String origin;
     private String accessControlMethod;
     private String accessControlHeaders;
-    private String cosPath;
     public OptionObjectRequest(String bucket, String cosPath, String origin, String accessControlMethod){
-        setBucket(bucket);
-        this.cosPath = cosPath;
+        super(bucket, cosPath);
         this.origin = origin;
         this.accessControlMethod = accessControlMethod;
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
         setOrigin(origin);
         setAccessControlMethod(accessControlMethod);
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(OptionObjectResult.class);
+    public String getMethod() {
+        return RequestMethod.OPTIONS;
     }
 
     @Override
-    protected void setRequestQueryParams() {
-
+    public RequestBodySerializer getRequestBody() {
+        return null;
     }
 
     @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-        if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null");
-        }
+    public void checkParameters() throws CosXmlClientException {
+        super.checkParameters();
         if(origin == null){
             throw new CosXmlClientException("option request origin must not be null");
         }
         if(accessControlMethod == null){
             throw new CosXmlClientException("option request accessControlMethod must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.OPTIONS;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
-            }
         }
     }
 
@@ -123,7 +61,7 @@ final public class OptionObjectRequest extends CosXmlRequest {
     public void setOrigin(String origin) {
         this.origin = origin;
         if(origin != null){
-            requestHeaders.put("Origin",origin);
+            addHeader(COSRequestHeaderKey.ORIGIN,origin);
         }
     }
 
@@ -144,7 +82,7 @@ final public class OptionObjectRequest extends CosXmlRequest {
     public void setAccessControlMethod(String accessControlMethod) {
         if(accessControlMethod != null){
             this.accessControlMethod = accessControlMethod.toUpperCase();
-            requestHeaders.put("Access-Control-Request-Method",this.accessControlMethod);
+            addHeader(COSRequestHeaderKey.ACCESS_CONTROL_REQUEST_METHOD,this.accessControlMethod);
         }
     }
 
@@ -165,7 +103,7 @@ final public class OptionObjectRequest extends CosXmlRequest {
     public void setAccessControlHeaders(String accessControlHeaders) {
         this.accessControlHeaders = accessControlHeaders;
         if(accessControlHeaders != null){
-            requestHeaders.put("Access-Control-Request-Headers",accessControlHeaders);
+            addHeader(COSRequestHeaderKey.ACCESS_CONTROL_REQUEST_HEADERS,accessControlHeaders);
         }
     }
 
@@ -178,21 +116,4 @@ final public class OptionObjectRequest extends CosXmlRequest {
         return accessControlHeaders;
     }
 
-    /**
-     * 设置Object的COS路径
-     *
-     * @param cosPath COS 上的Object路径
-     */
-    public void setCosPath(String cosPath) {
-        this.cosPath = cosPath;
-    }
-
-    /**
-     * 获取用户设置的COS Object路径
-     *
-     * @return Object路径
-     */
-    public String getCosPath() {
-        return cosPath;
-    }
 }

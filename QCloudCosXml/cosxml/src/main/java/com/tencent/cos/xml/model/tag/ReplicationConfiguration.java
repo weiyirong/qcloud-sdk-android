@@ -1,66 +1,58 @@
 package com.tencent.cos.xml.model.tag;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.util.List;
 
 /**
- * Created by bradyxiao on 2017/11/6.
+ * Created by bradyxiao on 2017/11/24.
  */
 
-@XStreamAlias("ReplicationConfiguration")
 public class ReplicationConfiguration {
-
-    @XStreamAlias("Role")
     public String role;
-
-    @XStreamAlias("Rule")
-    public Rule rule;
-
-    @XStreamAlias("Rule")
-    public static class Rule{
-        @XStreamAlias("Status")
-        public String status;
-
-        @XStreamAlias("ID")
-        public String id;
-
-        @XStreamAlias("Prefix")
-        public String prefix;
-
-        @XStreamAlias("Destination")
-        public Destination destination;
-    }
-
-    @XStreamAlias("Destination")
-    public static class Destination{
-        @XStreamAlias("Bucket")
-        public String bucket;
-
-        @XStreamAlias("StorageClass")
-        public String storageClass;
-    }
+    public List<Rule> rules;
 
     @Override
     public String toString(){
-        StringBuilder stringBuilder = new StringBuilder("{\n");
+        StringBuilder stringBuilder = new StringBuilder("{ReplicationConfiguration:\n");
         stringBuilder.append("Role:").append(role).append("\n");
-        if(rule != null){
-            stringBuilder.append("Rule:{\n");
-            stringBuilder.append("Status:").append(rule.status).append("\n")
-                    .append("Id:").append(rule.id).append("\n")
-                    .append("Prefix:").append(rule.prefix).append("\n");
-            if(rule.destination != null){
-                stringBuilder.append("Destination:{\n")
-                        .append("Bucket:").append(rule.destination.bucket).append("\n")
-                        .append("StorageClass:").append(rule.destination.storageClass).append("\n");
-                stringBuilder.append("}");
-            }else {
-                stringBuilder.append("Destination:").append("null").append("\n");
+        if(rules != null){
+            for(Rule rule : rules){
+                if(rule != null)stringBuilder.append(rule.toString()).append("\n");
             }
-        }else {
-            stringBuilder.append("Rule:").append("null").append("\n");
         }
         stringBuilder.append("}");
         return stringBuilder.toString();
+    }
+
+    public static class Rule{
+        public String id;
+        public String status;
+        public String prefix;
+        public Destination destination;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Rule:\n");
+            stringBuilder.append("Id:").append(id).append("\n");
+            stringBuilder.append("Status:").append(status).append("\n");
+            stringBuilder.append("Prefix:").append(prefix).append("\n");
+            if(destination != null)stringBuilder.append(destination.toString()).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class Destination{
+        public String bucket;
+        public String storageClass;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Destination:\n");
+            stringBuilder.append("Bucket:").append(bucket).append("\n");
+            stringBuilder.append("StorageClass:").append(storageClass).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
     }
 
 }

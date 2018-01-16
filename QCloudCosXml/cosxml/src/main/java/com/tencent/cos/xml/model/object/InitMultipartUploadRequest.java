@@ -1,18 +1,13 @@
 package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.common.COSACL;
-import com.tencent.cos.xml.common.RequestHeader;
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.cos.xml.model.tag.ACLAccounts;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.qcloud.core.network.request.serializer.RequestByteArraySerializer;
+import com.tencent.cos.xml.model.tag.ACLAccount;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.util.Map;
-
 
 /**
  * <p>
@@ -23,100 +18,12 @@ import java.util.Map;
  * 成功执行此请求以后会返回 UploadId 用于后续的 Upload Part 请求。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#initMultipartUpload(InitMultipartUploadRequest)
- * @see com.tencent.cos.xml.CosXml#initMultipartUploadAsync(InitMultipartUploadRequest, CosXmlResultListener)
  */
-final public class InitMultipartUploadRequest extends CosXmlRequest {
+final public class InitMultipartUploadRequest extends ObjectRequest {
 
-    private String cosPath;
 
     public InitMultipartUploadRequest(String bucket, String cosPath){
-        setBucket(bucket);
-        this.cosPath = cosPath;
-        contentType = QCloudNetWorkConstants.ContentType.MULTIPART_FORM_DATA;
-    }
-
-    @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        requestOriginBuilder.body(new RequestByteArraySerializer(new byte[0],"text/plain"));
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(InitMultipartUploadResult.class);
-    }
-
-    @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("uploads",null);
-    }
-
-    @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-        if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.POST;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
-            }
-        }
-    }
-
-    /**
-     * 设置分片上传的 COS 路径
-     *
-     * @param cosPath COS 路径
-     */
-    public void setCosPath(String cosPath) {
-        this.cosPath = cosPath;
-    }
-
-    /**
-     * 获取用户设置的分片上传 COS 路径
-     *
-     * @return COS 路径
-     */
-    public String getCosPath() {
-        return cosPath;
+        super(bucket, cosPath);
     }
 
     /**
@@ -126,7 +33,7 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      */
     public void setCacheControl(String cacheControl) {
         if(cacheControl == null)return;
-        requestHeaders.put("Cache-Control",cacheControl);
+        addHeader(COSRequestHeaderKey.CACHE_CONTROL,cacheControl);
     }
 
     /**
@@ -136,7 +43,7 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      */
     public void setContentDisposition(String contentDisposition) {
         if(contentDisposition == null)return;
-        requestHeaders.put("Content-Disposition",contentDisposition);
+        addHeader(COSRequestHeaderKey.CONTENT_DISPOSITION,contentDisposition);
     }
 
     /**
@@ -146,7 +53,7 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      */
     public void setContentEncoding(String contentEncoding) {
         if(contentEncoding == null)return;
-        requestHeaders.put("Content-Encoding",contentEncoding);
+        addHeader(COSRequestHeaderKey.CONTENT_ENCODING,contentEncoding);
     }
 
     /**
@@ -156,7 +63,7 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      */
     public void setExpires(String expires) {
         if(expires == null)return;
-        requestHeaders.put("Expires",expires);
+        addHeader(COSRequestHeaderKey.EXPIRES,expires);
     }
 
     /**
@@ -167,7 +74,7 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      */
     public void setXCOSMeta(String key, String value){
         if(key != null && value != null){
-            requestHeaders.put(key,value);
+            addHeader(key,value);
         }
     }
 
@@ -180,11 +87,11 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      * 有效值：private，public-read-write，public-read；默认值：private
      * </p>
      *
-     * @param xCOSACL ACL属性
+     * @param cosacl ACL属性
      */
-    public void setXCOSACL(String xCOSACL){
-        if(xCOSACL != null){
-            requestHeaders.put("x-cos-acl",xCOSACL);
+    public void setXCOSACL(String cosacl){
+        if(cosacl != null){
+            addHeader(COSRequestHeaderKey.X_COS_ACL,cosacl);
         }
     }
 
@@ -193,11 +100,11 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      * 设置 Object 的 ACL 属性
      * </p>
      *
-     * @param xCOSACL ACL枚举值
+     * @param cosacl ACL枚举值
      */
-    public void setXCOSACL(COSACL xCOSACL){
-        if(xCOSACL != null){
-            requestHeaders.put("x-cos-acl",xCOSACL.getACL());
+    public void setXCOSACL(COSACL cosacl){
+        if(cosacl != null){
+            addHeader(COSRequestHeaderKey.X_COS_ACL,cosacl.getAcl());
         }
     }
 
@@ -206,11 +113,11 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      * 单独明确赋予用户读权限
      * </p>
      *
-     * @param aclAccounts 读权限用户列表
+     * @param aclAccount 读权限用户列表
      */
-    public void setXCOSGrantRead(ACLAccounts aclAccounts){
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_READ, aclAccounts.aclDesc());
+    public void setXCOSGrantRead(ACLAccount aclAccount){
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
         }
     }
 
@@ -220,12 +127,12 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      * 赋予被授权者写的权限
      * </p>
      *
-     * @param aclAccounts 写权限用户列表
+     * @param aclAccount 写权限用户列表
      */
-    public void setXCOSGrantWrite(ACLAccounts aclAccounts){
+    public void setXCOSGrantWrite(ACLAccount aclAccount){
 
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_WRITE, aclAccounts.aclDesc());
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
         }
     }
 
@@ -235,12 +142,28 @@ final public class InitMultipartUploadRequest extends CosXmlRequest {
      * 赋予被授权者读写权限。
      * </p>
      *
-     * @param aclAccounts 读写用户权限列表
+     * @param aclAccount 读写用户权限列表
      */
-    public void setXCOSReadWrite(ACLAccounts aclAccounts){
+    public void setXCOSReadWrite(ACLAccount aclAccount){
 
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_FULL_CONTROL, aclAccounts.aclDesc());
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
         }
+    }
+
+    @Override
+    public String getMethod() {
+        return RequestMethod.POST;
+    }
+
+    @Override
+    public Map<String, String> getQueryString() {
+        queryParameters.put("uploads", null);
+        return queryParameters;
+    }
+
+    @Override
+    public RequestBodySerializer getRequestBody() {
+        return RequestBodySerializer.bytes(COSRequestHeaderKey.APPLICATION_OCTET_STREAM, new byte[0]);
     }
 }

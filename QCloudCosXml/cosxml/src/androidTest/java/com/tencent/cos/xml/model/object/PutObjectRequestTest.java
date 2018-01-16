@@ -1,180 +1,250 @@
 package com.tencent.cos.xml.model.object;
 
-import android.support.test.InstrumentationRegistry;
+import android.app.Application;
+import android.test.ApplicationTestCase;
 import android.util.Log;
 
-import com.tencent.cos.xml.QBaseServe;
+import com.tencent.cos.xml.QService;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.qcloud.core.network.QCloudProgressListener;
+import com.tencent.cos.xml.exception.CosXmlServiceException;
+import com.tencent.cos.xml.listener.CosXmlProgressListener;
+import com.tencent.cos.xml.listener.CosXmlResultListener;
+import com.tencent.cos.xml.model.CosXmlRequest;
+import com.tencent.cos.xml.model.CosXmlResult;
 
-
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import static org.junit.Assert.*;
 
 /**
- * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
+ * Created by bradyxiao on 2017/12/5.
  */
-public class PutObjectRequestTest {
+public class PutObjectRequestTest extends ApplicationTestCase {
 
+    static final String TAG = "Unit_Test";
 
-    private QBaseServe qBaseServe;
-    public volatile int hasCompleted = 0;
-
-    @Before
-    public void setUp() throws Exception {
-
-        qBaseServe = QBaseServe.getInstance(InstrumentationRegistry.getContext());
+    volatile boolean isOver = false;
+    public PutObjectRequestTest() {
+        super(Application.class);
     }
 
-    @Test public void test1() throws Exception {
+    @Test
+    public void getMethod() throws Exception {
+    }
 
-        String srcPath = qBaseServe.crateFile(1024 * 1024);
-        InputStream inputStream = new FileInputStream(srcPath);
-        String cosPath = "/putobject_" + System.currentTimeMillis() + ".txt";
-        PutObjectRequest request = new PutObjectRequest(qBaseServe.bucket, cosPath, inputStream, inputStream.available());
-        request.setSign(600,null,null);
-        request.setProgressListener(new QCloudProgressListener() {
+    @Test
+    public void getRequestBody() throws Exception {
+    }
+
+    @Test
+    public void checkParameters() throws Exception {
+    }
+
+    @Test
+    public void setProgressListener() throws Exception {
+    }
+
+    @Test
+    public void getProgressListener() throws Exception {
+    }
+
+    @Test
+    public void setSrcPath() throws Exception {
+    }
+
+    @Test
+    public void getSrcPath() throws Exception {
+    }
+
+    @Test
+    public void setData() throws Exception {
+    }
+
+    @Test
+    public void getData() throws Exception {
+    }
+
+    @Test
+    public void setInputStream() throws Exception {
+    }
+
+    @Test
+    public void getInputStream() throws Exception {
+    }
+
+    @Test
+    public void getFileLength() throws Exception {
+    }
+
+    @Test
+    public void setCacheControl() throws Exception {
+    }
+
+    @Test
+    public void setContentDisposition() throws Exception {
+    }
+
+    @Test
+    public void setContentEncodeing() throws Exception {
+    }
+
+    @Test
+    public void setExpires() throws Exception {
+    }
+
+    @Test
+    public void setXCOSMeta() throws Exception {
+    }
+
+    @Test
+    public void setXCOSACL() throws Exception {
+    }
+
+    @Test
+    public void setXCOSACL1() throws Exception {
+    }
+
+    @Test
+    public void setXCOSGrantRead() throws Exception {
+    }
+
+    @Test
+    public void setXCOSGrantWrite() throws Exception {
+    }
+
+    @Test
+    public void setXCOSReadWrite() throws Exception {
+    }
+
+//    @Test
+//    public void test1() throws UnsupportedEncodingException, CosXmlServiceException, CosXmlClientException {
+//        String bucket = "androidtest";
+//        byte[] data = new byte[1024 * 1024];
+//        String cosPath = "中文//.../aa.txt";
+//        PutObjectRequest request = new PutObjectRequest(bucket, cosPath,
+//                data);
+//        request.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d(TAG, " complete：" + complete + "| target: " + target);
+//            }
+//        });
+//        PutObjectResult result = QService.getCosXmlClient(getContext()).putObject(request);
+//        Log.d(TAG, result.printResult());
+//
+//        QService.delete(QService.getCosXmlClient(getContext()), bucket, cosPath);
+//    }
+//
+//    @Test
+//    public void test2() throws IOException, CosXmlServiceException, CosXmlClientException {
+//        String bucket = "androidtest";
+//        String srcPath = QService.createFile(1024 * 1024);
+//        String cosPath = "putobject.txt";
+//        PutObjectRequest request = new PutObjectRequest(bucket, cosPath,
+//                srcPath);
+//        request.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d(TAG, " complete：" + complete + "| target: " + target);
+//            }
+//        });
+//        PutObjectResult result = QService.getCosXmlClient(getContext()).putObject(request);
+//        Log.d(TAG, result.printResult());
+//
+//        QService.delete(QService.getCosXmlClient(getContext()), bucket, "append.txt");
+//    }
+//
+//    @Test
+//    public void test3() throws IOException, CosXmlServiceException, CosXmlClientException {
+//        final String bucket = "androidtest";
+//        String srcPath = QService.createFile(1024 * 1024);
+//        final String cosPath = "putobject.txt";
+//        PutObjectRequest request = new PutObjectRequest(bucket, cosPath,
+//                srcPath);
+//        request.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d(TAG, " complete：" + complete + "| target: " + target);
+//            }
+//        });
+//        QService.getCosXmlClient(getContext()).putObjectAsync(request, new CosXmlResultListener() {
+//            @Override
+//            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+//                Log.d(TAG, result.printResult());
+//                try {
+//                    QService.delete(QService.getCosXmlClient(getContext()), bucket, cosPath);
+//                } catch (CosXmlServiceException e) {
+//                    e.printStackTrace();
+//                } catch (CosXmlClientException e) {
+//                    e.printStackTrace();
+//                }
+//                isOver = true;
+//            }
+//
+//            @Override
+//            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+//                Log.d(TAG, exception == null ? serviceException.getMessage() : exception.toString());
+//                isOver = true;
+//            }
+//        });
+//
+//        while (!isOver){
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//    }
+//
+    @Test
+    public void test3() throws IOException, CosXmlServiceException, CosXmlClientException {
+        final String bucket = "androidtest";
+        String srcPath = QService.createFile(2 * 1024 * 1024);
+        final String cosPath = "putobject.txt";
+        PutObjectRequest request = new PutObjectRequest(bucket, cosPath,
+                new FileInputStream(srcPath));
+        request.setProgressListener(new CosXmlProgressListener() {
             @Override
-            public void onProgress(long l, long l1) {
-                Log.d("TAG", String.valueOf(l) +"/"+ String.valueOf(l1));
+            public void onProgress(long complete, long target) {
+                Log.d(TAG, " complete：" + complete + "| target: " + target);
             }
         });
-        request.getProgressListener();
-        assertEquals(cosPath, request.getCosPath());
-        //assertEquals(srcPath, request.getSrcPath());
-        List<String> uinList = new LinkedList<>();
-        uinList.add("1059310888");
-
-
-        PutObjectResult result =  qBaseServe.cosXmlService.putObject(request);
-        String headers = result.printHeaders();
-        String body = result.printBody();
-        String error = result.printError();
-        String response = "Headers =" + headers + "|body =" + body + "|error =" + error;
-        Log.d("TAG",response);
-        assertEquals(true, qBaseServe.isSuccess(result.getHttpCode()));
-    }
-
-    @Test public void test2() throws Exception {
-        String srcPath = qBaseServe.crateFile(1024 * 1024);
-        InputStream inputStream = new FileInputStream(srcPath);
-        String cosPath = "/putobject_" + System.currentTimeMillis() + ".txt";
-        PutObjectRequest request = new PutObjectRequest(qBaseServe.bucket, cosPath, inputStream, inputStream.available());
-        assertEquals(inputStream, request.getInputStream());
-        request.setSign(600,null,null);
-        request.setProgressListener(new QCloudProgressListener() {
+        QService.getCosXmlClient(getContext()).putObjectAsync(request, new CosXmlResultListener() {
             @Override
-            public void onProgress(long l, long l1) {
-                Log.d("TAG", String.valueOf(l) +"/"+ String.valueOf(l1));
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                Log.d(TAG, result.printResult());
+                try {
+                    QService.delete(QService.getCosXmlClient(getContext()), bucket, cosPath);
+                } catch (CosXmlServiceException e) {
+                    e.printStackTrace();
+                } catch (CosXmlClientException e) {
+                    e.printStackTrace();
+                }
+                isOver = true;
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                Log.d(TAG, exception == null ? serviceException.getMessage() : exception.toString());
+                isOver = true;
             }
         });
-        request.getProgressListener();
-        assertEquals(cosPath, request.getCosPath());
-        //assertEquals(srcPath, request.getSrcPath());
-        List<String> uinList = new LinkedList<>();
-        uinList.add("1059310888");
 
-
-        PutObjectResult result =  qBaseServe.cosXmlService.putObject(request);
-        String headers = result.printHeaders();
-        String body = result.printBody();
-        String error = result.printError();
-        String response = "Headers =" + headers + "|body =" + body + "|error =" + error;
-        Log.d("TAG",response);
-        assertEquals(true, qBaseServe.isSuccess(result.getHttpCode()));
-    }
-
-
-    @Test public void test3() throws Exception {
-        String cosPath = "/putobject_" + System.currentTimeMillis() + ".txt";
-        byte[] data = new byte[]{1,2,3};
-        PutObjectRequest request = new PutObjectRequest(qBaseServe.bucket, cosPath, data);
-        request.getData();
-        request.setSign(600,null,null);
-        request.setProgressListener(new QCloudProgressListener() {
-            @Override
-            public void onProgress(long l, long l1) {
-                Log.d("TAG", String.valueOf(l) +"/"+ String.valueOf(l1));
+        while (!isOver){
+            try {
+                Thread.sleep(100);
+                QService.getCosXmlClient(getContext()).cancel(request);
+                break;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        });
-        request.getProgressListener();
-        assertEquals(cosPath, request.getCosPath());
-        //assertEquals(srcPath, request.getSrcPath());
-        List<String> uinList = new LinkedList<>();
-        uinList.add("1059310888");
-
-
-        PutObjectResult result =  qBaseServe.cosXmlService.putObject(request);
-        String headers = result.printHeaders();
-        String body = result.printBody();
-        String error = result.printError();
-        String response = "Headers =" + headers + "|body =" + body + "|error =" + error;
-        Log.d("TAG",response);
-        assertEquals(true, qBaseServe.isSuccess(result.getHttpCode()));
-    }
-
-    @Test public void checkParameters() throws Exception {
-        String bucket = null;
-        String cosPath = null;
-        byte[] data = null;
-        PutObjectRequest request = new PutObjectRequest(bucket, cosPath, data);
-
-        try {
-            request.checkParameters();
-        } catch (CosXmlClientException e) {
-            assertEquals("bucket must not be null", e.getMessage());
-        }
-        request.setBucket("bucket");
-
-        try {
-            request.checkParameters();
-        } catch (CosXmlClientException e) {
-            assertEquals("cosPath must not be null", e.getMessage());
-        }
-        request.setCosPath("");
-        try {
-            request.checkParameters();
-        } catch (CosXmlClientException e) {
-            assertEquals("Data Source must not be null", e.getMessage());
-        }
-
-        request.setSrcPath("");
-        try {
-            request.checkParameters();
-        } catch (CosXmlClientException e) {
-            assertEquals("upload file does not exist", e.getMessage());
         }
 
     }
-
-    @Test public void setterAndGetter() throws Exception {
-        String bucket = null;
-        String cosPath = null;
-        byte[] data = null;
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, data);
-        String cacheControl = "no-cache";
-        String contentDisposition = "attach";
-        String contentEncodeing = "utf-8";
-        String expire = "expire";
-        putObjectRequest.setCacheControl(cacheControl);
-        putObjectRequest.setContentDisposition(contentDisposition);
-        putObjectRequest.setContentEncodeing(contentEncodeing);
-        putObjectRequest.setExpires(expire);
-        putObjectRequest.setXCOSMeta("key", "value");
-        putObjectRequest.setXCOSACL("acl");
-        //putObjectRequest.setXCOSACL(new COSACL(""));
-        List<String> list = new LinkedList<>();
-        list.add("12");
-
-
-
-    }
-
 }

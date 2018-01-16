@@ -1,17 +1,9 @@
 package com.tencent.cos.xml.model.bucket;
 
-import android.text.TextUtils;
-
-import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-
+import com.tencent.cos.xml.common.RequestMethod;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.util.Map;
-
 
 /**
  * <p>
@@ -21,10 +13,8 @@ import java.util.Map;
  * 单次请求操作最多列出 1000 个正在进行中的分块上传。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#listMultiUploads(ListMultiUploadsRequest)
- * @see com.tencent.cos.xml.CosXml#listMultiUploadsAsync(ListMultiUploadsRequest, CosXmlResultListener)
  */
-final public class ListMultiUploadsRequest extends CosXmlRequest {
+final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**Delimiter is a sign.
      * If Prefix exists, the same paths between Prefix and delimiter will be grouped as the same
@@ -52,82 +42,41 @@ final public class ListMultiUploadsRequest extends CosXmlRequest {
     private String uploadIdMarker;
 
     public ListMultiUploadsRequest(String bucket){
-        setBucket(bucket);
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+        super(bucket);
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(ListMultiUploadsResult.class);
-
+    public String getMethod() {
+        return RequestMethod.GET;
     }
 
     @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("uploads",null);
-        if(!TextUtils.isEmpty(delimiter)){
-            requestQueryParams .put("delimiter",delimiter);
+    public Map<String, String> getQueryString() {
+        queryParameters.put("uploads", null);
+        if(delimiter != null){
+            queryParameters.put("delimiter",delimiter);
         }
-        if(!TextUtils.isEmpty(encodingType)){
-            requestQueryParams.put("Encoding-type",encodingType);
+        if(encodingType != null){
+            queryParameters.put("Encoding-type",encodingType);
         }
-        if(!TextUtils.isEmpty(prefix)){
-            requestQueryParams.put("Prefix",prefix);
+        if(prefix != null){
+            queryParameters.put("Prefix",prefix);
         }
-        if(!TextUtils.isEmpty(maxUploads)){
-            requestQueryParams .put("max-uploads",maxUploads);
+        if(maxUploads != null){
+            queryParameters.put("max-uploads",maxUploads);
         }
-        if(!TextUtils.isEmpty(keyMarker)){
-            requestQueryParams.put("key-marker",keyMarker);
+        if(keyMarker != null){
+            queryParameters.put("key-marker",keyMarker);
         }
-        if(!TextUtils.isEmpty(uploadIdMarker)){
-            requestQueryParams.put("upload-id-marker",uploadIdMarker);
+        if(uploadIdMarker != null){
+            queryParameters.put("upload-id-marker",uploadIdMarker);
         }
+        return super.getQueryString();
     }
 
     @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.GET;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        requestPath = "/";
+    public RequestBodySerializer getRequestBody() {
+        return null;
     }
 
     /**

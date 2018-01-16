@@ -1,25 +1,25 @@
 package com.tencent.cos.xml.common;
 
+import android.app.Application;
+import android.test.ApplicationTestCase;
+
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
- * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
+ * Created by bradyxiao on 2017/12/8.
  */
-public class COSACLTest {
-
-
-    @Test
-    public void valueOf() throws Exception {
-
-        assertEquals(COSACL.PRIVATE, COSACL.valueOf("PRIVATE"));
-
+public class COSACLTest extends ApplicationTestCase {
+    public COSACLTest() {
+        super(Application.class);
     }
 
-    @Test public void values() throws Exception {
-
-        assertEquals(true, COSACL.values().length > 0);
+    @Test
+    public void testGetAcl() throws Exception {
+        assertEquals("private",COSACL.PRIVATE.getAcl());
+        assertEquals("public-read",COSACL.PUBLIC_READ.getAcl());
+        assertEquals("public-read-write",COSACL.PUBLIC_READ_WRITE.getAcl());
     }
 
 }

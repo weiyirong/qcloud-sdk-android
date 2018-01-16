@@ -1,76 +1,108 @@
 package com.tencent.cos.xml.model.tag;
 
-
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
-
 import java.util.List;
 
 /**
- * Created by bradyxiao on 2017/5/25.
- * author bradyxiao
+ * Created by bradyxiao on 2017/11/24.
  */
-@XStreamAlias("ListMultipartUploadsResult")
+
 public class ListMultipartUploads {
 
-    @XStreamAlias("Bucket")
     public String bucket;
-
-    @XStreamAlias("Encoding-Type")
     public String encodingType;
-
-    @XStreamAlias("KeyMarker")
     public String keyMarker;
-
-    @XStreamAlias("UploadIdMarker")
     public String uploadIdMarker;
-
-    @XStreamAlias("NextKeyMarker")
     public String nextKeyMarker;
-
-    @XStreamAlias("NextUploadIdMarker")
     public String nextUploadIdMarker;
-
-    @XStreamAlias("MaxUploads")
     public String maxUploads;
-
-    @XStreamAlias( "IsTruncated")
     public boolean isTruncated;
-
-    @XStreamAlias("Prefix")
     public String prefix;
-
-    @XStreamAlias("Delimiter")
     public String delimiter;
-
-    @XStreamImplicit( itemFieldName = "Upload")
     public List<Upload> uploads;
-
-    @XStreamAlias("CommonPrefixs")
-    public CommonPrefixes commonPrefixes;
+    public List<CommonPrefixes> commonPrefixes;
 
     @Override
     public String toString(){
-        StringBuilder stringBuilder = new StringBuilder("{\n");
-        stringBuilder.append("Bucket:").append(bucket).append("\n")
-                .append("Encoding-type:").append(encodingType).append("\n")
-                .append("KeyMarker:").append(keyMarker).append("\n")
-                .append("UploadIdMarker:").append(uploadIdMarker).append("\n")
-                .append("NextKeyMarker:").append(nextKeyMarker).append("\n")
-                .append("NextUploadIdMarker:").append(nextUploadIdMarker).append("\n")
-                .append("MaxUploads:").append(maxUploads).append("\n")
-                .append("IsTruncated:").append(isTruncated).append("\n")
-                .append("Prefix:").append(prefix).append("\n")
-                .append("CommonPrefixes:").append(commonPrefixes != null?commonPrefixes.toString():"null").append("\n")
-                .append("delimiter:").append(delimiter).append("\n");
+        StringBuilder stringBuilder = new StringBuilder("{ListMultipartUploads:\n");
+        stringBuilder.append("Bucket:").append(bucket).append("\n");
+        stringBuilder.append("Encoding-Type:").append(encodingType).append("\n");
+        stringBuilder.append("KeyMarker:").append(keyMarker).append("\n");
+        stringBuilder.append("UploadIdMarker:").append(uploadIdMarker).append("\n");
+        stringBuilder.append("NextKeyMarker:").append(nextKeyMarker).append("\n");
+        stringBuilder.append("NextUploadIdMarker:").append(nextUploadIdMarker).append("\n");
+        stringBuilder.append("MaxUploads:").append(maxUploads).append("\n");
+        stringBuilder.append("IsTruncated:").append(isTruncated).append("\n");
+        stringBuilder.append("Prefix:").append(prefix).append("\n");
+        stringBuilder.append("Delimiter:").append(delimiter).append("\n");
         if(uploads != null){
-            int size = uploads.size();
-            for(int i = 0; i < size -1; ++ i){
-                stringBuilder.append("Upload").append(uploads.get(i).toString()).append("\n");
+            for (Upload upload : uploads){
+                if(upload != null)stringBuilder.append(upload.toString()).append("\n");
             }
-            stringBuilder.append("Upload").append(uploads.get(size - 1).toString()).append("\n");
+        }
+        if(commonPrefixes != null){
+            for (CommonPrefixes commonPrefix : commonPrefixes){
+                if(commonPrefix != null)stringBuilder.append(commonPrefix.toString()).append("\n");
+            }
         }
         stringBuilder.append("}");
         return stringBuilder.toString();
+    }
+
+    public static class Upload{
+        public String key;
+        public String uploadID;
+        public String storageClass;
+        public Initiator initiator;
+        public Owner owner;
+        public String initiated;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Upload:\n");
+            stringBuilder.append("Key:").append(key).append("\n");
+            stringBuilder.append("UploadID:").append(uploadID).append("\n");
+            stringBuilder.append("StorageClass:").append(storageClass).append("\n");
+            if(initiator != null) stringBuilder.append(initiator.toString()).append("\n");
+            if(owner != null) stringBuilder.append(owner.toString()).append("\n");
+            stringBuilder.append("Initiated:").append(initiated).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class CommonPrefixes{
+        public String prefix;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{CommonPrefixes:\n");
+            stringBuilder.append("Prefix:").append(prefix).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class Initiator{
+        public String uin;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Initiator:\n");
+            stringBuilder.append("Uin:").append(uin).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class Owner{
+        public String uid;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Owner:\n");
+            stringBuilder.append("Uid:").append(uid).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
     }
 }

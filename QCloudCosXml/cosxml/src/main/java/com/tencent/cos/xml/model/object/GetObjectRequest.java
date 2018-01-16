@@ -1,16 +1,10 @@
 package com.tencent.cos.xml.model.object;
 
-
-import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudProgressListener;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.qcloud.core.network.Range;
-import com.tencent.qcloud.core.network.response.serializer.ResponseFilePartSerializer;
-import com.tencent.qcloud.core.network.response.serializer.ResponseFileSerializer;
-
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.Range;
+import com.tencent.cos.xml.common.RequestMethod;
+import com.tencent.cos.xml.listener.CosXmlProgressListener;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.io.File;
 import java.util.Map;
@@ -20,10 +14,8 @@ import java.util.Map;
  * Bucket 中将一个文件（Object）下载至本地。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#getObject(GetObjectRequest)
- * @see com.tencent.cos.xml.CosXml#getObjectAsync(GetObjectRequest, CosXmlResultListener)
  */
-final public class GetObjectRequest extends CosXmlRequest {
+final public class GetObjectRequest extends ObjectRequest {
 
     private String rspContentType;
     private String rspContentLanguage;
@@ -31,128 +23,17 @@ final public class GetObjectRequest extends CosXmlRequest {
     private String rspCacheControl;
     private String rspContentDisposition;
     private String rspContentEncoding;
-
-    private String cosPath;
     private Range range;
-    private QCloudProgressListener progressListener;
+
+    private CosXmlProgressListener progressListener;
     private String savePath; //保留本地文件夹路径
 
     private String downloadUrl;
     private String host;
 
     public GetObjectRequest(String bucket, String cosPath, String savePath){
-        setBucket(bucket);
-        this.cosPath = cosPath;
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+        super(bucket, cosPath);
         this.savePath = savePath;
-    }
-
-    public GetObjectRequest(String downloadUrl, String savePath){
-        this.downloadUrl = downloadUrl;
-        this.savePath = savePath;
-        parseDownloadUrl();
-        setBucket(null);
-    }
-
-    @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_LOW;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        if(downloadUrl != null){
-            requestOriginBuilder.host(host);
-        }else {
-            requestOriginBuilder.hostAddFront(bucket);
-        }
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(range != null){
-            ResponseFilePartSerializer responseFileSerializer  = new ResponseFilePartSerializer(getDownloadPath(),
-                    range, GetObjectResult.class);
-            responseFileSerializer.setProgressListener(progressListener);
-            responseBodySerializer = responseFileSerializer;
-        }else{
-            ResponseFileSerializer responseFileSerializer = new ResponseFileSerializer(getDownloadPath(),GetObjectResult.class);
-            responseFileSerializer.setProgressListener(progressListener);
-            responseBodySerializer = responseFileSerializer;
-        }
-
-    }
-
-    @Override
-    public void setBucket(String bucket) {
-       if(downloadUrl != null)return;
-       else super.setBucket(bucket);
-    }
-
-    @Override
-    protected void setRequestQueryParams() {
-        if(rspContentType != null){
-            requestQueryParams.put("response-content-type",rspContentType);
-        }
-        if(rspContentLanguage != null){
-            requestQueryParams.put("response-content-language",rspContentLanguage);
-        }
-        if(rspExpires != null){
-            requestQueryParams.put("response-expires",rspExpires);
-        }
-        if(rspCacheControl != null){
-            requestQueryParams.put("response-cache-control",rspCacheControl);
-        }
-        if(rspContentDisposition != null){
-            requestQueryParams.put("response-content-dispositio",rspContentDisposition);
-        }
-        if(rspContentEncoding != null){
-            requestQueryParams.put("response-content-encoding", rspContentEncoding);
-        }
-    }
-
-    @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null && downloadUrl== null){
-            throw new CosXmlClientException("bucket or url must not be null");
-        }
-        if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.GET;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
-            }
-        }
     }
 
     /**
@@ -272,24 +153,6 @@ final public class GetObjectRequest extends CosXmlRequest {
     }
 
     /**
-     * 设置下载的Object路径
-     *
-     * @param cosPath Object路径
-     */
-    public void setCosPath(String cosPath) {
-        this.cosPath = cosPath;
-    }
-
-    /**
-     * 获取设置的Object路径
-     *
-     * @return
-     */
-    public String getCosPath() {
-        return cosPath;
-    }
-
-    /**
      * 设置下载的范围
      *
      * @param start 起点
@@ -298,7 +161,7 @@ final public class GetObjectRequest extends CosXmlRequest {
     public void setRange(long start, long end) {
         if(start < 0) start = 0;
         Range range = new Range(start, end);
-        requestHeaders.put("Range",range.toString());
+        addHeader(COSRequestHeaderKey.RANGE,range.getRange());
         this.range = range;
     }
 
@@ -308,10 +171,7 @@ final public class GetObjectRequest extends CosXmlRequest {
      * @param start 起点
      */
     public void setRange(long start) {
-        if(start < 0) start = 0;
-        Range range = new Range(start);
-        requestHeaders.put("Range",range.toString());
-        this.range = range;
+       setRange(start, -1);
     }
 
     /**
@@ -319,10 +179,9 @@ final public class GetObjectRequest extends CosXmlRequest {
      *
      * @return 下载范围
      */
-    public Range getRange() {
+    public Range getRange(){
         return range;
     }
-
     /**
      * <p>
      * 设置下载请求的 If-Modified-Since 头部。
@@ -335,7 +194,7 @@ final public class GetObjectRequest extends CosXmlRequest {
      */
     public void setIfModifiedSince(String ifModifiedSince){
         if(ifModifiedSince != null){
-            requestHeaders.put("If-Modified-Since",ifModifiedSince);
+            addHeader(COSRequestHeaderKey.IF_MODIFIED_SINCE,ifModifiedSince);
         }
     }
 
@@ -344,7 +203,7 @@ final public class GetObjectRequest extends CosXmlRequest {
      *
      * @param progressListener
      */
-    public void setProgressListener(QCloudProgressListener progressListener) {
+    public void setProgressListener(CosXmlProgressListener progressListener) {
         this.progressListener = progressListener;
     }
 
@@ -353,7 +212,7 @@ final public class GetObjectRequest extends CosXmlRequest {
      *
      * @return
      */
-    public QCloudProgressListener getProgressListener() {
+    public CosXmlProgressListener getProgressListener() {
         return progressListener;
     }
 
@@ -375,7 +234,7 @@ final public class GetObjectRequest extends CosXmlRequest {
         return savePath;
     }
 
-    protected String getDownloadPath(){
+    public String getDownloadPath(){
         String path  = null;
         if(savePath != null && cosPath != null){
             if(!savePath.endsWith("/")){
@@ -397,25 +256,36 @@ final public class GetObjectRequest extends CosXmlRequest {
         return path;
     }
 
-    private void parseDownloadUrl(){
-        if(downloadUrl == null)return;
-        int index = downloadUrl.indexOf("://");
-        int last = downloadUrl.indexOf("/", index + 3);
-        host = downloadUrl.substring(index + 3, last);
-        index = last;
-        last = downloadUrl.indexOf("?", index);
-        cosPath = downloadUrl.substring(index, last == -1? downloadUrl.length() : last);
-        if(last > 0){
-            String[] queryArray = downloadUrl.substring(last + 1).split("&");
-            for(String str : queryArray){
-                String[] keyAndValue = str.split("=");
-                if(keyAndValue.length == 2){
-                    requestQueryParams.put(keyAndValue[0], keyAndValue[1]);
-                }else if(keyAndValue[0].length() > 0){
-                    requestQueryParams.put(keyAndValue[0], null);
-                }
-            }
-        }
+    @Override
+    public String getMethod() {
+        return RequestMethod.GET;
     }
 
+    @Override
+    public Map<String, String> getQueryString() {
+        if(rspContentType != null){
+            queryParameters.put("response-content-type=",rspContentType);
+        }
+        if(rspContentLanguage != null){
+            queryParameters.put("response-content-language",rspContentLanguage);
+        }
+        if(rspExpires != null){
+            queryParameters.put("response-expires",rspExpires);
+        }
+        if(rspCacheControl != null){
+            queryParameters.put("response-cache-control",rspCacheControl);
+        }
+        if(rspContentDisposition != null){
+            queryParameters.put("response-content-disposition",rspContentDisposition);
+        }
+        if(rspContentEncoding != null){
+            queryParameters.put("response-content-encoding",rspContentEncoding);
+        }
+        return super.getQueryString();
+    }
+
+    @Override
+    public RequestBodySerializer getRequestBody() {
+        return null;
+    }
 }

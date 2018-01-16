@@ -1,33 +1,38 @@
 package com.tencent.cos.xml.model.tag;
 
-import android.text.TextUtils;
-
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
+ * Created by bradyxiao on 2017/11/30.
  */
 
 public class ACLAccount {
-
-    private String ownerUin;
-
-    private String subUin;
-
-    public ACLAccount(String ownerUin, String subUin) {
-
-        this.ownerUin = ownerUin;
-        this.subUin = subUin;
+    List<String> idList;
+    public ACLAccount(){
+        idList = new ArrayList<>();
     }
 
-    public ACLAccount(String ownerUin) {
-        this(ownerUin, null);
+    public void addAccount(String ownerUin, String subUin){
+        if(ownerUin != null && subUin != null){
+            idList.add(String.format("id=\"qcs::cam::uin/%s:uin/%s\"",ownerUin, subUin));
+        }
     }
 
-    public String aclDesc() {
-
-        return String.format(Locale.ENGLISH, "qcs::cam::uin/%s:uin/%s",
-                ownerUin, TextUtils.isEmpty(subUin) ? ownerUin : subUin);
+    public void addAccount(String owner){
+        addAccount(owner, owner);
     }
 
+    public String getAccout(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String account : idList){
+            stringBuilder.append(account).append(",");
+        }
+        String result = stringBuilder.toString();
+        int last = result.lastIndexOf(",");
+        if(last > 0) {
+            return result.substring(0, last);
+        }
+        return null;
+    }
 }

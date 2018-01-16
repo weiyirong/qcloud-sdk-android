@@ -1,18 +1,10 @@
 package com.tencent.cos.xml.model.bucket;
 
 import com.tencent.cos.xml.common.COSACL;
-import com.tencent.cos.xml.common.RequestHeader;
-import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.cos.xml.model.tag.ACLAccounts;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.qcloud.core.network.request.serializer.RequestByteArraySerializer;
-
-
-import java.util.Map;
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
+import com.tencent.cos.xml.model.tag.ACLAccount;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 /**
  * <p>
@@ -20,73 +12,12 @@ import java.util.Map;
  * </p>
  *
  *
- * @see com.tencent.cos.xml.CosXml#putBucket(PutBucketRequest)
- * @see com.tencent.cos.xml.CosXml#putBucketAsync(PutBucketRequest, CosXmlResultListener)
- */
-final public class PutBucketRequest extends CosXmlRequest {
+*/
+final public class PutBucketRequest extends BucketRequest {
 
     public PutBucketRequest(String bucket){
-        setBucket(bucket);
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+        super(bucket);
     }
-
-    @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        requestOriginBuilder.body(new RequestByteArraySerializer(new byte[0],"text/plain"));
-
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(PutBucketResult.class);
-    }
-
-    @Override
-    protected void setRequestQueryParams() {
-    }
-
-    @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.PUT;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        requestPath = "/";
-    }
-
     /**
      * <p>
      * 设置Bucket访问权限
@@ -101,22 +32,22 @@ final public class PutBucketRequest extends CosXmlRequest {
      * </ul>
      * <br>
      *
-     * @param xCOSACL acl字符串
+     * @param cosacl acl字符串
      */
-    public void setXCOSACL(String xCOSACL){
-        if(xCOSACL != null){
-            requestHeaders.put(RequestHeader.X_COS_ACL, xCOSACL);
+    public void setXCOSACL(String cosacl){
+        if(cosacl != null){
+            addHeader(COSRequestHeaderKey.X_COS_ACL, cosacl);
         }
     }
 
     /**
      * 设置Bucket的ACL信息
      *
-     * @param xCOSACL acl枚举
+     * @param cosacl acl枚举
      */
-    public void setXCOSACL(COSACL xCOSACL){
-        if(xCOSACL != null){
-            requestHeaders.put(RequestHeader.X_COS_ACL, xCOSACL.getACL());
+    public void setXCOSACL(COSACL cosacl){
+        if(cosacl != null){
+            addHeader(COSRequestHeaderKey.X_COS_ACL, cosacl.getAcl());
         }
     }
 
@@ -125,11 +56,11 @@ final public class PutBucketRequest extends CosXmlRequest {
      * 单独明确赋予用户读权限
      * </p>
      *
-     * @param aclAccounts 读权限用户列表
+     * @param aclAccount 读权限用户列表
      */
-    public void setXCOSGrantRead(ACLAccounts aclAccounts){
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_READ, aclAccounts.aclDesc());
+    public void setXCOSGrantRead(ACLAccount aclAccount){
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
         }
     }
 
@@ -139,12 +70,11 @@ final public class PutBucketRequest extends CosXmlRequest {
      * 赋予被授权者写的权限
      * </p>
      *
-     * @param aclAccounts 写权限用户列表
+     * @param aclAccount 写权限用户列表
      */
-    public void setXCOSGrantWrite(ACLAccounts aclAccounts){
-
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_WRITE, aclAccounts.aclDesc());
+    public void setXCOSGrantWrite(ACLAccount aclAccount){
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
         }
     }
 
@@ -154,12 +84,21 @@ final public class PutBucketRequest extends CosXmlRequest {
      * 赋予被授权者读写权限。
      * </p>
      *
-     * @param aclAccounts 读写用户权限列表
+     * @param aclAccount 读写用户权限列表
      */
-    public void setXCOSReadWrite(ACLAccounts aclAccounts){
-
-        if (aclAccounts != null) {
-            requestHeaders.put(RequestHeader.X_COS_GRANT_FULL_CONTROL, aclAccounts.aclDesc());
+    public void setXCOSReadWrite(ACLAccount aclAccount){
+        if (aclAccount != null) {
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
         }
+    }
+
+    @Override
+    public String getMethod() {
+        return RequestMethod.PUT;
+    }
+
+    @Override
+    public RequestBodySerializer getRequestBody() {
+        return RequestBodySerializer.bytes(COSRequestHeaderKey.APPLICATION_OCTET_STREAM, new byte[0]);
     }
 }

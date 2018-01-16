@@ -1,33 +1,79 @@
 package com.tencent.cos.xml.model.tag;
 
-
-import com.thoughtworks.xstream.annotations.XStreamAlias;
+import java.util.List;
 
 /**
- * Created by bradyxiao on 2017/5/15.
- * author bradyxiao
+ * Created by bradyxiao on 2017/11/24.
  */
-@XStreamAlias("AccessControlPolicy")
+
 public class AccessControlPolicy {
-
-    /**
-     * Owner of the identified resource
-     */
-    @XStreamAlias("Owner")
     public Owner owner;
-
-    /**
-     * Information of authorized account and permissions
-     */
-    @XStreamAlias("AccessControlList")
     public AccessControlList accessControlList;
 
     @Override
     public String toString(){
-        StringBuilder stringBuilder = new StringBuilder("{\n");
-        stringBuilder.append("Owner:").append(owner != null?owner.toString():"null").append("\n")
-            .append("AccessControlList:").append(accessControlList != null?accessControlList.toString():"null").append("\n");
+        StringBuilder stringBuilder = new StringBuilder("{AccessControlPolicy:\n");
+        if(owner != null)stringBuilder.append(owner.toString()).append("\n");
+        if(accessControlList != null)stringBuilder.append(accessControlList.toString()).append("\n");
         stringBuilder.append("}");
         return stringBuilder.toString();
+    }
+
+    public static class Owner{
+        public String id;
+        public String displayName;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Owner:\n");
+            stringBuilder.append("Id:").append(id).append("\n");
+            stringBuilder.append("DisplayName:").append(displayName).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class AccessControlList{
+        public List<Grant> grants;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{AccessControlList:\n");
+            if(grants != null){
+                for(Grant grant : grants){
+                    if(grant != null)stringBuilder.append(grant.toString()).append("\n");
+                }
+            }
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class Grant{
+        public Grantee grantee;
+        public String permission;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Grant:\n");
+            if(grantee != null)stringBuilder.append(grantee.toString()).append("\n");
+            stringBuilder.append("Permission:").append(permission).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class Grantee{
+        public String id;
+        public String displayName;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Grantee:\n");
+            stringBuilder.append("Id:").append(id).append("\n");
+            stringBuilder.append("DisplayName:").append(displayName).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
     }
 }

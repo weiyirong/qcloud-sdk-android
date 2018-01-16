@@ -1,20 +1,16 @@
 package com.tencent.cos.xml.model.object;
 
-
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
 import com.tencent.cos.xml.model.tag.Delete;
-import com.tencent.cos.xml.model.tag.DeleteObject;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.qcloud.core.network.action.QCloudBodyMd5Action;
-import com.tencent.cos.xml.model.RequestXmlBodySerializer;
+import com.tencent.cos.xml.transfer.XmlBuilder;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
 import java.util.ArrayList;
-
 import java.util.List;
 import java.util.Map;
 
@@ -27,76 +23,49 @@ import java.util.Map;
  * Verbose 模式将返回每个 Object 的删除结果；Quiet 模式只返回报错的 Object 信息。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#deleteMultiObject(DeleteMultiObjectRequest)
- * @see com.tencent.cos.xml.CosXml#deleteMultiObjectAsync(DeleteMultiObjectRequest, CosXmlResultListener)
- */
-final public class DeleteMultiObjectRequest extends CosXmlRequest {
+*/
+final public class DeleteMultiObjectRequest extends ObjectRequest {
     private Delete delete;
     public DeleteMultiObjectRequest(String bucket, List<String> deleteObjectList){
-        setBucket(bucket);
+        super(bucket, null);
         delete = new Delete();
-        contentType = QCloudNetWorkConstants.ContentType.XML;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
-        delete.deleteObjectList = new ArrayList<DeleteObject>();
+        delete.deleteObjects = new ArrayList<Delete.DeleteObject>();
         setObjectList(deleteObjectList);
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        requestOriginBuilder.body(new RequestXmlBodySerializer(delete));
-
-        requestActions.add(new QCloudBodyMd5Action());
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(DeleteMultiObjectResult.class);
+    public String getMethod() {
+        return RequestMethod.POST;
     }
 
     @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("delete",null);
+    public Map<String, String> getQueryString() {
+        queryParameters.put("delete", null);
+        return queryParameters;
     }
 
     @Override
-    protected void checkParameters() throws CosXmlClientException {
+    public RequestBodySerializer getRequestBody() throws CosXmlClientException {
+        try {
+            return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML, XmlBuilder.buildDelete(delete));
+        } catch (XmlPullParserException e) {
+            throw new CosXmlClientException(e);
+        } catch (IOException e) {
+            throw new CosXmlClientException(e);
+        }
+    }
+
+    @Override
+    public void checkParameters() throws CosXmlClientException {
         if(bucket == null){
             throw new CosXmlClientException("bucket must not be null");
         }
     }
 
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.POST;
-    }
 
     @Override
-    protected void setRequestPath() {
-        requestPath = "/";
+    public String getPath() {
+        return  "/";
     }
 
     /**
@@ -111,7 +80,6 @@ final public class DeleteMultiObjectRequest extends CosXmlRequest {
      * @param quiet 设置是否为quiet模式
      */
     public void setQuiet(boolean quiet) {
-
         delete.quiet = quiet;
     }
 
@@ -125,9 +93,9 @@ final public class DeleteMultiObjectRequest extends CosXmlRequest {
             if(object.startsWith("/")){
                 object = object.substring(1);
             }
-            DeleteObject deleteObject = new DeleteObject();
+            Delete.DeleteObject deleteObject = new Delete.DeleteObject();
             deleteObject.key = object;
-            delete.deleteObjectList.add(deleteObject);
+            delete.deleteObjects.add(deleteObject);
         }
     }
 
@@ -139,18 +107,23 @@ final public class DeleteMultiObjectRequest extends CosXmlRequest {
     public void setObjectList(List<String> objectList) {
         if(objectList != null){
             int size = objectList.size();
-            DeleteObject deleteObject;
+            Delete.DeleteObject deleteObject;
             for(int i = 0; i < size; ++ i){
-                deleteObject = new DeleteObject();
+                deleteObject = new Delete.DeleteObject();
                 String object = objectList.get(i);
                 if(object.startsWith("/")){
                     deleteObject.key = object.substring(1);
                 }else{
                     deleteObject.key = object;
                 }
-                delete.deleteObjectList.add(deleteObject);
+                delete.deleteObjects.add(deleteObject);
             }
         }
+    }
+
+    @Override
+    public boolean isNeedMD5() {
+        return true;
     }
 
     /**

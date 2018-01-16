@@ -1,7 +1,9 @@
 package com.tencent.cos.xml.model.object;
 
-
+import com.tencent.cos.xml.exception.CosXmlClientException;
+import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
+import com.tencent.qcloud.core.http.HttpResponse;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,101 +15,28 @@ final public class OptionObjectResult extends CosXmlResult {
     private List<String> accessControlExposeHeaders;
     private long accessControlMaxAge;
 
-    /**
-     * 获取 Access-Control-Allow-Origin 头部
-     *
-     * @return Access-Control-Allow-Origin 头部
-     */
-    public String getAccessControlAllowOrigin() {
-        List<String> list = getHeaders().get("Access-Control-Allow-Origin");
-        if(list != null){
-            accessControlAllowOrigin = list.get(0);
+    @Override
+    public void parseResponseBody(HttpResponse response) throws CosXmlServiceException, CosXmlClientException {
+        super.parseResponseBody(response);
+        accessControlAllowOrigin = response.header("Access-Control-Allow-Origin");
+        if(response.header("Access-Control-Max-Age") != null){
+            accessControlMaxAge = Long.parseLong(response.header("Access-Control-Max-Age"));
         }
-        return accessControlAllowOrigin;
-    }
-
-    /**
-     * 获取 Access-Control-Max-Age 头部
-     *
-     * @return Access-Control-Max-Age 头部
-     */
-    public long getAccessControlMaxAge() {
-        List<String> list = getHeaders().get("Access-Control-Max-Age");
-        if(list != null){
-            accessControlMaxAge = Long.parseLong(list.get(0));
+        if(response.header("Access-Control-Allow-Methods") != null){
+            accessControlAllowMethods = Arrays.asList(response.header("Access-Control-Allow-Methods").split(","));
         }
-        return accessControlMaxAge;
-    }
-
-    /**
-     * 获取 Access-Control-Allow-Methods 头部
-     *
-     * @return Access-Control-Allow-Methods 头部
-     */
-    public List<String> getAccessControlAllowMethods() {
-        List<String> list = getHeaders().get("Access-Control-Allow-Methods");
-        if(list != null){
-            accessControlAllowMethods = Arrays.asList(list.get(0).split(","));
+        if(response.header("Access-Control-Allow-Headers") != null){
+            accessControlAllowHeaders = Arrays.asList(response.header("Access-Control-Allow-Headers").split(","));
         }
-        return accessControlAllowMethods;
-    }
-
-    /**
-     * 获取 Access-Control-Allow-Headers 头部
-     *
-     * @return Access-Control-Allow-Headers 头部
-     */
-    public List<String> getAccessControlAllowHeaders() {
-        List<String> list = getHeaders().get("Access-Control-Allow-Headers");
-        if(list != null){
-            accessControlAllowHeaders = Arrays.asList(list.get(0).split(","));
+        if(response.header("Access-Control-Expose-Headers") != null){
+            accessControlExposeHeaders = Arrays.asList(response.header("Access-Control-Expose-Headers").split(","));
         }
-        return accessControlAllowHeaders;
-    }
-
-    /**
-     * 获取 Access-Control-Expose-Headers 头部
-     *
-     * @return Access-Control-Expose-Headers 头部
-     */
-    public List<String> getAccessControlExposeHeaders() {
-        List<String> list = getHeaders().get("Access-Control-Expose-Headers");
-        if(list != null){
-            accessControlExposeHeaders = Arrays.asList(list.get(0).split(","));
-        }
-        return accessControlExposeHeaders;
     }
 
     @Override
-    public String printHeaders() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(super.printHeaders())
-                .append(getAccessControlAllowOrigin()).append("\n")
-                .append(getAccessControlMaxAge()).append("\n");
-        getAccessControlAllowMethods();
-        getAccessControlAllowHeaders();
-        getAccessControlExposeHeaders();
-        if(accessControlAllowHeaders != null){
-            int size = accessControlAllowHeaders.size();
-            for(int i = 0; i < size -1; ++ i){
-                stringBuilder.append(accessControlAllowHeaders.get(i)).append(",");
-            }
-            stringBuilder.append(accessControlAllowHeaders.get(size -1)).append("\n");
-        }
-        if(accessControlAllowMethods != null){
-            int size = accessControlAllowMethods.size();
-            for(int i = 0; i < size -1; ++ i){
-                stringBuilder.append(accessControlAllowMethods.get(i)).append(",");
-            }
-            stringBuilder.append(accessControlAllowMethods.get(size -1)).append("\n");
-        }
-        if(accessControlExposeHeaders != null){
-            int size = accessControlExposeHeaders.size();
-            for(int i = 0; i < size -1; ++ i){
-                stringBuilder.append(accessControlExposeHeaders.get(i)).append(",");
-            }
-            stringBuilder.append(accessControlExposeHeaders.get(size -1)).append("\n");
-        }
-        return  stringBuilder.toString();
+    public String printResult() {
+        return super.printResult() + "\n"
+                + accessControlAllowOrigin + "\n"
+                + accessControlMaxAge + "\n";
     }
 }

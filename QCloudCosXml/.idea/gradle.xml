@@ -9,7 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/cosxml" />
-            <option value="$PROJECT_DIR$/../QCloudFoundation/core" />
+            <option value="$PROJECT_DIR$/../QCloudFoundation/foundation" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

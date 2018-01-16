@@ -1,14 +1,17 @@
 apply plugin: 'com.android.library'
+apply plugin: 'jacoco'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
+
         minSdkVersion 16
-        targetSdkVersion 22
+        targetSdkVersion 26
+
         versionCode 10200
-        versionName "1.2.0"
+        versionName "1.3.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -27,24 +30,26 @@ android {
         abortOnError false
     }
 
+    jacoco {
+        version "0.7.1.201405082137"
+    }
+
 }
 
 dependencies {
-
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.3.1'
+
     testCompile 'junit:junit:4.12'
-    compile project(':network')
+
+    compile project(path: ':foundation')
 }
 
 task Jar(type: Copy, dependsOn: build){
     delete 'build/libs/'
     from('build/intermediates/bundles/default/')
     into('build/libs/')
-    rename ('classes.jar', 'cos-xml-android-sdk-1.2.jar')
+    rename ('classes.jar', 'cos-xml-android-sdk.' + android.defaultConfig.versionName + '.jar')
 }
-
-apply from: '../../../publish.gradle'

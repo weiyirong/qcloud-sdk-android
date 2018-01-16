@@ -1,12 +1,7 @@
 package com.tencent.cos.xml.model.bucket;
 
-import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-
+import com.tencent.cos.xml.common.RequestMethod;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.util.Map;
 
@@ -15,10 +10,8 @@ import java.util.Map;
  * GetBucket 请求用于列出该 Bucket 下的部分或者全部 Object。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#getBucket(GetBucketRequest)
- * @see com.tencent.cos.xml.CosXml#getBucketAsync(GetBucketRequest, CosXmlResultListener)
  */
-final public class GetBucketRequest extends CosXmlRequest {
+final public class GetBucketRequest extends BucketRequest {
     /** Prefix match, used to specify the prefix address of the returned file */
     private String prefix = null;
 
@@ -39,82 +32,42 @@ final public class GetBucketRequest extends CosXmlRequest {
     private String maxKeys = "1000";
 
     public GetBucketRequest(String bucket){
-        setBucket(bucket);
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+        super(bucket);
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(GetBucketResult.class);
-
+    public String getMethod() {
+        return RequestMethod.GET;
     }
 
     @Override
-    protected void setRequestQueryParams() {
+    public Map<String, String> getQueryString() {
+
         if(prefix != null){
-            requestQueryParams.put("prefix",prefix);
+            queryParameters.put("prefix",prefix);
         }
         if(delimiter != null){
-            requestQueryParams.put("delimiter",delimiter);
+            queryParameters.put("delimiter",delimiter);
         }
         if(encodingType != null){
-            requestQueryParams.put("encoding-type",encodingType);
+            queryParameters.put("encoding-type",encodingType);
         }
         if(marker != null){
-            requestQueryParams.put("marker",marker);
+            queryParameters.put("marker",marker);
         }
         if(maxKeys != null){
-            requestQueryParams.put("max-keys",maxKeys);
+            queryParameters.put("max-keys",maxKeys);
         }
         if(prefix != null){
-            requestQueryParams.put("prefix",prefix);
+            queryParameters.put("prefix",prefix);
         }
+
+        return super.getQueryString();
     }
 
     @Override
-    protected void checkParameters() throws CosXmlClientException {
-
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.GET;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        requestPath = "/";
+    public RequestBodySerializer getRequestBody() {
+        return null;
     }
 
     /**

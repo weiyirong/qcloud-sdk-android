@@ -1,56 +1,93 @@
 package com.tencent.cos.xml.model.tag;
 
-
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
-
 import java.util.List;
 
 /**
- * Created by bradyxiao on 2017/5/25.
- * author bradyxiao
+ * Created by bradyxiao on 2017/11/24.
  */
-@XStreamAlias( "ListBucketResult")
+
 public class ListBucket {
-    @XStreamAlias("Name")
+
     public String name;
-    @XStreamAlias("Prefix")
+    public String encodingType;
     public String prefix;
-    @XStreamAlias("NextMarker")
-    public String nextMarker;
-    @XStreamAlias("Marker")
     public String marker;
-    @XStreamAlias("MaxKeys")
-    public String maxKeys;
-    @XStreamAlias("IsTruncated")
+    public int maxKeys;
     public boolean isTruncated;
-    @XStreamImplicit( itemFieldName = "Contents")
-    public List<Contents> contents;
-    @XStreamAlias("CommonPrefixes")
-    public CommonPrefixes commonPrefixes;
-    @XStreamAlias("Delimiter")
+    public String nextMarker;
+    public List<Contents> contentsList;
+    public List<CommonPrefixes> commonPrefixesList;
     public String delimiter;
 
     @Override
     public String toString(){
-        StringBuilder stringBuilder = new StringBuilder("{\n");
-        stringBuilder.append("Name:").append(name).append("\n")
-                .append("Prefix:").append(prefix).append("\n")
-                .append("Marker:").append(marker).append("\n")
-                .append("MaxKeys:").append(maxKeys).append("\n")
-                .append("NextMarker:").append(nextMarker).append("\n")
-                .append("Delimiter:").append(delimiter).append("\n")
-                .append("IsTruncated:").append(isTruncated).append("\n");
-        if(contents != null){
-            int size = contents.size();
-            for(int i = 0; i < size; ++i){
-                stringBuilder .append("Contents:").append(contents.get(i).toString()).append("\n");
+        StringBuilder stringBuilder = new StringBuilder("{ListBucket:\n");
+        stringBuilder.append("Name:").append(name).append("\n");
+        stringBuilder.append("Encoding-Type:").append(encodingType).append("\n");
+        stringBuilder.append("Prefix:").append(prefix).append("\n");
+        stringBuilder.append("Marker:").append(marker).append("\n");
+        stringBuilder.append("MaxKeys:").append(maxKeys).append("\n");
+        stringBuilder.append("IsTruncated:").append(isTruncated).append("\n");
+        stringBuilder.append("NextMarker:").append(nextMarker).append("\n");
+        if(contentsList != null){
+            for (Contents contents : contentsList){
+                if(contents != null)stringBuilder.append(contents.toString()).append("\n");
             }
-        }else{
-            stringBuilder .append("Contents:").append("null").append("\n");
         }
-        stringBuilder.append("CommonPrefixes:").append(commonPrefixes== null?"null":commonPrefixes.toString()).append("\n");
+        if(commonPrefixesList != null){
+            for (CommonPrefixes commonPrefixes : commonPrefixesList){
+                if(commonPrefixes != null)stringBuilder.append(commonPrefixes.toString()).append("\n");
+            }
+        }
+        stringBuilder.append("Delimiter:").append(delimiter).append("\n");
         stringBuilder.append("}");
         return stringBuilder.toString();
     }
+
+    public static class Contents{
+        public String key;
+        public String lastModified;
+        public String eTag;
+        public long size;
+        public Owner owner;
+        public String storageClass;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Contents:\n");
+            stringBuilder.append("Key:").append(key).append("\n");
+            stringBuilder.append("LastModified:").append(lastModified).append("\n");
+            stringBuilder.append("ETag:").append(eTag).append("\n");
+            stringBuilder.append("Size:").append(size).append("\n");
+            if (owner != null)stringBuilder.append(owner.toString()).append("\n");
+            stringBuilder.append("StorageClass:").append(storageClass).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class CommonPrefixes{
+        public String prefix;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{CommonPrefixes:\n");
+            stringBuilder.append("Prefix:").append(prefix).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class Owner{
+        public String id;
+
+        @Override
+        public String toString(){
+            StringBuilder stringBuilder = new StringBuilder("{Owner:\n");
+            stringBuilder.append("Id:").append(id).append("\n");
+            stringBuilder.append("}");
+            return stringBuilder.toString();
+        }
+    }
+
 }

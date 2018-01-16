@@ -1,38 +1,18 @@
 package com.tencent.cos.xml.common;
 
 /**
- * <p>
- * 定义COS ACL的三种有效属性
- * </p>
- * <p>
- * 详情参见<a
- * href="https://www.qcloud.com/document/product/436/7737"> COS 创建Bucket </a>
- * </p>
+ * Created by bradyxiao on 2017/11/30.
  */
-public enum COSACL {
 
-    /**
-     * public-read : 公有读私有写
-     */
-    PUBLIC_READ("public-read"),
-
-    /**
-     * private ：私有读写
-     */
+public enum  COSACL {
     PRIVATE("private"),
-
-    /**
-     * public-read-write ：公有读写
-     */
+    PUBLIC_READ("public-read"),
     PUBLIC_READ_WRITE("public-read-write");
-
     private String acl;
-
-    COSACL(String acl ) {
+    COSACL(String acl){
         this.acl = acl;
     }
-
-    public String getACL(){
+    public String getAcl(){
         return acl;
     }
 }

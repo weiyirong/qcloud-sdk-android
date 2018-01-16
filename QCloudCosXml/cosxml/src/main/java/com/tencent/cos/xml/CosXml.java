@@ -1,9 +1,10 @@
 package com.tencent.cos.xml;
 
+
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
+import com.tencent.cos.xml.listener.CosXmlResultListener;
 import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketLifecycleRequest;
@@ -32,6 +33,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
 import com.tencent.cos.xml.model.bucket.HeadBucketResult;
+import com.tencent.cos.xml.model.bucket.ListBucketVersionsRequest;
+import com.tencent.cos.xml.model.bucket.ListBucketVersionsResult;
 import com.tencent.cos.xml.model.bucket.ListMultiUploadsRequest;
 import com.tencent.cos.xml.model.bucket.ListMultiUploadsResult;
 import com.tencent.cos.xml.model.bucket.PutBucketACLRequest;
@@ -44,8 +47,6 @@ import com.tencent.cos.xml.model.bucket.PutBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.PutBucketRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketResult;
-import com.tencent.cos.xml.model.bucket.PutBucketTaggingRequest;
-import com.tencent.cos.xml.model.bucket.PutBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
 import com.tencent.cos.xml.model.object.AbortMultiUploadRequest;
@@ -82,11 +83,8 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.model.service.GetServiceResult;
-import com.tencent.cos.xml.transfer.MultipartUploadService;
-
 
 /**
- *
  * <p>
  * 提供访问腾讯云COS服务的SDK接口，注意这里封装的是COS XML接口，COS JSON接口相关的SDK请参见<a
  * href="https://cloud.tencent.com/document/product/436/6517">COS V4</a>，由于COS XML接口相比JSON接口
@@ -117,7 +115,6 @@ import com.tencent.cos.xml.transfer.MultipartUploadService;
  */
 
 public interface CosXml {
-
 
     /**
      * <p>
@@ -159,7 +156,7 @@ public interface CosXml {
      * @return InitMultipartUploadResult {@link InitMultipartUploadResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
-     * @see MultipartUploadService
+     *
      */
     InitMultipartUploadResult initMultipartUpload(InitMultipartUploadRequest request) throws CosXmlClientException, CosXmlServiceException;
 
@@ -181,10 +178,10 @@ public interface CosXml {
      * </p>
      *
      * @param request {@link ListPartsRequest}
-     * @return ListPartsResult {@link ListPartsResult}
+     * @return ListParts {@link ListPartsResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
-     * @see MultipartUploadService
+     *
      */
     ListPartsResult listParts(ListPartsRequest request) throws CosXmlClientException, CosXmlServiceException;
 
@@ -209,7 +206,7 @@ public interface CosXml {
      * @return UploadPartResult {@link UploadPartResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
-     * @see MultipartUploadService
+     *
      */
     UploadPartResult uploadPart(UploadPartRequest request) throws CosXmlClientException, CosXmlServiceException;
 
@@ -239,7 +236,7 @@ public interface CosXml {
      * @return AbortMultiUploadResult {@link AbortMultiUploadResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
-     * @see MultipartUploadService
+     *
      */
     AbortMultiUploadResult abortMultiUpload(AbortMultiUploadRequest abortMultiUploadRequest) throws CosXmlClientException, CosXmlServiceException;
 
@@ -264,7 +261,7 @@ public interface CosXml {
      * @return CompleteMultiUploadResult {@link CompleteMultiUploadResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
-     * @see MultipartUploadService
+     *
      */
     CompleteMultiUploadResult completeMultiUpload(CompleteMultiUploadRequest request) throws CosXmlClientException, CosXmlServiceException;
 
@@ -489,7 +486,7 @@ public interface CosXml {
      * @return PutObjectResult {@link PutObjectResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
-     * @see MultipartUploadService
+     *
      */
     PutObjectResult putObject(PutObjectRequest request) throws CosXmlClientException, CosXmlServiceException;
 
@@ -505,7 +502,7 @@ public interface CosXml {
      * Copy Object for cos
      * synchronous request
      * @param request, {@link CopyObjectRequest}
-     * @return CopyObjectResult, {@link CopyObjectResult}
+     * @return CopyObject, {@link CopyObjectResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
      */
@@ -523,7 +520,7 @@ public interface CosXml {
      * Upload Part Copy Object for cos
      * synchronous request
      * @param request, {@link UploadPartCopyRequest}
-     * @return CopyObjectResult, {@link CopyObjectResult}
+     * @return CopyObject, {@link CopyObjectResult}
      * @throws CosXmlClientException {@link CosXmlClientException}
      * @throws CosXmlServiceException {@link CosXmlServiceException}
      */
@@ -885,25 +882,25 @@ public interface CosXml {
      */
     void putBucketAsync(PutBucketRequest request, CosXmlResultListener cosXmlResultListener);
 
-    /**
-     * <p>
-     * 暂时不支持
-     * </p>
-     *
-     * @param request {@link PutBucketTaggingRequest}
-     * @return PutBucketTaggingResult {@link PutBucketTaggingResult}
-     * @throws CosXmlClientException {@link CosXmlClientException}
-     * @throws CosXmlServiceException {@link CosXmlServiceException}
-     */
-    PutBucketTaggingResult putBucketTagging(PutBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException;
-
-    /**
-     * {@link CosXml#putBucketTagging(PutBucketTaggingRequest)} 的异步接口。
-     *
-     * @param request {@link PutBucketTaggingRequest}
-     * @param cosXmlResultListener {@link CosXmlResultListener}
-     */
-    void putBucketTaggingAsync(PutBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener);
+//    /**
+//     * <p>
+//     * 暂时不支持
+//     * </p>
+//     *
+//     * @param request {@link PutBucketTaggingRequest}
+//     * @return PutBucketTaggingResult {@link PutBucketTaggingResult}
+//     * @throws CosXmlClientException {@link CosXmlClientException}
+//     * @throws CosXmlServiceException {@link CosXmlServiceException}
+//     */
+//    PutBucketTaggingResult putBucketTagging(PutBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException;
+//
+//    /**
+//     * {@link CosXml#putBucketTagging(PutBucketTaggingRequest)} 的异步接口。
+//     *
+//     * @param request {@link PutBucketTaggingRequest}
+//     * @param cosXmlResultListener {@link CosXmlResultListener}
+//     */
+//    void putBucketTaggingAsync(PutBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener);
 
 
     /**
@@ -1005,13 +1002,33 @@ public interface CosXml {
      * @param cosXmlResultListener {@link CosXmlResultListener}
      */
     void deleteBucketReplicationAsync(DeleteBucketReplicationRequest request, CosXmlResultListener cosXmlResultListener);
-//    /**
+
+    /**
+     * <p>
+     * 列出指定Bucket的对象的所用版本信息。
+     * </p>
+     *
+     * @param request {@link ListBucketVersionsRequest}
+     * @return ListBucketVersionsResult {@link ListBucketVersionsResult}
+     * @throws CosXmlClientException {@link CosXmlClientException}
+     * @throws CosXmlServiceException {@link CosXmlServiceException}
+     */
+    ListBucketVersionsResult listBucketVersions(ListBucketVersionsRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * {@link CosXml#listBucketVersions(ListBucketVersionsRequest)} 的异步接口。
+     *
+     * @param request {@link ListBucketVersionsRequest}
+     * @param cosXmlResultListener {@link CosXmlResultListener}
+     */
+    void listBucketVersionsAsync(ListBucketVersionsRequest request, CosXmlResultListener cosXmlResultListener);
+    //    /**
 //     * <p>
 //     * 取消单个请求。
 //     * </p>
 //     *
 //     * @param cosXmlRequest {@link CosXmlRequest}
-//     * @return boolean : true, cancelled is success; or false, cancel is failed, because of has already send or finished etc.
+//     * @return boolean : true, cancelled is success; or false, pause is failed, because of has already send or finished etc.
 //     */
     void cancel(CosXmlRequest cosXmlRequest);
 

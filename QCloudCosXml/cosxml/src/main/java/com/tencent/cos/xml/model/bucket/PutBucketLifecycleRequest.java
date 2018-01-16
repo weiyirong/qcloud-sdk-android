@@ -1,18 +1,17 @@
 package com.tencent.cos.xml.model.bucket;
 
-
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
+import com.tencent.cos.xml.model.bucket.BucketRequest;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
-import com.tencent.cos.xml.model.tag.Rule;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.qcloud.core.network.action.QCloudBodyMd5Action;
-import com.tencent.cos.xml.model.RequestXmlBodySerializer;
+import com.tencent.cos.xml.transfer.XmlBuilder;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,78 +39,38 @@ import java.util.Map;
  * PutBucketLifecycle 用于为 Bucket 创建一个新的生命周期配置。如果该 Bucket 已配置生命周期，使用该接口创建新的配置的同时则会覆盖原有的配置。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#putBucketLifecycle(PutBucketLifecycleRequest)
- * @see com.tencent.cos.xml.CosXml#putBucketLifecycleAsync(PutBucketLifecycleRequest, CosXmlResultListener)
  */
-final public class PutBucketLifecycleRequest extends CosXmlRequest {
-
+final public class PutBucketLifecycleRequest extends BucketRequest {
 
     private LifecycleConfiguration lifecycleConfiguration;
 
     public PutBucketLifecycleRequest(String bucket){
-        setBucket(bucket);
-        contentType = QCloudNetWorkConstants.ContentType.XML;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+        super(bucket);
         lifecycleConfiguration = new LifecycleConfiguration();
-        lifecycleConfiguration.ruleList = new ArrayList<>();
+        lifecycleConfiguration.rules = new ArrayList<>();
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
+    public String getMethod() {
+        return RequestMethod.PUT;
+    }
 
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
+    @Override
+    public Map<String, String> getQueryString() {
+        queryParameters.put("lifecycle", null);
+        return super.getQueryString();
+    }
 
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
+    @Override
+    public RequestBodySerializer getRequestBody() throws CosXmlClientException {
+        try {
+            return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
+                    XmlBuilder.buildLifecycleConfigurationXML(lifecycleConfiguration));
+        } catch (XmlPullParserException e) {
+            throw new CosXmlClientException(e);
+        } catch (IOException e) {
+            throw new CosXmlClientException(e);
         }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        requestActions.add(new QCloudBodyMd5Action());
-
-        requestOriginBuilder.body(new RequestXmlBodySerializer(lifecycleConfiguration));
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(PutBucketLifecycleResult.class);
-    }
-
-    @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("lifecycle",null);
-    }
-
-    @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.PUT;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        requestPath = "/";
     }
 
     /**
@@ -119,9 +78,9 @@ final public class PutBucketLifecycleRequest extends CosXmlRequest {
      *
      * @param ruleList
      */
-    public void setRuleList(List<Rule> ruleList){
+    public void setRuleList(List<LifecycleConfiguration.Rule> ruleList){
         if(ruleList != null){
-            this.lifecycleConfiguration.ruleList.addAll(ruleList);
+            this.lifecycleConfiguration.rules.addAll(ruleList);
         }
     }
 
@@ -130,9 +89,9 @@ final public class PutBucketLifecycleRequest extends CosXmlRequest {
      *
      * @param rule
      */
-    public void setRuleList(Rule rule){
+    public void setRuleList(LifecycleConfiguration.Rule rule){
         if(rule != null){
-            this.lifecycleConfiguration.ruleList.add(rule);
+            this.lifecycleConfiguration.rules.add(rule);
         }
     }
 
@@ -143,5 +102,10 @@ final public class PutBucketLifecycleRequest extends CosXmlRequest {
      */
     public LifecycleConfiguration getLifecycleConfiguration() {
         return lifecycleConfiguration;
+    }
+
+    @Override
+    public boolean isNeedMD5() {
+        return true;
     }
 }

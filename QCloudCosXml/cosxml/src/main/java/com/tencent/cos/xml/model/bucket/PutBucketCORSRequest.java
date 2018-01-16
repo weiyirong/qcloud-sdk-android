@@ -1,19 +1,15 @@
 package com.tencent.cos.xml.model.bucket;
 
-
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
-import com.tencent.cos.xml.model.tag.CORSRule;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.qcloud.core.network.action.QCloudBodyMd5Action;
-import com.tencent.cos.xml.model.RequestXmlBodySerializer;
+import com.tencent.cos.xml.transfer.XmlBuilder;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,78 +23,38 @@ import java.util.Map;
  * 使用 PutBucketCORS 接口创建的规则权限是覆盖当前的所有规则而不是新增一条权限规则。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#putBucketCORS(PutBucketCORSRequest)
- * @see com.tencent.cos.xml.CosXml#putBucketCORSAsync(PutBucketCORSRequest, CosXmlResultListener)
- */
-final public class PutBucketCORSRequest extends CosXmlRequest {
+*/
+final public class PutBucketCORSRequest extends BucketRequest {
 
     private CORSConfiguration corsConfiguration;
 
     public PutBucketCORSRequest(String bucket) {
-        setBucket(bucket);
-        contentType = QCloudNetWorkConstants.ContentType.XML;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
+        super(bucket);
         corsConfiguration = new CORSConfiguration();
         corsConfiguration.corsRules = new ArrayList<>();
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
+    public String getMethod() {
+        return RequestMethod.PUT;
+    }
 
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
+    @Override
+    public Map<String, String> getQueryString() {
+        queryParameters.put("cors", null);
+        return super.getQueryString();
+    }
 
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
+    @Override
+    public RequestBodySerializer getRequestBody() throws CosXmlClientException {
+        try {
+            return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
+                    XmlBuilder.buildCORSConfigurationXML(corsConfiguration));
+        } catch (XmlPullParserException e) {
+            throw new CosXmlClientException(e);
+        } catch (IOException e) {
+            throw new CosXmlClientException(e);
         }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        requestActions.add(new QCloudBodyMd5Action());
-
-        requestOriginBuilder.body(new RequestXmlBodySerializer(corsConfiguration));
-
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(PutBucketCORSResult.class);
-    }
-
-    @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("cors",null);
-    }
-
-    @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.PUT;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        requestPath = "/";
     }
 
     /**
@@ -106,7 +62,7 @@ final public class PutBucketCORSRequest extends CosXmlRequest {
      *
      * @param corsRules
      */
-    public void addCORSRules(List<CORSRule> corsRules) {
+    public void addCORSRules(List<CORSConfiguration.CORSRule> corsRules) {
         if(corsRules != null){
             this.corsConfiguration.corsRules.addAll(corsRules);
         }
@@ -117,7 +73,7 @@ final public class PutBucketCORSRequest extends CosXmlRequest {
      *
      * @param corsRule
      */
-    public void addCORSRule(CORSRule corsRule) {
+    public void addCORSRule(CORSConfiguration.CORSRule corsRule) {
         if(corsRule != null){
             this.corsConfiguration.corsRules.add(corsRule);
         }
@@ -130,5 +86,10 @@ final public class PutBucketCORSRequest extends CosXmlRequest {
      */
     public CORSConfiguration getCorsConfiguration() {
         return corsConfiguration;
+    }
+
+    @Override
+    public boolean isNeedMD5() {
+        return true;
     }
 }

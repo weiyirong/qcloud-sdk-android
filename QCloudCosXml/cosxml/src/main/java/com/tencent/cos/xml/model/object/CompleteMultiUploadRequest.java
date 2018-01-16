@@ -1,17 +1,15 @@
 package com.tencent.cos.xml.model.object;
 
-
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
 import com.tencent.cos.xml.model.tag.CompleteMultipartUpload;
-import com.tencent.cos.xml.model.tag.Part;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-import com.tencent.cos.xml.model.RequestXmlBodySerializer;
+import com.tencent.cos.xml.transfer.XmlBuilder;
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -35,57 +33,18 @@ import java.util.Map;
  * 建议您及时完成分块上传或者舍弃分块上传，因为已上传但是未终止的块会占用存储空间进而产生存储费用。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#completeMultiUpload(CompleteMultiUploadRequest)
- * @see com.tencent.cos.xml.CosXml#completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)
  */
-final public class CompleteMultiUploadRequest extends CosXmlRequest<CompleteMultiUploadResult>{
+final public class CompleteMultiUploadRequest extends ObjectRequest{
 
     private CompleteMultipartUpload completeMultipartUpload;
     private String uploadId;
-    private String cosPath;
+
     public CompleteMultiUploadRequest(String bucket, String cosPath, String uploadId, Map<Integer,String> partNumberAndETag ){
-        setBucket(bucket);
-        this.cosPath = cosPath;
+        super(bucket,cosPath);
         this.uploadId = uploadId;
-        contentType = QCloudNetWorkConstants.ContentType.XML;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
         completeMultipartUpload = new CompleteMultipartUpload();
-        completeMultipartUpload.partList = new ArrayList<Part>();
+        completeMultipartUpload.parts = new ArrayList<CompleteMultipartUpload.Part>();
         setPartNumberAndETag(partNumberAndETag);
-    }
-
-    @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        requestOriginBuilder.body(new RequestXmlBodySerializer(completeMultipartUpload));
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(CompleteMultiUploadResult.class);
     }
 
     public CompleteMultipartUpload getCompleteMultipartUpload() {
@@ -99,10 +58,10 @@ final public class CompleteMultiUploadRequest extends CosXmlRequest<CompleteMult
      * @param eTag 该分块的eTag值
      */
     public void setPartNumberAndETag(int partNumbers, String eTag){
-        Part part = new Part();
+        CompleteMultipartUpload.Part part = new CompleteMultipartUpload.Part();
         part.partNumber = partNumbers;
         part.eTag = eTag;
-        completeMultipartUpload.partList.add(part);
+        completeMultipartUpload.parts.add(part);
     }
 
     /**
@@ -111,12 +70,12 @@ final public class CompleteMultiUploadRequest extends CosXmlRequest<CompleteMult
      */
     public void setPartNumberAndETag(Map<Integer,String> partNumberAndETag){
         if(partNumberAndETag != null){
-            Part part;
+            CompleteMultipartUpload.Part part;
             for(Map.Entry<Integer,String> entry : partNumberAndETag.entrySet()){
-                part = new Part();
+                part = new CompleteMultipartUpload.Part();
                 part.partNumber = entry.getKey();
                 part.eTag = entry.getValue();
-                completeMultipartUpload.partList.add(part);
+                completeMultipartUpload.parts.add(part);
             }
         }
     }
@@ -140,54 +99,35 @@ final public class CompleteMultiUploadRequest extends CosXmlRequest<CompleteMult
     }
 
     @Override
-    protected void setRequestQueryParams() {
-        requestQueryParams.put("uploadID",uploadId);
+    public String getMethod() {
+        return RequestMethod.POST;
+    }
+
+
+    @Override
+    public Map<String, String> getQueryString() {
+        queryParameters.put("uploadID", uploadId);
+        return queryParameters;
     }
 
     @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
+    public RequestBodySerializer getRequestBody() throws CosXmlClientException {
+        try {
+            return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
+                    XmlBuilder.buildCompleteMultipartUpload(completeMultipartUpload));
+        } catch (IOException e) {
+            throw new CosXmlClientException(e);
+        } catch (XmlPullParserException e) {
+            throw new CosXmlClientException(e);
         }
-        if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null");
-        }
+    }
+
+    @Override
+    public void checkParameters() throws CosXmlClientException {
+        super.checkParameters();
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
         }
     }
 
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.POST;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
-            }
-        }
-    }
-
-    /**
-     * 设置本次分块上传的COS路径
-     *
-     * @param cosPath COS路径
-     */
-    public void setCosPath(String cosPath) {
-        this.cosPath = cosPath;
-    }
-
-    /**
-     * 获取用户设置的本次分块上传的路径
-     *
-     * @return COS路径
-     */
-    public String getCosPath() {
-        return cosPath;
-    }
 }

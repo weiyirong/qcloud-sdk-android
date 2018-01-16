@@ -1,115 +1,61 @@
 package com.tencent.cos.xml.model.object;
 
-import android.text.TextUtils;
+import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.CosXmlRequest;
-import com.tencent.cos.xml.model.CosXmlResultListener;
-import com.tencent.cos.xml.model.ResponseXmlS3BodySerializer;
-import com.tencent.qcloud.core.network.QCloudNetWorkConstants;
-import com.tencent.qcloud.core.network.QCloudRequestPriority;
-
+import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.util.Map;
-
 
 /**
  * <p>
  * 查询特定分块上传中的已上传的块。
  * </p>
  *
- * @see com.tencent.cos.xml.CosXml#listParts(ListPartsRequest)
- * @see com.tencent.cos.xml.CosXml#listPartsAsync(ListPartsRequest, CosXmlResultListener)
  */
-final public class ListPartsRequest extends CosXmlRequest {
+final public class ListPartsRequest extends ObjectRequest {
 
     private String uploadId;
     private String maxParts;
     private String partNumberMarker;
     private String encodingType;
-    private String cosPath;
 
     public ListPartsRequest(String bucket, String cosPath, String uploadId){
-        setBucket(bucket);
-        this.cosPath = cosPath;
+        super(bucket, cosPath);
         this.uploadId = uploadId;
-        contentType = QCloudNetWorkConstants.ContentType.X_WWW_FORM_URLENCODED;
-        requestHeaders.put(QCloudNetWorkConstants.HttpHeader.CONTENT_TYPE,contentType);
     }
 
     @Override
-    protected void build() throws CosXmlClientException {
-        super.build();
-
-        priority = QCloudRequestPriority.Q_CLOUD_REQUEST_PRIORITY_NORMAL;
-
-        setRequestMethod();
-        requestOriginBuilder.method(requestMethod);
-
-        setRequestPath();
-        requestOriginBuilder.pathAddRear(requestPath);
-
-        requestOriginBuilder.hostAddFront(bucket);
-
-        setRequestQueryParams();
-        if(requestQueryParams.size() > 0){
-            for(Object object : requestQueryParams.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.query(entry.getKey(),entry.getValue());
-            }
-        }
-
-        if(requestHeaders.size() > 0){
-            for(Object object : requestHeaders.entrySet()){
-                Map.Entry<String,String> entry = (Map.Entry<String, String>) object;
-                requestOriginBuilder.header(entry.getKey(),entry.getValue());
-            }
-        }
-
-        responseBodySerializer = new ResponseXmlS3BodySerializer(ListPartsResult.class);
+    public String getMethod() {
+        return RequestMethod.GET;
     }
 
     @Override
-    protected void setRequestQueryParams() {
-        if(!TextUtils.isEmpty(uploadId)){
-            requestQueryParams.put("uploadID",uploadId);
+    public Map<String, String> getQueryString() {
+        if(uploadId != null){
+            queryParameters.put("uploadID",uploadId);
         }
-        if(!TextUtils.isEmpty(maxParts)){
-            requestQueryParams .put("max-parts",maxParts);
+        if(maxParts != null){
+            queryParameters.put("max-parts",maxParts);
         }
-        if(!TextUtils.isEmpty(partNumberMarker)){
-            requestQueryParams.put("part-number-marker",partNumberMarker);
+        if(partNumberMarker != null){
+            queryParameters.put("part-number-marker",maxParts);
         }
-        if(!TextUtils.isEmpty(encodingType)){
-            requestQueryParams.put("Encoding-type",encodingType);
+        if(encodingType != null){
+            queryParameters.put("Encoding-type",encodingType);
         }
+        return queryParameters;
     }
 
     @Override
-    protected void checkParameters() throws CosXmlClientException {
-        if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
-        }
-        if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null");
-        }
+    public RequestBodySerializer getRequestBody() {
+        return null;
+    }
+
+    @Override
+    public void checkParameters() throws CosXmlClientException {
+        super.checkParameters();
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
-        }
-    }
-
-    @Override
-    protected void setRequestMethod() {
-        requestMethod = QCloudNetWorkConstants.RequestMethod.GET;
-    }
-
-    @Override
-    protected void setRequestPath() {
-        if(cosPath != null){
-            if(!cosPath.startsWith("/")){
-                requestPath = "/" + cosPath;
-            }else{
-                requestPath = cosPath;
-            }
         }
     }
 
@@ -185,23 +131,5 @@ final public class ListPartsRequest extends CosXmlRequest {
      */
     public String getEncodingType() {
         return encodingType;
-    }
-
-    /**
-     * 设置所List分片上传的 COS 路径
-     *
-     * @param cosPath COS 路径
-     */
-    public void setCosPath(String cosPath) {
-        this.cosPath = cosPath;
-    }
-
-    /**
-     * 获取用户设置的 COS 路径
-     *
-     * @return COS 路径
-     */
-    public String getCosPath() {
-        return cosPath;
     }
 }
