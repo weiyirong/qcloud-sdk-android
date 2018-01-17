@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
 
-        minSdkVersion 16
+        minSdkVersion 15
         targetSdkVersion 26
 
         versionCode 10200
@@ -26,6 +26,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "production"
+
+    productFlavors {
+        normal {}
+        slim {}
+    }
     lintOptions {
         abortOnError false
     }
@@ -37,19 +44,34 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    testCompile 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support:design:26.1.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
-    compile project(path: ':foundation')
+    implementation project(path: ':foundation')
 }
 
-task Jar(type: Copy, dependsOn: build){
+task slimJar(type: Copy, dependsOn: build){
     delete 'build/libs/'
-    from('build/intermediates/bundles/release/')
+    from('build/intermediates/bundles/slimRelease/')
     into('build/libs/')
-    rename ('classes.jar', 'cos-xml-android-sdk.' + android.defaultConfig.versionName + '.jar')
+    rename ('classes.jar', "cos-xml-android-sdk-${android.defaultConfig.versionName}-slim.jar")
 }
+
+task Jar(type: Copy, dependsOn: slimJar){
+    from('build/intermediates/bundles/normalRelease/')
+    into('build/libs/')
+    rename ('classes.jar', "cos-xml-android-sdk-${android.defaultConfig.versionName}.jar")
+}
+
+
+project.extensions.add('artifactId', 'cosxml')
+project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
+
+apply from: '../../publish.gradle'
+
