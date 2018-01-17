@@ -52,9 +52,9 @@ final public class PutObjectRequest extends ObjectRequest {
     @Override
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         if(srcPath != null){
-            return RequestBodySerializer.file("text/plain", new File(srcPath));
+            return RequestBodySerializer.file(null, new File(srcPath));
         }else if(data != null){
-            return RequestBodySerializer.bytes(COSRequestHeaderKey.APPLICATION_OCTET_STREAM, data);
+            return RequestBodySerializer.bytes(null, data);
         }
         return null;
     }

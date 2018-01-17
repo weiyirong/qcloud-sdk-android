@@ -1,7 +1,7 @@
 package com.tencent.cos.xml.model;
 
 import com.tencent.cos.xml.exception.CosXmlClientException;
-import com.tencent.cos.xml.model.service.GetServiceRequest;
+import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.auth.COSXmlSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 import com.tencent.qcloud.core.http.HttpTask;
@@ -56,8 +56,11 @@ public abstract class CosXmlRequest{
         this.isNeedMD5 = isNeedMD5;
     }
 
-    public void setCustomHeader(String key, String value){
-        addHeader(key, value);
+    public void setRequestHeaders(String key, String value) throws CosXmlClientException {
+        if(key != null && value != null){
+            value = URLEncodeUtils.cosPathEncode(value);
+            addHeader(key, value);
+        }
     }
 
     protected void addHeader(String key, String value){
@@ -73,15 +76,11 @@ public abstract class CosXmlRequest{
 
     public String getHost(String appid, String region){
         String suffix = "myqcloud.com";
-        if(this instanceof GetServiceRequest){
-            return getHostPrefix() + ".cos." + suffix;
-        }else {
-            String bucket = getHostPrefix();
-            if(!bucket.endsWith("-" + appid)){
-                bucket = bucket + "-" + appid;
-            }
-            return bucket + ".cos." + region + "." + suffix;
+        String bucket = getHostPrefix();
+        if(!bucket.endsWith("-" + appid)){
+            bucket = bucket + "-" + appid;
         }
+        return bucket + ".cos." + region + "." + suffix;
     }
 
     public void setSign(long signDuration){

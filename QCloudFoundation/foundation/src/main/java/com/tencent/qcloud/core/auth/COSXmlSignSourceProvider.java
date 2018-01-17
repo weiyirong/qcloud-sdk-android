@@ -71,7 +71,7 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
     }
 
     public void parameters(Set<String> keys) {
-        if(keys != null) paras.addAll(keys);
+        paras.addAll(keys);
     }
 
     /**
@@ -80,11 +80,12 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
      * @param key
      */
     public void header(String key) {
+
         headers.add(key);
     }
 
     public void headers(Set<String> keys) {
-        if(keys != null) headers.addAll(keys);
+        headers.addAll(keys);
     }
 
     /**

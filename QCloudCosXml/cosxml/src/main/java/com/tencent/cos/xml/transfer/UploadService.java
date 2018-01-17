@@ -1,7 +1,7 @@
 package com.tencent.cos.xml.transfer;
 
 
-import com.tencent.cos.xml.CosXmlService;
+import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class UploadService {
 
-    private CosXmlService cosXmlService;
+    private CosXmlSimpleService cosXmlService;
     private String bucket;
     private String cosPath;
     private String srcPath;
@@ -58,7 +58,7 @@ public class UploadService {
     private PutObjectRequest putObjectRequest;
     private UploadServiceResult uploadServiceResult;
 
-    public UploadService(CosXmlService cosXmlService, ResumeData resumeData){
+    public UploadService(CosXmlSimpleService cosXmlService, ResumeData resumeData){
         this.cosXmlService = cosXmlService;
         init(resumeData);
     }
@@ -426,6 +426,7 @@ public class UploadService {
 
     public static class UploadServiceResult extends CosXmlResult{
         public String eTag;
+        public String accessUrl;
 
         @Override
         public String printResult() {

@@ -126,12 +126,12 @@ final public class UploadPartRequest extends ObjectRequest {
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         if(srcPath != null){
             if(fileOffset != -1){
-                return RequestBodySerializer.file("text/plain", new File(srcPath), fileOffset, fileContentLength);
+                return RequestBodySerializer.file(null, new File(srcPath), fileOffset, fileContentLength);
             }else {
-               return RequestBodySerializer.file("text/plain", new File(srcPath));
+               return RequestBodySerializer.file(null, new File(srcPath));
             }
         }else if(data != null){
-            return RequestBodySerializer.bytes("text/plain", data);
+            return RequestBodySerializer.bytes(null, data);
         }
         return null;
     }

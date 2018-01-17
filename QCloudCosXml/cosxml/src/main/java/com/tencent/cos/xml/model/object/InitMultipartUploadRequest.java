@@ -164,6 +164,6 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
 
     @Override
     public RequestBodySerializer getRequestBody() {
-        return RequestBodySerializer.bytes(COSRequestHeaderKey.APPLICATION_OCTET_STREAM, new byte[0]);
+        return RequestBodySerializer.bytes(null, new byte[0]);
     }
 }

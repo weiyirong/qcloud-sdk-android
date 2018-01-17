@@ -44,7 +44,7 @@ public class ResponseFileBodySerializer<T2> extends ResponseFileConverter<T2> {
         if(inputStream != null){
             CosError cosError = new CosError();
             try {
-                XmlParser.parseError(inputStream, cosError);
+                XmlSlimParser.parseError(inputStream, cosError);
                 cosXmlServiceException.setErrorCode(cosError.code);
                 cosXmlServiceException.setErrorMessage(cosError.message);
                 cosXmlServiceException.setRequestId(cosError.requestId);

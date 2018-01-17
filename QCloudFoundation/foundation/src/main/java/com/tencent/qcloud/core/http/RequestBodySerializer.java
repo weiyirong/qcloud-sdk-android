@@ -71,10 +71,10 @@ public abstract class RequestBodySerializer {
     }
 
     public static RequestBodySerializer file(String contentType, File file, long offset, long length) {
-        if (TextUtils.isEmpty(contentType)) {
-            String extension = MimeTypeMap.getFileExtensionFromUrl(file.getPath());
-            contentType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        }
+//        if (TextUtils.isEmpty(contentType)) {
+//            String extension = MimeTypeMap.getFileExtensionFromUrl(file.getPath());
+//            contentType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+//        }
         StreamingRequestBody fileRequestBody = StreamingRequestBody.file(file, contentType, offset, length);
 
         return new BaseRequestBodyWrapper(fileRequestBody);

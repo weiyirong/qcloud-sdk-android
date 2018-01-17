@@ -50,7 +50,7 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
         if(inputStream != null){
             CosError cosError = new CosError();
             try {
-                XmlParser.parseError(inputStream, cosError);
+                XmlSlimParser.parseError(inputStream, cosError);
                 cosXmlServiceException.setErrorCode(cosError.code);
                 cosXmlServiceException.setErrorMessage(cosError.message);
                 cosXmlServiceException.setRequestId(cosError.requestId);

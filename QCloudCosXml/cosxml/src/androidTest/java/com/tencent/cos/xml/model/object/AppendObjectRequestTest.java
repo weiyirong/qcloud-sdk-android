@@ -37,27 +37,27 @@ public class AppendObjectRequestTest extends ApplicationTestCase {
         super(Application.class);
     }
 
-    @Test
+
     public void getMethod() throws Exception {
     }
 
-    @Test
+
     public void getQueryString() throws Exception {
     }
 
-    @Test
+
     public void getRequestBody() throws Exception {
     }
 
-    @Test
+
     public void checkParameters() throws Exception {
     }
 
-    @Test
+
     public void setPosition() throws Exception {
     }
 
-    @Test
+
     public void getPosition() throws Exception {
     }
 

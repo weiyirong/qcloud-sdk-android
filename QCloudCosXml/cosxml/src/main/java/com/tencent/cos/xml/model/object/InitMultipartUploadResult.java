@@ -4,7 +4,7 @@ import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
 import com.tencent.cos.xml.model.tag.InitiateMultipartUpload;
-import com.tencent.cos.xml.transfer.XmlParser;
+import com.tencent.cos.xml.transfer.XmlSlimParser;
 import com.tencent.qcloud.core.http.HttpResponse;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -20,7 +20,7 @@ final public class InitMultipartUploadResult extends CosXmlResult {
         super.parseResponseBody(response);
         initMultipartUpload = new InitiateMultipartUpload();
         try {
-            XmlParser.parseInitiateMultipartUploadResult(response.byteStream(), initMultipartUpload);
+            XmlSlimParser.parseInitiateMultipartUploadResult(response.byteStream(), initMultipartUpload);
         } catch (XmlPullParserException e) {
            throw new CosXmlClientException(e);
         } catch (IOException e) {

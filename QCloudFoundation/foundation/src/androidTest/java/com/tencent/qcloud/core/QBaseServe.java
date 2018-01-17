@@ -3,10 +3,10 @@ package com.tencent.qcloud.core;
 import android.content.Context;
 import android.os.Environment;
 
-import com.tencent.cos.xml.CosXmlService;
-import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.SessionCredentialProvider;
+import com.tencent.qcloud.core.cos.CosXmlService;
+import com.tencent.qcloud.core.cos.CosXmlServiceConfig;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,8 +25,8 @@ public class QBaseServe {
     public static String bucket = "androidtest";
     public static String region = "ap-guangzhou";
     public static String appId = "1253960454";   // 请替换成你的app id
-    public static String secretId = "XXX";  // 请替换成你的secret id
-    public static String secretKey = "XXX";  // 请替换成你的secret key
+    public static String secretId = "AKIDtgHguxSsaEykZHoIfqtlT1NY0MWTn4B5";  // 请替换成你的secret id
+    public static String secretKey = "rWyGVcXHpCjDOSMaheQSNGyMfstiOAqu";  // 请替换成你的secret key
 
     public CosXmlService cosXmlService;
     private CosXmlServiceConfig cosXmlServiceConfig;
@@ -37,7 +37,7 @@ public class QBaseServe {
         mockResponseInterceptor = new MockResponseInterceptor();
         cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
                 .setAppidAndRegion(appId, region)
-                .builder();
+                .build();
         cosXmlService = new CosXmlService(context, cosXmlServiceConfig,
                 new SessionCredentialProvider(secretId, secretKey, appId, region, "cosxml"));
     }

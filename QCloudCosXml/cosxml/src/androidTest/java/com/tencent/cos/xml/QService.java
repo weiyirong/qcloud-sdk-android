@@ -1,7 +1,12 @@
 package com.tencent.cos.xml;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.tencent.cos.xml.common.Region;
@@ -28,9 +33,22 @@ public class QService {
     public static String appid = "1253960454";
     public static String region = Region.AP_Guangzhou.getRegion();
 
+    public static Context context;
+
     public static CosXmlService getCosXmlClient(Context context){
         synchronized (QService.class){
             if(cosXmlClient == null){
+//                if(true){
+//                    int granted = context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                            + context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+//                            + context.checkSelfPermission(Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS);
+//                    if(granted != PackageManager.PERMISSION_GRANTED){
+//                        //grant
+//                        ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                                Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+//                    }
+//                }
+
                 CosXmlServiceConfig configuration = new CosXmlServiceConfig.Builder()
                         .isHttps(false)
                         .setAppidAndRegion(appid,region)
@@ -46,7 +64,7 @@ public class QService {
     }
 
     public static String createFile(long length) throws IOException {
-        String srcPath = Environment.getExternalStorageDirectory().getPath() + "/"
+        String srcPath = context.getCacheDir().getPath() + "/"
                 + System.currentTimeMillis() + ".txt";
         File file = new File(srcPath);
         if(!file.exists()){

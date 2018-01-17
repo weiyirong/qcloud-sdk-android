@@ -4,7 +4,7 @@ import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.CompleteMultipartUpload;
-import com.tencent.cos.xml.transfer.XmlBuilder;
+import com.tencent.cos.xml.transfer.XmlSlimBuilder;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -114,7 +114,7 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         try {
             return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
-                    XmlBuilder.buildCompleteMultipartUpload(completeMultipartUpload));
+                    XmlSlimBuilder.buildCompleteMultipartUpload(completeMultipartUpload));
         } catch (IOException e) {
             throw new CosXmlClientException(e);
         } catch (XmlPullParserException e) {

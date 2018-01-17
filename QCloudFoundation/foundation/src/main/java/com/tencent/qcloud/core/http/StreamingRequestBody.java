@@ -88,7 +88,11 @@ class StreamingRequestBody extends RequestBody implements ProgressBody {
 
     @Override
     public MediaType contentType() {
-        return MediaType.parse(contentType);
+        if(contentType != null){
+            return MediaType.parse(contentType);
+        }else {
+            return null;
+        }
     }
 
     @Override
