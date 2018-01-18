@@ -426,7 +426,6 @@ public class UploadService {
 
     public static class UploadServiceResult extends CosXmlResult{
         public String eTag;
-        public String accessUrl;
 
         @Override
         public String printResult() {
