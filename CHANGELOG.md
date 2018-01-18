@@ -5,3 +5,8 @@
 
 2）支持 CAM方式获取 临时密钥， 请查看 com.tencent.qcloud.core.network.auth.LocalSessionCredentialProvider
 
+
+
+## V1.3 版本：
+
+1）缩小了包的体积大小；
