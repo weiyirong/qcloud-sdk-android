@@ -16,17 +16,13 @@
 
 配置工程导入下列 jar 包：
 
-- cos-xml-android-sdk-1.2.jar
+- cos-xml-android-sdk.1.3.0.jar
 
-- qcloud-core-1.2.jar
+- qcloud-core.1.3.0.jar
  
 - okhttp-3.8.1.jar
 
 - okio-1.13.0.jar
- 
-- xstream-1.4.7.jar
-
-- fastjson-1.1.62.android.jar
 
 SDK 需要网络、存储等相关的一些访问权限，需要在 AndroidManifest.xml 中增加如下权限声明：
 ```html
@@ -41,7 +37,7 @@ SDK 需要网络、存储等相关的一些访问权限，需要在 AndroidManif
 进行操作之前需要实例化 CosXmlService 和 CosXmlServiceConfig.
 
 #### 实例化 CosXmlServiceConfig
-调用 CosXmlServiceConfig.Builder().build() 实例化 CosXmlServiceConfig 对象.
+调用 CosXmlServiceConfig.Builder().builder() 实例化 CosXmlServiceConfig 对象.
 
 #### 参数说明
 | 参数名称   | 类型 | 是否必填 | 参数描述   |
@@ -55,9 +51,7 @@ SDK 需要网络、存储等相关的一些访问权限，需要在 AndroidManif
 |:----------:|:-----------:|
 |   setAppidAndRegion(String, String) |设置 appid 和 bucket 所属地域   |
 |   isHttps(boolean)  | true: https请求； false: http请求； 默认http请求|
-|   setConnectionTimeout(int) |     连接超时设置   |
-|   setSocketTimeout(int)   |     读写超时设置   |
-|   setMaxRetryCount(int)  |     失败请求重试次数   |
+|   setDebuggable(boolean)  |     debug log调式   |
 
 
 #### 示例
@@ -67,13 +61,11 @@ String region = "存储桶 所在的地域"; //所属地域：在创建好存储
 CosXmlServiceConfig serviceConfig = new CosXmlServiceConfig.Builder()
        .setAppidAndRegion(appid, region)
        .setDebuggable(true)
-       .setConnectionTimeout(45000)
-       .setSocketTimeout(30000)
-       .build();
+       .builder();
 ````
 
 #### 实例化 CosXmlService
-调用 CosXmlService(Context context, CosXmlServiceConfig serviceConfig, CosXmlCredentialProvider cloudCredentialProvider) 构造方法，实例化 CosXmlService 对象.
+调用 CosXmlService(Context context, CosXmlServiceConfig serviceConfig, QCloudCredentialProvider cloudCredentialProvider) 构造方法，实例化 CosXmlService 对象.
 
 #### 参数说明
 | 参数名称   | 类型 | 是否必填 | 参数描述   |
@@ -91,9 +83,7 @@ String region = "存储桶 所在的地域";
 CosXmlServiceConfig serviceConfig = new CosXmlServiceConfig.Builder()
        .setAppidAndRegion(appid, region)
        .setDebuggable(true)
-       .setConnectionTimeout(45000)
-       .setSocketTimeout(30000)
-       .build();
+       .builder();
 
 /**
 * 
@@ -129,9 +119,7 @@ long keyDuration = 600; //secretKey的有效时间,单位秒
 CosXmlServiceConfig serviceConfig = new CosXmlServiceConfig.Builder()
        .setAppidAndRegion(appid, region)
        .setDebuggable(true)
-       .setConnectionTimeout(45000)
-       .setSocketTimeout(30000)
-       .build();
+       .builder();
 
 //创建获取签名类
 LocalCredentialProvider localCredentialProvider = new LocalCredentialProvider(secretId, secretKey, keyDuration);
