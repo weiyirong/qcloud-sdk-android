@@ -18,21 +18,13 @@
 
 # SDK包含的 jar包：
 
-- cos-xml-android-sdk-1.2.jar
+- cos-xml-android-sdk.1.3.0.jar
 
-- qcloud-core-1.2.jar
+- qcloud-core.1.3.0.jar
 
 # SDK 依赖的第三方包:
 
-
 - compile 'com.squareup.okhttp3:okhttp:3.8.1'
-
-- compile 'com.alibaba:fastjson:1.1.62.android'
-
-- compile ('com.thoughtworks.xstream:xstream:1.4.7') {
-exclude group: 'xmlpull', module: 'xmlpull'
-}
-
 
 # SDK 需要一些相关的访问权限:
 
