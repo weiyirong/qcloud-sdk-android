@@ -1,15 +1,17 @@
 package com.tencent.cos.xml.common;
 
+import com.tencent.cos.xml.BuildConfig;
+
 /**
  * Created by bradyxiao on 2017/11/30.
  */
 
 public class VersionInfo {
 
-    public static final String version = "1.3.0";
-    public static final String platform = "cos-android-xml-sdk";
+    public static final int version = BuildConfig.VERSION_CODE;
+    public static final String platform = "cos-android-sdk-" + BuildConfig.VERSION_NAME;
 
     public static String getUserAgent(){
-        return platform + "-" + version;
+        return platform + "." + version;
     }
 }

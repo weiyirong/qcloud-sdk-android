@@ -29,11 +29,16 @@ public class DeleteResult {
 
     public static class Deleted{
         public String key;
-
+        public String versionId;
+        public boolean deleteMarker;
+        public String  deleteMarkerVersionId;
         @Override
         public String toString(){
             StringBuilder stringBuilder = new StringBuilder("{Deleted:\n");
             stringBuilder.append("Key:").append(key).append("\n");
+            stringBuilder.append("VersionId:").append(versionId).append("\n");
+            stringBuilder.append("DeleteMarker:").append(deleteMarker).append("\n");
+            stringBuilder.append("DeleteMarkerVersionId:").append(deleteMarkerVersionId).append("\n");
             stringBuilder.append("}");
             return stringBuilder.toString();
         }
@@ -43,6 +48,7 @@ public class DeleteResult {
         public String key;
         public String code;
         public String message;
+        public String versionId;
 
         @Override
         public String toString(){
@@ -50,6 +56,7 @@ public class DeleteResult {
             stringBuilder.append("Key:").append(key).append("\n");
             stringBuilder.append("Code:").append(code).append("\n");
             stringBuilder.append("Message:").append(message).append("\n");
+            stringBuilder.append("VersionId:").append(versionId).append("\n");
             stringBuilder.append("}");
             return stringBuilder.toString();
         }

@@ -12,5 +12,6 @@ public class Delete {
 
     public static class DeleteObject{
         public String key;
+        public String versionId;
     }
 }

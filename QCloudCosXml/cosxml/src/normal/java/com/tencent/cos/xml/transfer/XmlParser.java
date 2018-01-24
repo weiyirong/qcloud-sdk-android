@@ -582,7 +582,7 @@ public class XmlParser extends XmlSlimParser {
                     tagName = xmlPullParser.getName();
                     if(tagName.equalsIgnoreCase("Deleted")){
                         deleted = new DeleteResult.Deleted();
-                    }else if(tagName.equalsIgnoreCase("CosError")){
+                    }else if(tagName.equalsIgnoreCase("Error")){
                         error= new DeleteResult.Error();
                     }else if(tagName.equalsIgnoreCase("Key")){
                         xmlPullParser.next();
@@ -591,9 +591,19 @@ public class XmlParser extends XmlSlimParser {
                         }else if(error != null){
                             error.key = xmlPullParser.getText();
                         }
-                    }else if(tagName.equalsIgnoreCase("Code")){
+                    }else if(tagName.equalsIgnoreCase("VersionId")){
                         xmlPullParser.next();
-                        error.code = xmlPullParser.getText();
+                        if(deleted != null){
+                            deleted.versionId = xmlPullParser.getText();
+                        }else if(error != null){
+                            error.versionId = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("DeleteMarker")){
+                        xmlPullParser.next();
+                        deleted.deleteMarker = Boolean.parseBoolean(xmlPullParser.getText());
+                    }else if(tagName.equalsIgnoreCase("DeleteMarkerVersionId")){
+                        xmlPullParser.next();
+                        deleted.deleteMarkerVersionId = xmlPullParser.getText();
                     }else if(tagName.equalsIgnoreCase("Message")){
                         xmlPullParser.next();
                         error.message = xmlPullParser.getText();

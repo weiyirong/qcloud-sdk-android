@@ -11,6 +11,7 @@ import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.tag.ACLAccount;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
+import com.tencent.qcloud.core.auth.SessionQCloudCredentials;
 
 import org.junit.Test;
 
@@ -59,6 +60,7 @@ public class BucketTest extends ApplicationTestCase{
         request.setRequestHeaders("Content-Type", "application/x-shockwave-flash");
         GetBucketResult result = QService.getCosXmlClient(getContext()).getBucket(request);
         Log.d(TAG, result.printResult());
+
     }
 
     public void listMultiUploadsTest() throws CosXmlServiceException, CosXmlClientException {

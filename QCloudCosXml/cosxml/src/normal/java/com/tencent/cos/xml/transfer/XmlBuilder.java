@@ -208,6 +208,7 @@ public class XmlBuilder extends XmlSlimBuilder {
                 if(deleteObject == null)continue;
                 xmlSerializer.startTag("", "Object");
                 addElement(xmlSerializer, "Key", deleteObject.key);
+                addElement(xmlSerializer, "VersionId", deleteObject.versionId);
                 xmlSerializer.endTag("", "Object");
             }
         }

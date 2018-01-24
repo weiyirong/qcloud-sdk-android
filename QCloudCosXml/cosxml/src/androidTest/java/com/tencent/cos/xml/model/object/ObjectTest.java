@@ -16,7 +16,11 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by bradyxiao on 2017/12/13.
@@ -90,7 +94,11 @@ public class ObjectTest extends ApplicationTestCase {
         String cosPath = "xml.txt";
         String savePath = getContext().getCacheDir().getPath() + "/";
         GetObjectRequest request = new GetObjectRequest(bucket, cosPath, savePath);
+        request.setRspContentDispositon("attachment;filename=xiaoyao.txt");
         request.setRequestHeaders("Content-Type", "video/mpeg4");
+        Set<String> sets = new HashSet<>();
+        //sets.add("response-content-disposition");
+        request.setSign(600, sets, null);
         request.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -100,7 +108,7 @@ public class ObjectTest extends ApplicationTestCase {
         GetObjectResult result = QService.getCosXmlClient(getContext()).getObject(request);
         Log.d(TAG, result.printResult());
 
-        QService.delete(request.getDownloadPath());
+        //QService.delete(request.getDownloadPath());
     }
 
     public void optionObjectTest() throws CosXmlServiceException, CosXmlClientException {
@@ -130,20 +138,24 @@ public class ObjectTest extends ApplicationTestCase {
         QService.context = getContext();
         String cosPath = "AWS-S3.doc";
         DeleteObjectRequest request = new DeleteObjectRequest(bucket, cosPath);
-        request.setRequestHeaders("Content-Type", "video/mpeg4");
+        request.setVersionId("versiodId");
         DeleteObjectResult result = QService.getCosXmlClient(getContext()).deleteObject(request);
         Log.d(TAG, result.printResult());
     }
 
     public void deleteMultiObject() throws CosXmlServiceException, CosXmlClientException {
         QService.context = getContext();
-        List<String> listObject = new ArrayList<>();
-        listObject.add("/xml_test_copy.txt");
-        listObject.add("/1511858966419.txt");
+//        List<String> listObject = new ArrayList<>();
+//        listObject.add("/xml_test_copy.txt");
+//        listObject.add("/1511858966419.txt");
+        Map<String,String> listObject = new HashMap<>();
+        listObject.put("/xml_test_copy.txt", "versionIdxxx");
+
         DeleteMultiObjectRequest request = new DeleteMultiObjectRequest(bucket, null);
         request.setRequestHeaders("Content-Type", "video/mpeg4");
         request.setQuiet(false);
         request.setObjectList(listObject);
+        request.setObjectList("/1511858966419.txt", "versiondIdxxxxx");
         DeleteMultiObjectResult result = QService.getCosXmlClient(getContext()).deleteMultiObject(request);
         Log.d(TAG, result.printResult());
     }
@@ -253,11 +265,13 @@ public class ObjectTest extends ApplicationTestCase {
 //        optionObjectTest();
 //        copyObjectTest();
 //        deleteObjectTest();
-//        deleteMultiObject();
+        deleteMultiObject();
 //        putObjectACLTest();
 //        getBucketACLTest();
 //        multiUploadPartObjectTest();
 //        abortMultiUploadPartObjectTest();
+
+        getContext().getCacheDir().length();
     }
 
 }

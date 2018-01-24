@@ -57,9 +57,13 @@ public class GenerateGetObjectURLUtilsTest extends AndroidTestCase {
                 return null;
             }
         };
-        String url = GenerateGetObjectURLUtils.getObjectUrlWithSign(true, "1253960454",
-                "androidtest",Region.AP_Guangzhou.getRegion(), "append4.txt", 60 * 60, qCloudAPI);
+        String url = GenerateGetObjectURLUtils.getObjectUrlWithSign(true, null, null,"1253960454",
+                "androidtest",Region.AP_Guangzhou.getRegion(), "xml.txt", 60 * 60, qCloudAPI);
 
         Log.d(TAG, url);
+
+        String url2 = GenerateGetObjectURLUtils.getRequestUrlWithSign(true, "get", null, null,
+                "1253960454", "androidtest",Region.AP_Guangzhou.getRegion(), "xml.txt", 60 * 60, qCloudAPI);
+        Log.d(TAG, url2);
     }
 }

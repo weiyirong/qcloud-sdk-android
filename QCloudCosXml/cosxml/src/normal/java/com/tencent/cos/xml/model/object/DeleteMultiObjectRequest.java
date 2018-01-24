@@ -99,6 +99,20 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         }
     }
 
+    public void setObjectList(String object, String versionId) {
+        if(object != null){
+            if(object.startsWith("/")){
+                object = object.substring(1);
+            }
+            Delete.DeleteObject deleteObject = new Delete.DeleteObject();
+            deleteObject.key = object;
+            if(versionId != null){
+                deleteObject.versionId = versionId;
+            }
+            delete.deleteObjects.add(deleteObject);
+        }
+    }
+
     /**
      * 添加多个需要删除的Objects
      *
@@ -115,6 +129,26 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
                     deleteObject.key = object.substring(1);
                 }else{
                     deleteObject.key = object;
+                }
+                delete.deleteObjects.add(deleteObject);
+            }
+        }
+    }
+
+    public void setObjectList(Map<String, String> objectListWithVersionId) {
+        if(objectListWithVersionId != null){
+            Delete.DeleteObject deleteObject;
+            for(Map.Entry<String, String> entry : objectListWithVersionId.entrySet()){
+                deleteObject = new Delete.DeleteObject();
+                String object = entry.getKey();
+                String versionId = entry.getValue();
+                if(object.startsWith("/")){
+                    deleteObject.key = object.substring(1);
+                }else{
+                    deleteObject.key = object;
+                }
+                if(versionId != null){
+                    deleteObject.versionId = versionId;
                 }
                 delete.deleteObjects.add(deleteObject);
             }

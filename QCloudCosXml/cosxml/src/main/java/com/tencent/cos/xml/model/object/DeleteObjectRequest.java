@@ -26,4 +26,10 @@ final public class DeleteObjectRequest extends ObjectRequest {
         return null;
     }
 
+    public void setVersionId(String versionId){
+        if(versionId != null){
+            this.queryParameters.put("versionId", versionId);
+        }
+    }
+
 }
