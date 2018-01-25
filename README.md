@@ -5,4 +5,4 @@
 
 您可以在新建项目中，配置好SDK或者在已有的项目中集成进SDK，或者先运行下Demo感受下SDK是如何运作的.
 
-# COS SDK [使用说明]()
+# COS SDK [使用说明](https://github.com/tencentyun/qcloud-sdk-android/tree/master/document/cos).
