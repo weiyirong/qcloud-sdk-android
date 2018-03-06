@@ -11,6 +11,6 @@
 </u1>
 
 ## SDK说明
-# COS SDK :是腾讯云对象存储(COS)的android sdk. 具体的使用方法，可以参考[SDK使用说明文档](https://github.com/tencentyun/qcloud-sdk-android/tree/master/document/cos).
+# COS XML SDK :是腾讯云对象存储(COS)的 V5 版本的android sdk. 具体的使用方法，可以参考[COS XML SDK使用说明文档](https://github.com/tencentyun/qcloud-sdk-android/tree/master/document/cos).
 
-# QCloudFoundation SDK :是网络基础库.
+# QCloudFoundation SDK :是网络基础库. 如 COS XML SDK依赖于该网路库.
