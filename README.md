@@ -3,6 +3,14 @@
 
 ## 前言  
 
-您可以在新建项目中，配置好SDK或者在已有的项目中集成进SDK，或者先运行下Demo感受下SDK是如何运作的.
+您可以在新建项目中，配置好SDK或者在已有的项目中集成SDK，或者先运行下Demo感受下SDK是如何运作的.<br/>
+目前，仓库中主要包含如下SDK:<br/>
+<u1>
+<li>COS XML SDK </li>
+<li> QCloudFoundation SDK</li>
+</u1>
 
-# COS SDK [使用说明](https://github.com/tencentyun/qcloud-sdk-android/tree/master/document/cos).
+## SDK说明
+# COS SDK :是腾讯云对象存储(COS)的android sdk. 具体的使用方法，可以参考[SDK使用说明文档](https://github.com/tencentyun/qcloud-sdk-android/tree/master/document/cos).
+
+# QCloudFoundation SDK :是网络基础库.
