@@ -6,9 +6,9 @@
 
 ## 产品列表
 
-当前仓库内提供的产品有:
+当前仓库内提供的 SDK 有:
 
-* QCloudCosXml - [腾讯云 COS XML](https://cloud.tencent.com/document/product/436)
+* QCloudCosXml - [腾讯云COS XML](https://cloud.tencent.com/document/product/436)
 
 ## 示例工程
 
@@ -66,7 +66,7 @@ compile 'com.tencent.qcloud:cos-android-sdk:5.4.3.0'
 
 ### 手动集成
 
-如果您无法采用远程依赖的方式，可以通过下载[最新版本](https://github.com/tencentyun/qcloud-sdk-android/releases/tag/V5.4.3)的压缩包，解压后，手动集成到您的工程中。
+如果您无法采用远程依赖的方式，可以通过下载 [最新版本](https://github.com/tencentyun/qcloud-sdk-android/releases/tag/V5.4.3) 的压缩包，解压后，手动集成到您的工程中。
 
 
 ## 开发文档
@@ -74,3 +74,9 @@ compile 'com.tencent.qcloud:cos-android-sdk:5.4.3.0'
 如果您想要查看每个 SDK 是如何调用的，请参考各个产品的开发文档：
 
 * [COS XML SDK](https://cloud.tencent.com/document/product/436/12159)
+
+## License
+
+MIT 
+
+详细请参考 [LICENSE](https://github.com/tencentyun/qcloud-sdk-android/blob/master/LICENSE).
