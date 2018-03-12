@@ -81,7 +81,7 @@ final public class PutObjectACLRequest extends ObjectRequest {
      */
     public void setXCOSGrantRead(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccount());
         }
     }
 
@@ -95,7 +95,7 @@ final public class PutObjectACLRequest extends ObjectRequest {
     public void setXCOSGrantWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccount());
         }
     }
 
@@ -109,7 +109,7 @@ final public class PutObjectACLRequest extends ObjectRequest {
     public void setXCOSReadWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccount());
         }
     }
 }

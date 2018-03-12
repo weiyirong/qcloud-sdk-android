@@ -10,13 +10,20 @@ import com.tencent.qcloud.core.http.HttpResponse;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-
+/**
+ * 完成整个分片上传返回的结果.<br>
+ * 关于完成整个分片上传接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7742">https://cloud.tencent.com/document/product/436/7742.</a><br>
+ */
 final public class CompleteMultiUploadResult extends CosXmlResult {
+
     /**
-     *  <a href="https://www.qcloud.com/document/product/436/7742"></a>
+     * 完成整个分片上传返回的所有信息, {@link com.tencent.cos.xml.model.tag.CompleteMultipartUploadResult}
      */
     public CompleteMultipartUploadResult completeMultipartUpload;
 
+    /**
+     *  @see CosXmlResult#parseResponseBody(HttpResponse)
+     */
     @Override
     public void parseResponseBody(HttpResponse response) throws CosXmlServiceException, CosXmlClientException {
         super.parseResponseBody(response);
@@ -30,6 +37,9 @@ final public class CompleteMultiUploadResult extends CosXmlResult {
         }
     }
 
+    /**
+     *  @see CosXmlResult#printResult()
+     */
     @Override
     public String printResult() {
         return completeMultipartUpload != null ? completeMultipartUpload.toString() : super.printResult();

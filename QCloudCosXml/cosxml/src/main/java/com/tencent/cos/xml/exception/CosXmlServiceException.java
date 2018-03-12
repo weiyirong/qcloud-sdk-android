@@ -3,7 +3,10 @@ package com.tencent.cos.xml.exception;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 
 /**
- * Created by bradyxiao on 2017/11/30.
+ * <p>
+ * sdk自定义的服务端异常信息类,主要是请求返回失败导致，如请求cos服务时，cos服务端返回的http code不在[200, 300）之间。
+ * 通过该异常类的 requestId 属性可以查到详细的log信息.
+ * @see QCloudServiceException
  */
 
 public class CosXmlServiceException extends QCloudServiceException {

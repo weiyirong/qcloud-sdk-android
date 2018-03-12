@@ -97,8 +97,6 @@ final public class PutBucketLifecycleRequest extends BucketRequest {
 
     /**
      * 获取添加的生命周期规则
-     *
-     * @return
      */
     public LifecycleConfiguration getLifecycleConfiguration() {
         return lifecycleConfiguration;

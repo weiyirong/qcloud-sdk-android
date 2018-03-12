@@ -247,4 +247,53 @@ public class PutObjectRequestTest extends ApplicationTestCase {
         }
 
     }
+
+    @Test
+    public void test4() throws IOException, CosXmlServiceException, CosXmlClientException {
+        final String bucket = "androidtest";
+        String srcPath = QService.createFile(2 * 1024 * 1024);
+        final String cosPath = "putobject.txt";
+        PutObjectRequest request = new PutObjectRequest(bucket, cosPath,
+                new FileInputStream(srcPath));
+        request.setRequestHeaders("x-cos-server-side-encryption", "AES256");
+        request.setProgressListener(new CosXmlProgressListener() {
+            @Override
+            public void onProgress(long complete, long target) {
+                Log.d(TAG, " complete：" + complete + "| target: " + target);
+            }
+        });
+        QService.getCosXmlClient(getContext()).putObjectAsync(request, new CosXmlResultListener() {
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                Log.d(TAG, result.printResult());
+                Log.d(TAG, result.headers.toString());
+                assertEquals(true, result.headers.get("x-cos-server-side-encryption").contains("AES256"));
+                try {
+                    QService.delete(QService.getCosXmlClient(getContext()), bucket, cosPath);
+                } catch (CosXmlServiceException e) {
+                    e.printStackTrace();
+                } catch (CosXmlClientException e) {
+                    e.printStackTrace();
+                }
+                isOver = true;
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                Log.d(TAG, exception == null ? serviceException.getMessage() : exception.toString());
+                isOver = true;
+            }
+        });
+
+        while (!isOver){
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+
 }

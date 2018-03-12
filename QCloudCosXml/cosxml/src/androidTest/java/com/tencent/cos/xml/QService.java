@@ -1,12 +1,7 @@
 package com.tencent.cos.xml;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
+import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
 import com.tencent.cos.xml.common.Region;
@@ -33,7 +28,7 @@ public class QService {
     public static String appid = "1253960454";
     public static String region = Region.AP_Guangzhou.getRegion();
 
-    public static Context context;
+    public static Context context = InstrumentationRegistry.getContext();
 
     public static CosXmlService getCosXmlClient(Context context){
         synchronized (QService.class){

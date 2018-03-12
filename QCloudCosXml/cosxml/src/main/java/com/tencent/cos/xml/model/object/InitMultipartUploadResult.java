@@ -11,10 +11,23 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
+/**
+ * <p>
+ * 初始化上传请求返回的结果信息类。
+ * 关于初始化分片上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7746">https://cloud.tencent.com/document/product/436/7746.</a><br>
+ *</p>
+ * 另请参阅{@link InitiateMultipartUpload}
+ */
 final public class InitMultipartUploadResult extends CosXmlResult {
 
+    /**
+     * 初始化上传请求返回的信息
+     */
     public InitiateMultipartUpload initMultipartUpload;
 
+    /**
+     *  @see CosXmlResult#parseResponseBody(HttpResponse)
+     */
     @Override
     public void parseResponseBody(HttpResponse response) throws CosXmlServiceException, CosXmlClientException {
         super.parseResponseBody(response);
@@ -28,6 +41,9 @@ final public class InitMultipartUploadResult extends CosXmlResult {
         }
     }
 
+    /**
+     *  @see CosXmlResult#printResult()
+     */
     @Override
     public String printResult() {
        return initMultipartUpload != null ? initMultipartUpload.toString() : super.printResult();

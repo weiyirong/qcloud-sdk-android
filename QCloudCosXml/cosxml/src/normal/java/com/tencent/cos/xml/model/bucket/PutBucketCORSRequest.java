@@ -81,8 +81,6 @@ final public class PutBucketCORSRequest extends BucketRequest {
 
     /**
      * 获取添加的CORSRule列表
-     *
-     * @return
      */
     public CORSConfiguration getCorsConfiguration() {
         return corsConfiguration;

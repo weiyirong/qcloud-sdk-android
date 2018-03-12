@@ -1,12 +1,23 @@
 package com.tencent.cos.xml.model.tag;
 
 /**
- * Created by bradyxiao on 2017/11/24.
+ * <p>
+ * 初始化上传请求返回的信息
+ * </p>
  */
 
 public class InitiateMultipartUpload {
+    /**
+     * 分片上传的目标 Bucket，由用户自定义字符串和系统生成appid数字串由中划线连接而成，如：mybucket-1250000000.
+     */
     public String bucket;
+    /**
+     * Object 的名称
+     */
     public String key;
+    /**
+     * 在后续上传中使用的 ID
+     */
     public String uploadId;
 
     @Override

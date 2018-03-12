@@ -10,7 +10,8 @@ import java.util.Map;
  * <p>
  * 查询特定分块上传中的已上传的块。
  * </p>
- *
+ * 关于查询特定分块上传中的已上传块接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7747">
+ * https://cloud.tencent.com/document/product/436/7747.</a><br>
  */
 final public class ListPartsRequest extends ObjectRequest {
 
@@ -19,6 +20,12 @@ final public class ListPartsRequest extends ObjectRequest {
     private String partNumberMarker;
     private String encodingType;
 
+    /**
+     *
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param uploadId 初始化分片返回的 uploadId
+     */
     public ListPartsRequest(String bucket, String cosPath, String uploadId){
         super(bucket, cosPath);
         this.uploadId = uploadId;
@@ -60,8 +67,7 @@ final public class ListPartsRequest extends ObjectRequest {
     }
 
     /**
-     * 设置查询的UploadId
-     *
+     * 设置查询分片上传的UploadId
      * @param uploadId 分片上传的UploadId
      */
     public void setUploadId(String uploadId) {
@@ -69,8 +75,7 @@ final public class ListPartsRequest extends ObjectRequest {
     }
 
     /**
-     * 获取用户设置的UploadId
-     *
+     * 获取分片上传的UploadId
      * @return 分片上传的UploadId
      */
     public String getUploadId() {
@@ -79,7 +84,6 @@ final public class ListPartsRequest extends ObjectRequest {
 
     /**
      * 设置单次返回的最大条目数
-     *
      * @param maxParts 查询返回的最大条目数
      */
     public void setMaxParts(int maxParts) {
@@ -89,7 +93,6 @@ final public class ListPartsRequest extends ObjectRequest {
 
     /**
      * 获取用户设置的单次返回最大条目数
-     *
      * @return 查询返回的最大条目数
      */
     public int getMaxParts() {
@@ -98,17 +101,14 @@ final public class ListPartsRequest extends ObjectRequest {
 
     /**
      * 设置列出分片的起点。
-     *
      * @param partNumberMarker 列出分片的起点，可从ListPartsResult中读取。
-     *
      */
     public void setPartNumberMarker(int partNumberMarker) {
         this.partNumberMarker = String.valueOf(partNumberMarker);
     }
 
     /**
-     * 获取用户设置的NumberMarker
-     *
+     * 获取设置的NumberMarker
      * @return 用户设置的NumberMarker
      */
     public int getPartNumberMarker() {
@@ -117,7 +117,6 @@ final public class ListPartsRequest extends ObjectRequest {
 
     /**
      * 设置返回值的编码方式
-     *
      * @param encodingType 返回值的编码方式
      */
     public void setEncodingType(String encodingType) {
@@ -125,8 +124,7 @@ final public class ListPartsRequest extends ObjectRequest {
     }
 
     /**
-     * 获取用户设置的返回值编码方式
-     *
+     * 获取设置的返回值编码方式
      * @return 返回值编码方式
      */
     public String getEncodingType() {

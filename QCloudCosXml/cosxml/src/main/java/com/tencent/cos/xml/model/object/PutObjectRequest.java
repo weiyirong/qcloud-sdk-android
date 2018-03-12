@@ -10,14 +10,13 @@ import com.tencent.cos.xml.utils.FileUtils;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * <p>
- * 将本地的文件（Object）上传至指定 COS 中。
+ * 简单上传接口，关于简单上传接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7749">
+ * https://cloud.tencent.com/document/product/436/7749.</a><br>
  * </p>
- *
  */
 final public class PutObjectRequest extends ObjectRequest {
     private String srcPath;
@@ -28,16 +27,35 @@ final public class PutObjectRequest extends ObjectRequest {
     private PutObjectRequest(String bucket, String cosPath){
         super(bucket, cosPath);
     }
+
+    /**
+     * PutObject 构造方法
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param srcPath 本地文件的绝对路径
+     */
     public PutObjectRequest(String bucket, String cosPath, String srcPath){
         this(bucket, cosPath);
         this.srcPath = srcPath;
     }
 
+    /**
+     * PutObject 构造方法
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param data 上传的数据
+     */
     public PutObjectRequest(String bucket, String cosPath, byte[] data){
         this(bucket, cosPath);
         this.data = data;
     }
 
+    /**
+     * PutObject 构造方法
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param inputStream 上传的数据流
+     */
     public PutObjectRequest(String bucket, String cosPath, InputStream inputStream) throws CosXmlClientException {
         this(bucket, cosPath);
         this.srcPath = FileUtils.tempCache(inputStream);
@@ -47,7 +65,6 @@ final public class PutObjectRequest extends ObjectRequest {
     public String getMethod() {
         return RequestMethod.PUT;
     }
-
 
     @Override
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
@@ -75,9 +92,8 @@ final public class PutObjectRequest extends ObjectRequest {
 
 
     /**
-     * 设置上传进度监听器
-     *
-     * @param progressListener 进度监听器
+     * 上传进度回调
+     * @param progressListener 进度监听器 {@link CosXmlProgressListener}
      */
     public void setProgressListener(CosXmlProgressListener progressListener){
         this.progressListener = progressListener;
@@ -89,15 +105,11 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 设置上传的本地文件路径
-     * </p>
-     * <p>
+     * 设置上传的本地文件路径.<br>
      * 可以设置上传本地文件、字节数组或者输入流。每次只能上传一种类型，若同时设置，
      * 则优先级为 本地文件&gt;字节数组&gt;输入流
      * </p>
-     *
      * @param srcPath 本地文件路径
-     * @see PutObjectRequest#setData(byte[])
      */
     public void setSrcPath(String srcPath){
         this.srcPath = srcPath;
@@ -105,8 +117,7 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * 获取设置的本地文件路径
-     *
-     * @return
+     * @return String
      */
     public String getSrcPath(){
        return srcPath;
@@ -114,13 +125,10 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 设置上传的字节数组
-     * </p>
-     * <p>
+     * 设置上传的字节数组.<br>
      * 可以设置上传本地文件、字节数组或者输入流。每次只能上传一种类型，若同时设置，
      * 则优先级为 本地文件&gt;字节数组&gt;输入流
      * </p>
-     *
      * @param data 需要上传的字节数组
      */
     public void setData(byte[] data) {
@@ -129,8 +137,7 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * 获取用户设置的字节数组
-     *
-     * @return
+     * @return byte[]
      */
     public byte[] getData() {
         return data;
@@ -138,9 +145,8 @@ final public class PutObjectRequest extends ObjectRequest {
 
 
     /**
-     * 获取用户设置的输入流读取的字节长度
-     *
-     * @return
+     * 获取待上传数据的总长度
+     * @return long
      */
     public long getFileLength() {
         if(srcPath != null){
@@ -153,12 +159,8 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 设置缓存策略
+     * 设置Cache-Control头部
      * </p>
-     * <p>
-     * 即RFC 2616 中定义的Cache-Control头部
-     * </p>
-     *
      * @param cacheControl Cache-Control头部
      */
     public void setCacheControl(String cacheControl) {
@@ -168,12 +170,8 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 设置文件名称。
+     * 设置Content-Disposition头部部
      * </p>
-     * <p>
-     * 即RFC 2616 中定义的Content-Disposition头部
-     * </p>
-     *
      * @param contentDisposition Content-Disposition头部
      */
     public void setContentDisposition(String contentDisposition) {
@@ -183,27 +181,19 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 设置编码格式。
+     * 设置Content-Encoding头部
      * </p>
-     * <p>
-     * 即RFC 2616 中定义的Content-Encoding头部
-     * </p>
-     *
-     * @param contentEncodeing Content-Encoding头部
+     * @param contentEncoding Content-Encoding头部
      */
-    public void setContentEncodeing(String contentEncodeing) {
-        if(contentEncodeing == null)return;
-        addHeader(COSRequestHeaderKey.CONTENT_ENCODING,contentEncodeing);
+    public void setContentEncodeing(String contentEncoding) {
+        if(contentEncoding == null)return;
+        addHeader(COSRequestHeaderKey.CONTENT_ENCODING,contentEncoding);
     }
 
     /**
      * <p>
-     * 设置过期时间。
+     * 设置Expires头部
      * </p>
-     * <p>
-     * 即RFC 2616 中定义的Expires头部
-     * </p>
-     *
      * @param expires Expires头部
      */
     public void setExpires(String expires) {
@@ -215,10 +205,6 @@ final public class PutObjectRequest extends ObjectRequest {
      * <p>
      * 自定义的头部信息
      * </p>
-     * <p>
-     * key需要以x-cos-meta-开头
-     * </p>
-     *
      * @param key 自定义头部key，需要以x-cos-meta-开头
      * @param value 自定义头部value
      */
@@ -230,9 +216,8 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 设置Bucket访问权限
+     * 设置 object 访问权限
      * </p>
-     *
      * <br>
      * 有效值：
      * <ul>
@@ -240,9 +225,7 @@ final public class PutObjectRequest extends ObjectRequest {
      * <li>public-read ：公有读</li>
      * <li>public-read-write ：公有读写</li>
      * </ul>
-     * <br>
-     *
-     * @param cosacl acl字符串
+     * @param cosacl 访问权限 {@link COSACL}
      */
     public void setXCOSACL(COSACL cosacl){
         if(cosacl != null){
@@ -252,9 +235,17 @@ final public class PutObjectRequest extends ObjectRequest {
 
 
     /**
-     * 设置Bucket的ACL信息
-     *
-     * @param cosacl acl枚举
+     * <p>
+     * 设置 object 访问权限
+     * </p>
+     * <br>
+     * 有效值：
+     * <ul>
+     * <li>private ：私有，默认值</li>
+     * <li>public-read ：公有读</li>
+     * <li>public-read-write ：公有读写</li>
+     * </ul>
+     * @param cosacl 访问权限
      */
     public void setXCOSACL(String cosacl){
         if(cosacl != null){
@@ -264,29 +255,27 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 单独明确赋予用户读权限
+     * 赋予被授权者读权限
      * </p>
-     *
-     * @param aclAccount 读权限用户列表
+     * @param aclAccount 读权限用户列表 {@link ACLAccount}
      */
     public void setXCOSGrantRead(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccount());
         }
     }
 
 
     /**
      * <p>
-     * 赋予被授权者写的权限
+     * 赋予被授权者写权限
      * </p>
-     *
-     * @param aclAccount 写权限用户列表
+     * @param aclAccount 写权限用户列表 {@link ACLAccount}
      */
     public void setXCOSGrantWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccount());
         }
     }
 
@@ -294,13 +283,12 @@ final public class PutObjectRequest extends ObjectRequest {
      * <p>
      * 赋予被授权者读写权限。
      * </p>
-     *
-     * @param aclAccount 读写用户权限列表
+     * @param aclAccount 读写权限用户列表 {@link ACLAccount}
      */
     public void setXCOSReadWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccount());
         }
     }
 

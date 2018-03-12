@@ -96,8 +96,6 @@ final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**
      * 获取请求的delimiter
-     *
-     * @return
      */
     public String getDelimiter() {
         return delimiter;
@@ -119,8 +117,6 @@ final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**
      * 获取返回值的编码格式
-     *
-     * @return
      */
     public String getEncodingType() {
         return encodingType;
@@ -146,8 +142,6 @@ final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**
      * 获取请求的key-marker
-     *
-     * @return
      */
     public String getKeyMarker() {
         return keyMarker;
@@ -155,7 +149,6 @@ final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**
      * 设置最大返回的 multipart 数量，合法取值从1到1000，默认1000
-     *
      * @param maxUploads
      */
     public void setMaxUploads(String maxUploads) {
@@ -164,8 +157,6 @@ final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**
      * 获取由用户设置的maxUploads值
-     *
-     * @return
      */
     public String getMaxUploads() {
         return maxUploads;
@@ -184,8 +175,6 @@ final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**
      * 获取用户设置的前缀prefix
-     *
-     * @return
      */
     public String getPrefix() {
         return prefix;
@@ -209,8 +198,6 @@ final public class ListMultiUploadsRequest extends BucketRequest {
 
     /**
      * 获取设置的upload-id-marker
-     *
-     * @return
      */
     public String getUploadIdMarker() {
         return uploadIdMarker;

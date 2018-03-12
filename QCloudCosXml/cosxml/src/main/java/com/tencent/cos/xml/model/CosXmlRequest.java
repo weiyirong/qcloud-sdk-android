@@ -15,11 +15,16 @@ import java.util.Set;
 
 /**
  * Created by bradyxiao on 2017/11/30.
- *
- * request: url + method + requestHeaders + body
- * cos request: bucket-appid, region, cosPath;
- *              method;
- *              xml body.
+ * <p>
+ *  请求基类
+ * </p>
+ * @see com.tencent.cos.xml.model.object.PutObjectRequest
+ * @see com.tencent.cos.xml.model.object.InitMultipartUploadRequest
+ * @see com.tencent.cos.xml.model.object.UploadPartResult
+ * @see com.tencent.cos.xml.model.object.CompleteMultiUploadRequest
+ * @see com.tencent.cos.xml.model.object.ListPartsRequest
+ * @see com.tencent.cos.xml.model.object.AbortMultiUploadRequest
+ * ...
  */
 
 public abstract class CosXmlRequest{
@@ -46,6 +51,10 @@ public abstract class CosXmlRequest{
 
     public abstract RequestBodySerializer getRequestBody() throws CosXmlClientException;
 
+    /**
+     * sdk 参数校验
+     * @throws CosXmlClientException
+     */
     public abstract void checkParameters() throws CosXmlClientException;
 
     public boolean isNeedMD5(){

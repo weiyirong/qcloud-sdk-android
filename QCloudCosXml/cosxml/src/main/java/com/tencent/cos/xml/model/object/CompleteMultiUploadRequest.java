@@ -3,6 +3,8 @@ package com.tencent.cos.xml.model.object;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
+import com.tencent.cos.xml.listener.CosXmlResultListener;
+import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.model.tag.CompleteMultipartUpload;
 import com.tencent.cos.xml.transfer.XmlSlimBuilder;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
@@ -14,31 +16,30 @@ import java.util.ArrayList;
 import java.util.Map;
 
 /**
- * <p>
- * 完成整个分块上传。
- * </p>
- * <p>
- * 在使用该 API 时，您必须在请求 Body 中给出每一个块的 PartNumber 和 ETag，用来校验块的准确性。
- * </p>
- *  <br>
- * <ul>
- * <li>当上传块小于 1 MB 的时候，在调用该 API 时，会返回 400 EntityTooSmall；</li>
- * <li>当上传块编号不连续的时候，在调用该 API 时，会返回 400 InvalidPart；</li>
- * <li>当请求 Body 中的块信息没有按序号从小到大排列的时候，在调用该 API 时，会返回 400 InvalidPartOrder；</li>
- * <li>当 UploadId 不存在的时候，在调用该 API 时，会返回 404 NoSuchUpload。 </li>
- * </ul>
- *
- *
- * <p>
- * 建议您及时完成分块上传或者舍弃分块上传，因为已上传但是未终止的块会占用存储空间进而产生存储费用。
- * </p>
- *
+ * 完成整个分块上传构造类.该类为{@link com.tencent.cos.xml.SimpleCosXml#completeMultiUpload(CompleteMultiUploadRequest)}
+ * 或者 {@link com.tencent.cos.xml.SimpleCosXml#completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)}
+ * 方法提供需要的参数.如存储桶名称Bucket、存储到 COS 上的绝对路径 cosPath、初始化分片返回的 uploadId、
+ * 各个分片块的编码 partNumber 和 MD5等.
+ * @see com.tencent.cos.xml.SimpleCosXml#completeMultiUpload(CompleteMultiUploadRequest)
+ * @see com.tencent.cos.xml.SimpleCosXml#completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)
  */
 final public class CompleteMultiUploadRequest extends ObjectRequest{
 
+    /**
+     * @see CompleteMultipartUpload
+     */
     private CompleteMultipartUpload completeMultipartUpload;
+
+    /** 初始化分片返回的 uploadId */
     private String uploadId;
 
+    /**
+     * 完成整个分块上传构造方法
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param uploadId 初始化分片上传，返回的 uploadId
+     * @param partNumberAndETag 分片编号 和对应的分片 MD5 值
+     */
     public CompleteMultiUploadRequest(String bucket, String cosPath, String uploadId, Map<Integer,String> partNumberAndETag ){
         super(bucket,cosPath);
         this.uploadId = uploadId;
@@ -47,14 +48,14 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
         setPartNumberAndETag(partNumberAndETag);
     }
 
+    /***/
     public CompleteMultipartUpload getCompleteMultipartUpload() {
         return completeMultipartUpload;
     }
 
     /**
      * 添加单个分块的eTag值
-     *
-     * @param partNumbers 分块数
+     * @param partNumbers 分块编号
      * @param eTag 该分块的eTag值
      */
     public void setPartNumberAndETag(int partNumbers, String eTag){
@@ -65,8 +66,7 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
     }
 
     /**
-     * 添加多个分块的eTag值
-     *
+     * 添加多个分块的编号 和 eTag值
      */
     public void setPartNumberAndETag(Map<Integer,String> partNumberAndETag){
         if(partNumberAndETag != null){
@@ -81,8 +81,7 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
     }
 
     /**
-     * 设置该次分块上传的uploadId
-     *
+     * 设置该分块上传的uploadId
      * @param uploadId 分块上传的UploadId
      */
     public void setUploadId(String uploadId) {
@@ -90,26 +89,34 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
     }
 
     /**
-     * 获取用户设置的该次分块上传的uploadId
-     *
+     * 获取用户设置的该分块上传的uploadId
      * @return 分块上传的UploadId
      */
     public String getUploadId() {
         return uploadId;
     }
 
+    /**
+     * @see CosXmlRequest#getMethod()
+     */
     @Override
     public String getMethod() {
         return RequestMethod.POST;
     }
 
 
+    /**
+     * @see CosXmlRequest#getQueryString()
+     */
     @Override
     public Map<String, String> getQueryString() {
         queryParameters.put("uploadID", uploadId);
         return queryParameters;
     }
 
+    /**
+     * @see CosXmlRequest#getRequestBody()
+     */
     @Override
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         try {
@@ -122,6 +129,9 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
         }
     }
 
+    /**
+     * @see CosXmlRequest#checkParameters()
+     */
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();

@@ -62,7 +62,7 @@ final public class PutBucketACLRequest extends BucketRequest {
      */
     public void setXCOSGrantRead(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccount());
         }
     }
 
@@ -76,7 +76,7 @@ final public class PutBucketACLRequest extends BucketRequest {
      */
     public void setXCOSGrantWrite(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccount());
         }
     }
 
@@ -90,7 +90,7 @@ final public class PutBucketACLRequest extends BucketRequest {
      */
     public void setXCOSReadWrite(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccount());
         }
     }
 

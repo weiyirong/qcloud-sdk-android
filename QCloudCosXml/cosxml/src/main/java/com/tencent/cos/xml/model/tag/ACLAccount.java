@@ -23,7 +23,7 @@ public class ACLAccount {
         addAccount(owner, owner);
     }
 
-    public String getAccout(){
+    public String getAccount(){
         StringBuilder stringBuilder = new StringBuilder();
         for(String account : idList){
             stringBuilder.append(account).append(",");

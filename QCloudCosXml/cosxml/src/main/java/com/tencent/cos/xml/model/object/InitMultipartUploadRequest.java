@@ -3,7 +3,6 @@ package com.tencent.cos.xml.model.object;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.RequestMethod;
-import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.ACLAccount;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
@@ -11,24 +10,23 @@ import java.util.Map;
 
 /**
  * <p>
- * 初始化分片上传。
+ * 用于构造初始化分片上传请求。
+ * 关于初始化分片上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7746">https://cloud.tencent.com/document/product/436/7746.</a><br>
  * </p>
- *
- * <p>
- * 成功执行此请求以后会返回 UploadId 用于后续的 Upload Part 请求。
- * </p>
- *
  */
 final public class InitMultipartUploadRequest extends ObjectRequest {
 
-
+    /**
+     * InitMultipartUploadRequest 构造方法
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     */
     public InitMultipartUploadRequest(String bucket, String cosPath){
         super(bucket, cosPath);
     }
 
     /**
      * 设置Cache-Control头部
-     *
      * @param cacheControl Cache-Control头部
      */
     public void setCacheControl(String cacheControl) {
@@ -38,7 +36,6 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
 
     /**
      * 设置 Content-Disposition 头部
-     *
      * @param contentDisposition Content-Disposition 头部
      */
     public void setContentDisposition(String contentDisposition) {
@@ -48,7 +45,6 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
 
     /**
      * 设置 Content-Encoding 头部
-     *
      * @param contentEncoding Content-Encoding头部
      */
     public void setContentEncoding(String contentEncoding) {
@@ -58,7 +54,6 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
 
     /**
      * 设置 Expires 头部
-     *
      * @param expires Expires 头部
      */
     public void setExpires(String expires) {
@@ -68,7 +63,6 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
 
     /**
      * 设置用户自定义头部信息
-     *
      * @param key 自定义头部信息的key值，需要以 x-cos-meta- 开头
      * @param value 自定义头部信息的value值。
      */
@@ -82,11 +76,9 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
      * <p>
      * 设置 Object 的 ACL 属性
      * </p>
-     *
      * <p>
      * 有效值：private，public-read-write，public-read；默认值：private
      * </p>
-     *
      * @param cosacl ACL属性
      */
     public void setXCOSACL(String cosacl){
@@ -99,8 +91,10 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
      * <p>
      * 设置 Object 的 ACL 属性
      * </p>
-     *
-     * @param cosacl ACL枚举值
+     * <p>
+     * 有效值：private，public-read-write，public-read；默认值：private
+     * </p>
+     * @param cosacl ACL枚举值 {@link COSACL}
      */
     public void setXCOSACL(COSACL cosacl){
         if(cosacl != null){
@@ -110,29 +104,27 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
 
     /**
      * <p>
-     * 单独明确赋予用户读权限
+     * 赋予被授权者读权限
      * </p>
-     *
-     * @param aclAccount 读权限用户列表
+     * @param aclAccount 读权限用户列表 {@link ACLAccount}
      */
     public void setXCOSGrantRead(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccount());
         }
     }
 
 
     /**
      * <p>
-     * 赋予被授权者写的权限
+     * 赋予被授权者写权限
      * </p>
-     *
-     * @param aclAccount 写权限用户列表
+     * @param aclAccount 写权限用户列表 {@link ACLAccount}
      */
     public void setXCOSGrantWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccount());
         }
     }
 
@@ -141,13 +133,12 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
      * <p>
      * 赋予被授权者读写权限。
      * </p>
-     *
-     * @param aclAccount 读写用户权限列表
+     * @param aclAccount 读写权限用户列表 {@link ACLAccount}
      */
     public void setXCOSReadWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccount());
         }
     }
 

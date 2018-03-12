@@ -163,7 +163,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
     /**
      * 获取用户设置的需要批量删除的Objects
      *
-     * @return
+     * @return Delete
      */
     public Delete getDelete() {
         return delete;

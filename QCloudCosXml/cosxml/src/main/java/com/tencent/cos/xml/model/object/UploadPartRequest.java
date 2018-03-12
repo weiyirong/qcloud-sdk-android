@@ -1,6 +1,5 @@
 package com.tencent.cos.xml.model.object;
 
-import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -8,7 +7,6 @@ import com.tencent.cos.xml.utils.FileUtils;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -16,20 +14,17 @@ import java.util.Map;
  * <p>
  * 上传单个分块。
  * </p>
- *
  * <p>
  * 支持的块的数量为1到10000，块的大小为1 MB 到5 GB。
- * </p>
- * <p>
  * 当传入 uploadId 和 partNumber 都相同的时候，后传入的块将覆盖之前传入的块。当 uploadId 不存在时会返回 404 错误，NoSuchUpload.
  * </p>
+ * 关于上传某个分块接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7750">https://cloud.tencent.com/document/product/436/7750.</a><br>
  */
 final public class UploadPartRequest extends ObjectRequest {
     private int partNumber;
     private String uploadId;
     private String srcPath;
     private byte[] data;
-    private long fileLength;
     private long fileOffset = -1L;
     private long fileContentLength = -1L;
 
@@ -75,8 +70,7 @@ final public class UploadPartRequest extends ObjectRequest {
     }
 
     /**
-     * 设置上传的分块数
-     *
+     * 设置上传的分块编号
      * @param partNumber 上传的分块数
      */
     public void setPartNumber(int partNumber) {
@@ -84,8 +78,7 @@ final public class UploadPartRequest extends ObjectRequest {
     }
 
     /**
-     * 获取用户设置的上传分块数
-     *
+     * 获取用户设置的上传分块编号
      * @return 上传的分块数
      */
     public int getPartNumber() {
@@ -93,8 +86,7 @@ final public class UploadPartRequest extends ObjectRequest {
     }
 
     /**
-     * 设置分块上传的UploadId号
-     *
+     * 设置分块上传的UploadId
      * @param uploadId 分块上传的UploadId
      */
     public void setUploadId(String uploadId) {
@@ -103,7 +95,6 @@ final public class UploadPartRequest extends ObjectRequest {
 
     /**
      * 获取用户设置分块上传的UploadId号
-     *
      * @return 分块上传的UploadId
      */
     public String getUploadId() {
@@ -160,23 +151,16 @@ final public class UploadPartRequest extends ObjectRequest {
      * <p>
      * 设置上传的本地文件路径
      * </p>
-     * <p>
      * 可以设置上传本地文件、字节数组或者输入流。每次只能上传一种类型，若同时设置，
      * 则优先级为 本地文件&gt;字节数组&gt;输入流
-     * </p>
-     *
      * @param srcPath 本地文件路径
-     * @see UploadPartRequest#setData(byte[])
      */
     public void setSrcPath(String srcPath) {
         this.srcPath = srcPath;
     }
 
     /**
-     * <p>
      * 设置上传的本地文件路径和上传范围
-     * </p>
-     *
      * @see UploadPartRequest#setSrcPath(String)
      */
     public void setSrcPath(String srcPath, long fileOffset, long contentLength) {
@@ -187,8 +171,7 @@ final public class UploadPartRequest extends ObjectRequest {
 
     /**
      * 获取设置的本地文件路径
-     *
-     * @return
+     * @return String
      */
     public String getSrcPath() {
         return srcPath;
@@ -198,11 +181,8 @@ final public class UploadPartRequest extends ObjectRequest {
      * <p>
      * 设置上传的字节数组
      * </p>
-     * <p>
      * 可以设置上传本地文件、字节数组或者输入流。每次只能上传一种类型，若同时设置，
      * 则优先级为 本地文件&gt;字节数组&gt;输入流
-     * </p>
-     *
      * @param data 需要上传的字节数组
      */
     public void setData(byte[] data) {
@@ -211,8 +191,7 @@ final public class UploadPartRequest extends ObjectRequest {
 
     /**
      * 获取用户设置的字节数组
-     *
-     * @return
+     * @return byte[]
      */
     public byte[] getData() {
         return data;
@@ -220,8 +199,7 @@ final public class UploadPartRequest extends ObjectRequest {
 
     /**
      * 获取用户设置的输入流读取的字节长度
-     *
-     * @return
+     * @return long
      */
     public long getFileLength() {
         if(data != null){
@@ -233,8 +211,8 @@ final public class UploadPartRequest extends ObjectRequest {
     }
 
     /**
-     * 获取用户设置的进度监听
-     *
+     * 设置上传进度回调
+     * @param progressListener {@link CosXmlProgressListener}
      */
     public void setProgressListener(CosXmlProgressListener progressListener){
         this.progressListener = progressListener;

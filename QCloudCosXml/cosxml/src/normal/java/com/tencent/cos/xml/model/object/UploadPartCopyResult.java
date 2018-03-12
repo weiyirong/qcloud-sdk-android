@@ -19,6 +19,9 @@ public class UploadPartCopyResult extends CosXmlResult {
 
     public CopyObject copyObject;
 
+    /**
+     *  @see CosXmlResult#parseResponseBody(HttpResponse)
+     */
     @Override
     public void parseResponseBody(HttpResponse response) throws CosXmlServiceException, CosXmlClientException {
         super.parseResponseBody(response);
@@ -32,6 +35,9 @@ public class UploadPartCopyResult extends CosXmlResult {
         }
     }
 
+    /**
+     *  @see CosXmlResult#printResult()
+     */
     @Override
     public String printResult() {
         return copyObject != null ? copyObject.toString() : super.printResult();

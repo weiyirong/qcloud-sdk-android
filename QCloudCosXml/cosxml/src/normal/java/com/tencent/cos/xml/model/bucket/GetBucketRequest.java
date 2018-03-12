@@ -104,8 +104,6 @@ final public class GetBucketRequest extends BucketRequest {
 
     /**
      * 获取请求的定界符
-     *
-     * @return
      */
     public String getDelimiter() {
         return delimiter;
@@ -122,8 +120,6 @@ final public class GetBucketRequest extends BucketRequest {
 
     /**
      * 获取返回值的编码类型。
-     *
-     * @return
      */
     public String getEncodingType() {
         return encodingType;
@@ -145,8 +141,6 @@ final public class GetBucketRequest extends BucketRequest {
 
     /**
      * 获取请求的marker
-     *
-     * @return
      */
     public String getMarker() {
         return marker;
@@ -163,8 +157,6 @@ final public class GetBucketRequest extends BucketRequest {
 
     /**
      * 获取请求的最大条目数
-     *
-     * @return
      */
     public long getMaxKeys() {
         return Long.parseLong(maxKeys);

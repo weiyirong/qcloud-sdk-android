@@ -10,7 +10,6 @@ import com.tencent.cos.xml.utils.FileUtils;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -109,7 +108,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     /**
      * 获取设置的追加操作起点
      *
-     * @return
+     * @return long
      */
     public long getPosition() {
         return position;
@@ -134,7 +133,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     /**
      * 获取设置的本地文件路径
      *
-     * @return
+     * @return String
      */
     public String getSrcPath() {
        return srcPath;
@@ -158,7 +157,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     /**
      * 获取用户设置的字节数组
      *
-     * @return
+     * @return byte[]
      */
     public byte[] getData() {
         return data;
@@ -167,7 +166,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     /**
      * 获取用户设置的输入流读取的字节长度
      *
-     * @return
+     * @return long
      */
     public long getFileLength() {
         if(srcPath != null){
@@ -191,7 +190,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     /**
      * 获取用户设置的进度监听
      *
-     * @return
+     * @return CosXmlProgressListener
      */
     public CosXmlProgressListener getProgressListener() {
         return progressListener;
@@ -316,7 +315,7 @@ final public class AppendObjectRequest extends ObjectRequest {
      */
     public void setXCOSGrantRead(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccount());
         }
     }
 
@@ -331,7 +330,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     public void setXCOSGrantWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccount());
         }
     }
 
@@ -345,7 +344,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     public void setXCOSReadWrite(ACLAccount aclAccount){
 
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccount());
         }
     }
 }

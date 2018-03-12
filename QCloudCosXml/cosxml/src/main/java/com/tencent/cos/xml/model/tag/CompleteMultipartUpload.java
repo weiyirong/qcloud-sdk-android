@@ -7,8 +7,12 @@ import java.util.List;
  */
 
 public class CompleteMultipartUpload {
+
     public List<Part> parts;
 
+    /**
+     * 本块编号 和 eTag值
+     */
     public static class Part{
         public int partNumber;
         public String eTag;

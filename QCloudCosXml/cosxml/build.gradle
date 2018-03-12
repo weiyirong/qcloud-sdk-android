@@ -8,10 +8,11 @@ android {
     defaultConfig {
 
         minSdkVersion 15
-        targetSdkVersion 26
 
-        versionCode 5040300
-        versionName "5.4.3.0"
+        targetSdkVersion 26
+        
+        versionCode 50403
+        versionName "5.4.3"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -45,9 +46,10 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    testCompile 'junit:junit:4.12'
-    androidTestCompile 'com.android.support.test:runner:0.5'
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
     compile project(path: ':foundation')
 }
@@ -56,17 +58,20 @@ task slimJar(type: Copy, dependsOn: build){
     delete 'build/libs/'
     from('build/intermediates/bundles/slimRelease/')
     into('build/libs/')
-    rename ('classes.jar', "cos-android-sdk-v${android.defaultConfig.versionName}-slim.jar")
+    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.slim.jar")
+
 }
 
-task Jar(type: Copy, dependsOn: slimJar){
+task Jar(type: Copy, dependsOn: build) {
     from('build/intermediates/bundles/normalRelease/')
     into('build/libs/')
-    rename ('classes.jar', "cos-android-sdk-v${android.defaultConfig.versionName}.jar")
+    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.jar")
 }
 
 
 project.extensions.add('artifactId', 'cos-android-sdk')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
 project.extensions.add('artifactProduct', 'normal')
+
+
 

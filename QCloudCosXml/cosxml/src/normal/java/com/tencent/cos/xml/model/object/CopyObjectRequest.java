@@ -1,7 +1,5 @@
 package com.tencent.cos.xml.model.object;
 
-import android.util.Log;
-
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.COSStorageClass;
@@ -11,8 +9,6 @@ import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.ACLAccount;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
-
-import java.io.UnsupportedEncodingException;
 
 
 /**
@@ -184,7 +180,7 @@ public class CopyObjectRequest extends ObjectRequest {
      */
     public void setXCOSGrantRead(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_READ, aclAccount.getAccount());
         }
     }
 
@@ -194,7 +190,7 @@ public class CopyObjectRequest extends ObjectRequest {
      */
     public void setXCOSGrantWrite(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_WRITE, aclAccount.getAccount());
         }
     }
 
@@ -204,7 +200,7 @@ public class CopyObjectRequest extends ObjectRequest {
      */
     public void setXCOSReadWrite(ACLAccount aclAccount){
         if (aclAccount != null) {
-            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccout());
+            addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccount());
         }
     }
 

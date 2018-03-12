@@ -2,47 +2,64 @@ package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
+import com.tencent.cos.xml.listener.CosXmlResultListener;
+import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.util.Map;
 
 /**
- * <p>
- * 舍弃一个分块上传并删除已上传的块。
- * </p>
- * <p>
- * 当您调用 Abort Multipart Upload 时，如果有正在使用这个 Upload Parts 上传块的请求，
- * 则 Upload Parts 会返回失败。当该 UploadId 不存在时，会返回 404 NoSuchUpload。
- * </p>
- *
+ * 舍弃一个分块上传且删除已上传的分片块构造类. 该类为{@link com.tencent.cos.xml.SimpleCosXml#abortMultiUpload(AbortMultiUploadRequest)}
+ * 或者 {@link com.tencent.cos.xml.SimpleCosXml#completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)}
+ * 方法提供需要的参数.如存储桶名称Bucket、存储到 COS 上的绝对路径 cosPath、初始化分片返回的 uploadId
+ * 等.
+ * @see com.tencent.cos.xml.SimpleCosXml#abortMultiUpload(AbortMultiUploadRequest)
+ * @see com.tencent.cos.xml.SimpleCosXml#abortMultiUploadAsync(AbortMultiUploadRequest, CosXmlResultListener)
 */
 final public class AbortMultiUploadRequest extends ObjectRequest {
 
-    // uploadId for aborting multi upload.
+    /** 初始化分片返回的 uploadId */
     private String uploadId;
 
+    /**
+     * 舍弃一个分块上传且删除已上传的分片块构造方法
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param uploadId 初始化分片返回的 uploadId
+     */
     public AbortMultiUploadRequest(String bucket, String cosPath, String uploadId) {
         super(bucket, cosPath);
         this.uploadId = uploadId;
     }
 
+    /**
+     * @see CosXmlRequest#getMethod()
+     */
     @Override
     public String getMethod() {
         return RequestMethod.DELETE;
     }
 
-
+    /**
+     * @see CosXmlRequest#getQueryString()
+     */
     @Override
     public Map<String, String> getQueryString() {
         queryParameters.put("uploadID",uploadId);
         return queryParameters;
     }
 
+    /**
+     * @see CosXmlRequest#getRequestBody()
+     */
     @Override
     public RequestBodySerializer getRequestBody() {
         return null;
     }
 
+    /**
+     * @see CosXmlRequest#checkParameters()
+     */
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
@@ -53,9 +70,8 @@ final public class AbortMultiUploadRequest extends ObjectRequest {
 
 
     /**
-     * 设置分片上传的uploadId
-     *
-     *@param uploadId
+     * 舍弃一个上传分块且删除已上传的分块，需要指定是那个分块上传对象的uploadId.
+     * @param uploadId 设置分片上传的uploadId
      */
     public void setUploadId(String uploadId) {
         this.uploadId = uploadId;
@@ -63,7 +79,6 @@ final public class AbortMultiUploadRequest extends ObjectRequest {
 
     /**
      * 获取设置的分片上传的uploadId
-     *
      */
     public String getUploadId() {
         return uploadId;

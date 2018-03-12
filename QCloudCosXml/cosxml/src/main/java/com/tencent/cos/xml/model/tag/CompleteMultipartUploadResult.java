@@ -5,9 +5,21 @@ package com.tencent.cos.xml.model.tag;
  */
 
 public class CompleteMultipartUploadResult {
+    /**
+     * 创建的Object的外网访问域名
+     */
     public String location;
+    /**
+     * 分块上传的目标Bucket
+     */
     public String bucket;
+    /**
+     * Object的名称
+     */
     public String key;
+    /**
+     * 合并后文件的 MD5 算法校验值
+     */
     public String eTag;
 
     @Override
