@@ -50,7 +50,7 @@ allprojects {
 ```
 dependencies {
     //增加这行
-    compile 'com.tencent.qcloud:cos-android-sdk:5.4.3.0'
+    compile 'com.tencent.qcloud:cos-android-sdk:5.4.3'
 }
 ```
 
@@ -61,7 +61,7 @@ dependencies {
 ##### COS XML SDK
 
 ```
-compile 'com.tencent.qcloud:cos-android-sdk:5.4.3.0'
+compile 'com.tencent.qcloud:cos-android-sdk:5.4.3'
 ```
 
 ### 手动集成
