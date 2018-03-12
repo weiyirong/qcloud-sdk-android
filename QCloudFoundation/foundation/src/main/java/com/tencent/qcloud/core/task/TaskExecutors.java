@@ -29,7 +29,7 @@ public class TaskExecutors {
                 TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(128),
                 new TaskThreadFactory("Command-"));
         UPLOAD_EXECUTOR = new ThreadPoolExecutor(2, 2, 5L,
-                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(128),
+                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
                 new TaskThreadFactory("Upload-"));
         DOWNLOAD_EXECUTOR = new ThreadPoolExecutor(3, 3, 5L,
                 TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(128),

@@ -99,7 +99,7 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
      *
      * 2、q-ak ：
      *</P>
-     * @return
+     * @return T
      */
     @Override
     public <T> String source(HttpRequest<T> request) throws QCloudClientException {

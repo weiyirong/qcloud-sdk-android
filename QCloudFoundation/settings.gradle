@@ -1,1 +1,2 @@
 include ':foundation'
+//rootProject.name = 'qcloud-foundation'

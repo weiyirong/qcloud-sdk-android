@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/QCloudFoundation.iml" filepath="$PROJECT_DIR$/QCloudFoundation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/foundation/core.iml" filepath="$PROJECT_DIR$/foundation/core.iml" />
       <module fileurl="file://$PROJECT_DIR$/foundation/foundation.iml" filepath="$PROJECT_DIR$/foundation/foundation.iml" />
     </modules>
   </component>

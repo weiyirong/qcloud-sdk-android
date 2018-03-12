@@ -122,6 +122,8 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
             if (response != null) {
                 if (httpResult == null) {
                     convertResponse(response);
+                } else {
+                    Util.closeQuietly(response.body());
                 }
             } else {
                 throw new QCloudServiceException("http response is null");

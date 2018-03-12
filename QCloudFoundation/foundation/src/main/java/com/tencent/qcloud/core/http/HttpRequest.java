@@ -3,7 +3,6 @@ package com.tencent.qcloud.core.http;
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSigner;
 import com.tencent.qcloud.core.common.QCloudClientException;
-import com.tencent.qcloud.core.util.QCloudHttpUtils;
 import com.tencent.qcloud.core.util.QCloudStringUtils;
 
 import java.io.IOException;
@@ -15,6 +14,7 @@ import java.util.Map;
 
 import okhttp3.CacheControl;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
@@ -101,7 +101,8 @@ public class HttpRequest<T> {
     }
 
     public String contentType() {
-        return requestBody.contentType().toString();
+        MediaType mediaType = requestBody.contentType();
+        return mediaType != null ? mediaType.toString() : null;
     }
 
     public long contentLength() throws IOException {
@@ -164,7 +165,11 @@ public class HttpRequest<T> {
         }
 
         public Builder<T> url(URL url) {
-            httpUrlBuilder = HttpUrl.get(url).newBuilder();
+            HttpUrl httpUrl = HttpUrl.get(url);
+            if (httpUrl == null) {
+                throw new IllegalArgumentException("url is not legal : " + url);
+            }
+            httpUrlBuilder = httpUrl.newBuilder();
             return this;
         }
 
@@ -187,9 +192,9 @@ public class HttpRequest<T> {
             if (path.startsWith("/")) {
                 path = path.substring(1);
             }
-            if (path.endsWith("/")) {
-                path = path.substring(0, path.length() - 1);
-            }
+//            if (path.endsWith("/")) {
+//                path = path.substring(0, path.length() - 1);
+//            }
             if (path.length() > 0) {
                 httpUrlBuilder.addPathSegments(path);
             }

@@ -108,7 +108,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
             }
         }
 
-        void reportSpeed(Request request, double averageSpeed) {
+        synchronized void reportSpeed(Request request, double averageSpeed) {
             historyConsecutiveTimeoutError.decrementAndGet();
             if (averageSpeed > 0) {
                 QCloudLogger.d(HTTP_LOG_TAG, name + " %s streaming speed is %1.3f KBps", request, averageSpeed);
