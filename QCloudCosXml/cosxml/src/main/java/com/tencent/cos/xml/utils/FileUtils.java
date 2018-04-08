@@ -1,8 +1,10 @@
 package com.tencent.cos.xml.utils;
 
 import android.os.Environment;
+import android.util.Log;
 
 
+import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 
 import java.io.File;
@@ -22,7 +24,9 @@ public class FileUtils {
         if(inputStream == null)return null;
         FileOutputStream fileOutputStream = null;
         try {
-            String tempPath = Environment.getExternalStorageDirectory().getPath() + File.separator + "temp.tmp";
+            //String tempPath = Environment.getExternalStorageDirectory().getPath() + File.separator + "temp.tmp";
+            String tempPath = CosXmlSimpleService.appCachePath + File.separator + "temp.tmp";
+            Log.d("UnitTest", tempPath);
             File tempFile = new File(tempPath);
             if(tempFile.exists())tempFile.delete();
             fileOutputStream = new FileOutputStream(tempFile);

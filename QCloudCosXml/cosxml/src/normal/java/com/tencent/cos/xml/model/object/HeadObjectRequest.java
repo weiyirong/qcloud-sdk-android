@@ -15,6 +15,13 @@ final public class HeadObjectRequest extends ObjectRequest {
         super(bucket, cosPath);
     }
 
+
+    public void setVersionId(String versionId) {
+        if(versionId != null){
+            queryParameters.put("versionId",versionId);
+        }
+    }
+
     /**
      * <p>
      * 设置If-Modified-Since头部

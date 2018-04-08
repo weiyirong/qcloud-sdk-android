@@ -2,10 +2,10 @@ package com.tencent.qcloud.core.auth;
 
 import com.tencent.qcloud.core.util.QCloudStringUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Calendar;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
@@ -22,6 +22,16 @@ public class Utils {
 
     private static final char[] DIGITS_LOWER;
     private static final char[] DIGITS_UPPER;
+
+    private static Calendar calendar = Calendar.getInstance();
+    static {
+        calendar.set(2010, 0, 1);
+    }
+
+    // 精确到秒
+    static long handleTimeAccuracy(long time) {
+        return time > calendar.getTime().getTime() ? time / 1000 : time;
+    }
 
     static {
         DIGITS_LOWER = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};

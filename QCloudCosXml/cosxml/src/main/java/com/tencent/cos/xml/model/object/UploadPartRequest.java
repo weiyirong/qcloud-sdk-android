@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.model.object;
 
+import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -25,6 +26,7 @@ final public class UploadPartRequest extends ObjectRequest {
     private String uploadId;
     private String srcPath;
     private byte[] data;
+    private InputStream inputStream;
     private long fileOffset = -1L;
     private long fileContentLength = -1L;
 
@@ -63,7 +65,8 @@ final public class UploadPartRequest extends ObjectRequest {
     public UploadPartRequest(String bucket, String cosPath, int partNumber, InputStream inputStream, String uploadId) throws CosXmlClientException {
         this(bucket, cosPath);
         this.partNumber = partNumber;
-        this.srcPath = FileUtils.tempCache(inputStream);
+        this.inputStream = inputStream;
+        //this.srcPath = FileUtils.tempCache(inputStream);
         this.uploadId = uploadId;
         fileOffset = -1L;
         fileContentLength = -1L;
@@ -123,6 +126,9 @@ final public class UploadPartRequest extends ObjectRequest {
             }
         }else if(data != null){
             return RequestBodySerializer.bytes(null, data);
+        }else if(inputStream != null){
+            return RequestBodySerializer.stream(null, new File(CosXmlSimpleService.appCachePath),
+                    inputStream);
         }
         return null;
     }
@@ -136,7 +142,7 @@ final public class UploadPartRequest extends ObjectRequest {
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
         }
-        if(srcPath == null && data == null){
+        if(srcPath == null && data == null && inputStream == null){
             throw new CosXmlClientException("Data Source must not be null");
         }
         if(srcPath != null){

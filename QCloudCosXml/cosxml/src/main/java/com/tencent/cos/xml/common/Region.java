@@ -59,4 +59,14 @@ public enum Region {
     public String getRegion(){
         return region;
     }
+
+    public static Region fromValue(String region){
+        for(Region region1 : Region.values()){
+            if(region1.region.equalsIgnoreCase(region)){
+                return region1;
+            }
+        }
+        return null;
+    }
+
 }

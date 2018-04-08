@@ -16,6 +16,9 @@ public class ListBucketVersionsRequest extends BucketRequest {
     private String prefix;
     private String keyMarker;
     private String versionIdMarker;
+    private String delimiter;
+    private String encodingType; // 目前支持 "url", url Encoding
+    private String maxKeys = "1000";
 
 
     public ListBucketVersionsRequest(String bucket) {
@@ -32,9 +35,9 @@ public class ListBucketVersionsRequest extends BucketRequest {
         return null;
     }
 
-    public void setPrefix(String cosPath){
-        if(cosPath != null){
-            this.prefix = cosPath;
+    public void setPrefix(String prefix){
+        if(prefix != null){
+            this.prefix = prefix;
         }
     }
 
@@ -50,17 +53,38 @@ public class ListBucketVersionsRequest extends BucketRequest {
         }
     }
 
+    public void setDelimiter(String delimiter) {
+        this.delimiter = delimiter;
+    }
+
+    public void setEncodingType(String encodingType) {
+        this.encodingType = encodingType;
+    }
+
+    public void setMaxKeys(int maxKeys) {
+        this.maxKeys = String.valueOf(maxKeys);
+    }
+
     @Override
     public Map<String, String> getQueryString() {
         queryParameters.put("versions", null);
         if(prefix != null){
             queryParameters.put("prefix", prefix);
         }
-        if(prefix != null){
+        if(keyMarker != null){
             queryParameters.put("key-marker", keyMarker);
         }
-        if(prefix != null){
+        if(versionIdMarker != null){
             queryParameters.put("version-id-marker", versionIdMarker);
+        }
+        if(delimiter != null){
+            queryParameters.put("delimiter", delimiter);
+        }
+        if(encodingType != null){
+            queryParameters.put("encoding-type", encodingType);
+        }
+        if(!maxKeys.equals("1000")){
+            queryParameters.put("max-keys", maxKeys);
         }
         return super.getQueryString();
     }

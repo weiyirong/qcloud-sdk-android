@@ -46,6 +46,7 @@ public class ShortTimeCredentialProvider extends BasicLifecycleCredentialProvide
     }
 
     QCloudLifecycleCredentials onGetCredentialFromLocal(String secretId, String secretKey) throws QCloudClientException {
+        // 使用本地永久秘钥计算得到临时秘钥
         long current = System.currentTimeMillis() / 1000;
         long expired = current + duration;
         String keyTime = current + ";" + expired;

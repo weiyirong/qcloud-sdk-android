@@ -49,16 +49,48 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
     private Set<String> headers;
 
     private long duration;
+    private long beginTime;
+    private long expiredTime;
 
     private String signTime;
 
-    public COSXmlSignSourceProvider(long duration) {
-
-        this.duration = duration;
+    public COSXmlSignSourceProvider() {
         headers = new HashSet<String>();
         paras = new HashSet<String>();
         realSignHeader = new HashSet<String>();
         realSignParas = new HashSet<String>();
+    }
+
+    /**
+     * 设置请求签名开始时间
+     *
+     * @param beginTime 单位是秒
+     * @return COSXmlSignSourceProvider
+     */
+    public COSXmlSignSourceProvider setSignBeginTime(long beginTime) {
+        this.beginTime = Utils.handleTimeAccuracy(beginTime);
+        return this;
+    }
+
+    /**
+     * 设置请求签名过期时间
+     *
+     * @param expiredTime 单位是秒
+     * @return COSXmlSignSourceProvider
+     */
+    public COSXmlSignSourceProvider setSignExpiredTime(long expiredTime) {
+        this.expiredTime = Utils.handleTimeAccuracy(expiredTime);
+        return this;
+    }
+
+    /**
+     * 设置签名有效时长
+     * @param duration 单位是秒
+     * @return COSXmlSignSourceProvider
+     */
+    public COSXmlSignSourceProvider setDuration(long duration) {
+        this.duration = duration;
+        return this;
     }
 
     /**
@@ -186,9 +218,13 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
         stringToSign.append("\n");
 
         // 追加q-sign-time
-        long currentTime = System.currentTimeMillis() / 1000;
-        long expiredTime = currentTime + duration;
-        signTime = currentTime + ";" + expiredTime;
+        if (beginTime == 0) {
+            beginTime = System.currentTimeMillis() / 1000;
+        }
+        if (expiredTime == 0) {
+            expiredTime = beginTime + duration;
+        }
+        signTime = beginTime + ";" + expiredTime;
         stringToSign.append(signTime);
         stringToSign.append("\n");
 

@@ -15,7 +15,6 @@ public class ListBucketVersionsRequestTest {
 
     @Test
     public void test() throws Exception{
-        String bucket= "";
-        ListBucketVersionsRequest listBucketVersionsRequest = new ListBucketVersionsRequest(bucket);
+
     }
 }

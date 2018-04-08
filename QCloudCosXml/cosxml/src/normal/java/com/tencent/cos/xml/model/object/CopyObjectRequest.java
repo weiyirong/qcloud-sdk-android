@@ -79,7 +79,6 @@ public class CopyObjectRequest extends ObjectRequest {
     public String getCopySource(){
         return copySourceStruct.toString();
     }
-
     /**
      * Indicate whether to copy metadata.
      * Enumerated values: Copy, Replaced. The default is Copy.
@@ -220,12 +219,21 @@ public class CopyObjectRequest extends ObjectRequest {
         public String bucket;
         public String region;
         public String cosPath;
+        public String versionId;
 
         public CopySourceStruct(String appid, String bucket, String region, String cosPath){
             this.appid = appid;
             this.bucket = bucket;
             this.region = region;
             this.cosPath = cosPath;
+        }
+
+        public CopySourceStruct(String appid, String bucket, String region, String cosPath, String versionId){
+            this.appid = appid;
+            this.bucket = bucket;
+            this.region = region;
+            this.cosPath = cosPath;
+            this.versionId = versionId;
         }
 
         public void checkParameters() throws CosXmlClientException {
@@ -262,7 +270,9 @@ public class CopyObjectRequest extends ObjectRequest {
                     .append(region).append(".")
                     .append("myqcloud.com")
                     .append(cosPath);
-
+            if(versionId != null){
+                copySource.append("?versionId=").append(versionId);
+            }
             return copySource.toString();
         }
     }

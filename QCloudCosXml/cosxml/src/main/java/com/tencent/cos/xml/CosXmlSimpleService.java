@@ -51,6 +51,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
     protected String region;
     protected String appid;
     protected String tag = "CosXml";
+    /** 用于缓存临时文件 */
+    public static String appCachePath;
 
     /**
      * cos android SDK 服务
@@ -60,6 +62,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
      */
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration, QCloudCredentialProvider qCloudCredentialProvider){
         QCloudLogger.setUp(context);
+        appCachePath = context.getExternalCacheDir().getPath();
         client = QCloudHttpClient.getDefault();
         client.addVerifiedHost("*.myqcloud.com");
         client.setDebuggable(configuration.isDebuggable());

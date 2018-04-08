@@ -24,6 +24,7 @@ final public class GetObjectRequest extends ObjectRequest {
     private String rspCacheControl;
     private String rspContentDisposition;
     private String rspContentEncoding;
+    private String versionId;
     private Range range;
 
     private CosXmlProgressListener progressListener;
@@ -52,6 +53,11 @@ final public class GetObjectRequest extends ObjectRequest {
         super(bucket, cosPath);
         this.savePath = savePath;
         this.saveFileName = saveFileName;
+    }
+
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
     }
 
     /**
@@ -194,6 +200,24 @@ final public class GetObjectRequest extends ObjectRequest {
         }
     }
 
+    public void setIfUnmodifiedSince(String ifUnmodifiedSince){
+        if(ifUnmodifiedSince != null){
+            addHeader(COSRequestHeaderKey.IF_UNMODIFIED_SINCE,ifUnmodifiedSince);
+        }
+    }
+
+    public void setIfMatch(String ifMatch){
+        if(ifMatch != null){
+            addHeader(COSRequestHeaderKey.IF_MATCH,ifMatch);
+        }
+    }
+
+    public void setIfNONEMatch(String ifNONEMatch){
+        if(ifNONEMatch != null){
+            addHeader(COSRequestHeaderKey.IF_NONE_MATCH,ifNONEMatch);
+        }
+    }
+
     /**
      * 设置进度监听器
      * @param progressListener
@@ -263,6 +287,9 @@ final public class GetObjectRequest extends ObjectRequest {
 
     @Override
     public Map<String, String> getQueryString() {
+        if(versionId != null){
+            queryParameters.put("versionId",versionId);
+        }
         if(rspContentType != null){
             queryParameters.put("response-content-type=",rspContentType);
         }

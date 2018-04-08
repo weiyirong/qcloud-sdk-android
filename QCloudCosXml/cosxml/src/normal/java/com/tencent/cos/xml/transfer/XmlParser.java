@@ -66,7 +66,7 @@ public class XmlParser extends XmlSlimParser {
                     }else if(tagName.equalsIgnoreCase("Location")){
                         xmlPullParser.next();
                         bucket.location = xmlPullParser.getText();
-                    }else if(tagName.equalsIgnoreCase("CreateDate")){
+                    }else if(tagName.equalsIgnoreCase("CreationDate")){
                         xmlPullParser.next();
                         bucket.createDate = xmlPullParser.getText();
                     }
@@ -486,6 +486,8 @@ public class XmlParser extends XmlSlimParser {
         ListMultipartUploads.Upload upload = null;
         result.uploads = new ArrayList<ListMultipartUploads.Upload>();
         result.commonPrefixes = new ArrayList<ListMultipartUploads.CommonPrefixes>();
+        ListMultipartUploads.Initiator initiator = null;
+        ListMultipartUploads.Owner owner = null;
         while (eventType != XmlPullParser.END_DOCUMENT){
             switch (eventType){
                 case XmlPullParser.START_TAG:
@@ -536,15 +538,33 @@ public class XmlParser extends XmlSlimParser {
                         xmlPullParser.next();
                         upload.storageClass = xmlPullParser.getText();
                     }else if (tagName.equalsIgnoreCase("Initiator")){
-                        upload.initiator = new ListMultipartUploads.Initiator();
+                        initiator = new ListMultipartUploads.Initiator();
                     }else if (tagName.equalsIgnoreCase("UIN")){
                         xmlPullParser.next();
-                        upload.initiator.uin = xmlPullParser.getText();
+                        if(initiator != null){
+                            initiator.uin = xmlPullParser.getText();
+                        }
                     }else if (tagName.equalsIgnoreCase("Owner")){
-                        upload.owner = new ListMultipartUploads.Owner();
+                        owner = new ListMultipartUploads.Owner();
                     }else if (tagName.equalsIgnoreCase("UID")){
                         xmlPullParser.next();
-                        upload.owner.uid = xmlPullParser.getText();
+                        if(owner != null){
+                            owner.uid = xmlPullParser.getText();
+                        }
+                    }else if (tagName.equalsIgnoreCase("ID")){
+                        xmlPullParser.next();
+                        if(owner != null){
+                            owner.id = xmlPullParser.getText();
+                        }else if(initiator != null){
+                            initiator.id = xmlPullParser.getText();
+                        }
+                    }else if (tagName.equalsIgnoreCase("DisplayName")){
+                        xmlPullParser.next();
+                        if(owner != null){
+                            owner.displayName = xmlPullParser.getText();
+                        }else if(initiator != null){
+                            initiator.displayName = xmlPullParser.getText();
+                        }
                     }else if (tagName.equalsIgnoreCase("Initiated")){
                         xmlPullParser.next();
                         upload.initiated = xmlPullParser.getText();
@@ -560,6 +580,12 @@ public class XmlParser extends XmlSlimParser {
                     }else if(tagName.equalsIgnoreCase("CommonPrefixs")){
                         result.commonPrefixes.add(commonPrefixes);
                         commonPrefixes = null;
+                    }else if(tagName.equalsIgnoreCase("Owner")){
+                        upload.owner = owner;
+                        owner = null;
+                    }else if(tagName.equalsIgnoreCase("Initiator")){
+                       upload.initiator = initiator;
+                        initiator = null;
                     }
                     break;
             }

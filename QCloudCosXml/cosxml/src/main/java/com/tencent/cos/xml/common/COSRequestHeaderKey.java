@@ -25,6 +25,9 @@ final public class COSRequestHeaderKey {
     public final static String ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method";
     public final static String ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";
     public final static String IF_MODIFIED_SINCE = "If-Modified-Since";
+    public final static String IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
+    public final static String IF_MATCH = "If-Match";
+    public final static String IF_NONE_MATCH = "If-None-Match";
     public final static String APPLICATION_XML = "application/xml";
     public final static String TEXT_PLAIN = "text/plain";
     public final static String APPLICATION_OCTET_STREAM = "application/octet-stream";

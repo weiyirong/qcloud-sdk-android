@@ -63,6 +63,8 @@ import com.tencent.cos.xml.model.object.OptionObjectRequest;
 import com.tencent.cos.xml.model.object.OptionObjectResult;
 import com.tencent.cos.xml.model.object.PutObjectACLRequest;
 import com.tencent.cos.xml.model.object.PutObjectACLResult;
+import com.tencent.cos.xml.model.object.RestoreRequest;
+import com.tencent.cos.xml.model.object.RestoreResult;
 import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
@@ -309,6 +311,23 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     @Override
     public void copyObjectAsync(UploadPartCopyRequest request, CosXmlResultListener cosXmlResultListener) {
         schedule(request, new UploadPartCopyResult(), cosXmlResultListener);
+    }
+
+    /**
+     * <p>
+     * 删除跨域访问配置信息的同步方法.&nbsp;
+     *
+     * 详细介绍，请查看:{@link  CosXml#deleteBucketCORS(DeleteBucketCORSRequest request)}
+     *</p>
+     */
+    @Override
+    public RestoreResult restoreObject(RestoreRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new RestoreResult());
+    }
+
+    @Override
+    public void restoreObjectAsync(RestoreRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new RestoreResult(), cosXmlResultListener);
     }
 
     /**

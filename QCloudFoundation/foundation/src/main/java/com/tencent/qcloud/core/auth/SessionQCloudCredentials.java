@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.auth;
 
+import static com.tencent.qcloud.core.auth.Utils.handleTimeAccuracy;
+
 /**
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
@@ -11,7 +13,28 @@ public class SessionQCloudCredentials implements QCloudLifecycleCredentials {
     private final String keyTime;
     private final String token;
 
-    public SessionQCloudCredentials(String secretId, String secretKey, String token, long expire) {
+    /**
+     * Constructs a new SessionQCloudCredentials object
+     *
+     * @param secretId The QCloud secretId.
+     * @param secretKey The QCloud temporary secretKey.
+     * @param token The QCloud token.
+     * @param expiredTime The expired time of the key.
+     */
+    public SessionQCloudCredentials(String secretId, String secretKey, String token, long expiredTime) {
+        this(secretId, secretKey, token, System.currentTimeMillis() / 1000, expiredTime);
+    }
+
+    /**
+     * Constructs a new SessionQCloudCredentials object
+     *
+     * @param secretId The QCloud secretId.
+     * @param secretKey The QCloud temporary secretKey.
+     * @param token The QCloud token.
+     * @param beginTime The begin time of the key.
+     * @param expiredTime The expired time of the key.
+     */
+    public SessionQCloudCredentials(String secretId, String secretKey, String token, long beginTime, long expiredTime) {
         if (secretId == null) {
             throw new IllegalArgumentException("secretId cannot be null.");
         }
@@ -21,23 +44,46 @@ public class SessionQCloudCredentials implements QCloudLifecycleCredentials {
         if (token == null) {
             throw new IllegalArgumentException("token cannot be null.");
         }
-        if (expire <= 0) {
-            throw new IllegalArgumentException("expire time must be positive");
+        if (beginTime >= expiredTime) {
+            throw new IllegalArgumentException("beginTime must be larger than expiredTime.");
         }
 
         this.secretId = secretId;
-        this.keyTime = getKeyTime(expire);
+        this.keyTime = getKeyTime(beginTime, expiredTime);
         this.signKey = getSignKey(secretKey, keyTime);
         this.token = token;
     }
 
-    public String getToken() {
-        return token;
+    /**
+     * Constructs a new SessionQCloudCredentials object
+     *
+     * @param secretId The QCloud secretId.
+     * @param secretKey The QCloud temporary secretKey.
+     * @param token The QCloud token.
+     * @param keyTime The QCloud keyTime.
+     */
+    public SessionQCloudCredentials(String secretId, String secretKey, String token, String keyTime) {
+        if (secretId == null) {
+            throw new IllegalArgumentException("secretId cannot be null.");
+        }
+        if (secretKey == null) {
+            throw new IllegalArgumentException("secretKey cannot be null.");
+        }
+        if (token == null) {
+            throw new IllegalArgumentException("token cannot be null.");
+        }
+        if (keyTime == null) {
+            throw new IllegalArgumentException("keyTime cannot be null.");
+        }
+
+        this.secretId = secretId;
+        this.keyTime = keyTime;
+        this.signKey = getSignKey(secretKey, keyTime);
+        this.token = token;
     }
 
-    private String getKeyTime(long expired) {
-        long currentTime = System.currentTimeMillis() / 1000;
-        return currentTime + ";" + expired;
+    private String getKeyTime(long beginTime, long expiredTime) {
+        return handleTimeAccuracy(beginTime) + ";" + handleTimeAccuracy(expiredTime);
     }
 
     private String getSignKey(String secretKey, String keyTime) {
@@ -45,8 +91,11 @@ public class SessionQCloudCredentials implements QCloudLifecycleCredentials {
         if (hmacSha1 != null) {
             return new String(Utils.encodeHex(hmacSha1)); // 用secretKey来加密keyTime
         }
-
         return null;
+    }
+
+    public String getToken() {
+        return token;
     }
 
     @Override

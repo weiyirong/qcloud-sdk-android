@@ -93,18 +93,23 @@ public abstract class CosXmlRequest{
     }
 
     public void setSign(long signDuration){
-        signSourceProvider = new COSXmlSignSourceProvider(signDuration);
+        signSourceProvider = new COSXmlSignSourceProvider().setDuration(signDuration);
+    }
+
+    public void setSign(long startTime, long endTime){
+        signSourceProvider = new COSXmlSignSourceProvider().setSignBeginTime(startTime)
+                .setSignExpiredTime(endTime);
     }
 
     public QCloudSignSourceProvider getSignSourceProvider() {
         if(signSourceProvider == null){
-            signSourceProvider = new COSXmlSignSourceProvider(600);
+            signSourceProvider = new COSXmlSignSourceProvider().setDuration(600);
         }
         return signSourceProvider;
     }
 
     public void setSign(long signDuration, Set<String> parameters, Set<String> headers){
-        COSXmlSignSourceProvider cosXmlSignSourceProvider = new COSXmlSignSourceProvider(signDuration);
+        COSXmlSignSourceProvider cosXmlSignSourceProvider = new COSXmlSignSourceProvider().setDuration(signDuration);
         cosXmlSignSourceProvider.parameters(parameters);
         cosXmlSignSourceProvider.headers(headers);
         signSourceProvider = cosXmlSignSourceProvider;

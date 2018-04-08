@@ -10,6 +10,8 @@ import com.tencent.qcloud.core.common.QCloudClientException;
 
 public class CosXmlClientException extends QCloudClientException {
 
+    private static final long serialVersionUID = 1L;
+
     public CosXmlClientException(String message){
         super(message);
     }

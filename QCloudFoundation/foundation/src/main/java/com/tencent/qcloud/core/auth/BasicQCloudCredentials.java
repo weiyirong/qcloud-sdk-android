@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.auth;
 
+import static com.tencent.qcloud.core.auth.Utils.handleTimeAccuracy;
+
 /**
  * Created by wjielai on 2017/9/21.
  * <p>
@@ -11,6 +13,30 @@ public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
     private final String secretId;
     private final String signKey;
     private final String keyTime;
+
+    /**
+     * Constructs a new BasicQCloudCredentials object
+     *
+     * @param secretId The QCloud secretId.
+     * @param signKey The QCloud signKey.
+     * @param beginTime The begin time of the key.
+     * @param expiredTime The expired time of the key.
+     */
+    public BasicQCloudCredentials(String secretId, String signKey, long beginTime, long expiredTime) {
+        if (secretId == null) {
+            throw new IllegalArgumentException("secretId cannot be null.");
+        }
+        if (signKey == null) {
+            throw new IllegalArgumentException("signKey cannot be null.");
+        }
+        if (beginTime >= expiredTime) {
+            throw new IllegalArgumentException("beginTime must be larger than expiredTime.");
+        }
+
+        this.secretId = secretId;
+        this.signKey = signKey;
+        this.keyTime = handleTimeAccuracy(beginTime) + ";" + handleTimeAccuracy(expiredTime);
+    }
 
     /**
      * Constructs a new BasicQCloudCredentials object

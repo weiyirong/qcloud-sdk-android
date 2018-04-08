@@ -84,11 +84,14 @@ public class ListMultipartUploads {
 
     public static class Initiator{
         public String uin;
-
+        public String id;
+        public String displayName;
         @Override
         public String toString(){
             StringBuilder stringBuilder = new StringBuilder("{Initiator:\n");
             stringBuilder.append("Uin:").append(uin).append("\n");
+            stringBuilder.append("Id:").append(id).append("\n");
+            stringBuilder.append("DisplayName:").append(displayName).append("\n");
             stringBuilder.append("}");
             return stringBuilder.toString();
         }
@@ -96,11 +99,15 @@ public class ListMultipartUploads {
 
     public static class Owner{
         public String uid;
+        public String id;
+        public String displayName;
 
         @Override
         public String toString(){
             StringBuilder stringBuilder = new StringBuilder("{Owner:\n");
             stringBuilder.append("Uid:").append(uid).append("\n");
+            stringBuilder.append("Id:").append(id).append("\n");
+            stringBuilder.append("DisplayName:").append(displayName).append("\n");
             stringBuilder.append("}");
             return stringBuilder.toString();
         }

@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.model.object;
 
+import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.RequestMethod;
@@ -33,6 +34,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     private long position = 0;
     private String srcPath;
     private byte[] data;
+    public InputStream inputStream;
     private long fileLength;
 
     private CosXmlProgressListener progressListener;
@@ -54,7 +56,8 @@ final public class AppendObjectRequest extends ObjectRequest {
 
     public AppendObjectRequest(String bucket, String cosPath, InputStream inputStream, long position) throws CosXmlClientException {
         this(bucket, cosPath);
-        this.srcPath= FileUtils.tempCache(inputStream);
+        this.inputStream = inputStream;
+        //this.srcPath= FileUtils.tempCache(inputStream);
         this.position = position;
     }
 
@@ -76,6 +79,9 @@ final public class AppendObjectRequest extends ObjectRequest {
             return RequestBodySerializer.file(null, new File(srcPath));
         }else if(data != null){
            return RequestBodySerializer.bytes(null, data);
+        }else if(inputStream != null){
+            return RequestBodySerializer.stream(null, new File(CosXmlSimpleService.appCachePath),
+                    inputStream);
         }
         return null;
     }
@@ -83,7 +89,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
-        if(srcPath == null && data == null){
+        if(srcPath == null && data == null && inputStream == null){
             throw new CosXmlClientException("Data Source must not be null");
         }
         if(srcPath != null){

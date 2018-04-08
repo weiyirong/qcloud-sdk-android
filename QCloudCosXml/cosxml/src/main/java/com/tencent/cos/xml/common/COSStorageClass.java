@@ -1,9 +1,12 @@
 package com.tencent.cos.xml.common;
 
 /**
- *
  * COS存储类型
- *
+ * <ul>
+ *     <li>Standard : 标准存储</li>
+ *     <li>Standard_IA : 冷存储</li>
+ *     <li>Nearline : 近线存储</li>
+ * </ul>
  */
 public enum COSStorageClass {
 
@@ -25,5 +28,14 @@ public enum COSStorageClass {
 
     public String getStorageClass(){
         return cosStorageClass;
+    }
+
+    public static COSStorageClass fromString(String cosStorageClass){
+        for(COSStorageClass storageClass : COSStorageClass.values()){
+            if(storageClass.cosStorageClass.equalsIgnoreCase(cosStorageClass)){
+                return storageClass;
+            }
+        }
+        return null;
     }
 }

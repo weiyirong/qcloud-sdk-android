@@ -45,17 +45,29 @@ public class SessionCredentialProvider extends ShortTimeCredentialProvider {
 
     @Override
     QCloudLifecycleCredentials onGetCredentialFromLocal(String secretId, String secretKey) throws QCloudClientException {
+        // 使用本地永久秘钥，通过 CAM 获取临时秘钥
         try {
             httpRequest = getRequestByKey();
             String json = QCloudHttpClient.getDefault().resolveRequest(httpRequest).executeNow().content();
-            return onRemoteCredentialReceived(json);
+            return parseCAMResponse(json);
         } catch (QCloudServiceException e) {
             throw new QCloudClientException("get session json fails", e);
         }
     }
 
+    /**
+     * 默认行为是解析 CAM 的标准返回格式
+     *
+     * @param jsonContent 返回json数据
+     * @return 临时签名
+     * @throws QCloudClientException 获取签名出错的异常
+     */
     @Override
     protected QCloudLifecycleCredentials onRemoteCredentialReceived(String jsonContent) throws QCloudClientException {
+        return parseCAMResponse(jsonContent);
+    }
+
+    private QCloudLifecycleCredentials parseCAMResponse(String jsonContent) throws QCloudClientException {
         if (jsonContent != null) {
             try {
                 JSONObject jsonObject = new JSONObject(jsonContent);

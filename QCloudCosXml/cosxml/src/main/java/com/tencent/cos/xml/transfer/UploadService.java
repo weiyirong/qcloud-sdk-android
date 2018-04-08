@@ -57,6 +57,8 @@ public class UploadService {
     private CompleteMultiUploadRequest completeMultiUploadRequest;
     private PutObjectRequest putObjectRequest;
     private UploadServiceResult uploadServiceResult;
+    private long startTime = -1L;
+    private long endTime = -1L;
 
     public UploadService(CosXmlSimpleService cosXmlService, ResumeData resumeData){
         this.cosXmlService = cosXmlService;
@@ -86,6 +88,21 @@ public class UploadService {
         }
         throw new CosXmlClientException("srcPath :" + srcPath + " is invalid or is not exist");
     }
+
+
+    public void setSign(long startTime, long endTime){
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    private void setSignTime(CosXmlRequest cosXmlRequest){
+        if(cosXmlRequest != null){
+            if(startTime > 0 && endTime >= startTime){
+                cosXmlRequest.setSign(startTime, endTime);
+            }
+        }
+    }
+
     public UploadServiceResult upload() throws CosXmlClientException, CosXmlServiceException {
         checkParameter();
         if(fileLength < SIZE_LIMIT){
@@ -136,6 +153,7 @@ public class UploadService {
         UPLOAD_PART_COUNT.set(1);
         putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
         putObjectRequest.setProgressListener(cosXmlProgressListener);
+        setSignTime(putObjectRequest);
         cosXmlService.putObjectAsync(putObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
@@ -273,6 +291,7 @@ public class UploadService {
     private InitMultipartUploadResult initMultiUpload() throws CosXmlServiceException, CosXmlClientException {
         initMultipartUploadRequest = new InitMultipartUploadRequest(bucket,
                 cosPath);
+        setSignTime(initMultipartUploadRequest);
         return cosXmlService.initMultipartUpload(initMultipartUploadRequest);
     }
 
@@ -281,6 +300,7 @@ public class UploadService {
      */
     private ListPartsResult listPart() throws CosXmlServiceException, CosXmlClientException {
         listPartsRequest = new ListPartsRequest(bucket, cosPath, uploadId);
+        setSignTime(listPartsRequest);
         return cosXmlService.listParts(listPartsRequest);
     }
 
@@ -291,6 +311,7 @@ public class UploadService {
         final UploadPartRequest uploadPartRequest = new UploadPartRequest(bucket, cosPath, partNumber,
                 srcPath, offset, contentLength, uploadId);
         uploadPartRequestLongMap.put(uploadPartRequest, 0L);
+        setSignTime(uploadPartRequest);
         uploadPartRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -316,6 +337,7 @@ public class UploadService {
             SlicePartStruct slicePartStruct = entry.getValue();
             completeMultiUploadRequest.setPartNumberAndETag(slicePartStruct.partNumber, slicePartStruct.eTag);
         }
+        setSignTime(completeMultiUploadRequest);
         return cosXmlService.completeMultiUpload(completeMultiUploadRequest);
     }
 
@@ -326,6 +348,7 @@ public class UploadService {
         if(uploadId == null) return;
         AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucket, cosPath,
                 uploadId);
+        setSignTime(abortMultiUploadRequest);
         cosXmlService.abortMultiUploadAsync(abortMultiUploadRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {

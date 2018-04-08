@@ -4,6 +4,7 @@ import com.tencent.cos.xml.BuildConfig;
 
 /**
  * Created by bradyxiao on 2017/11/30.
+ * cos android sdk version information
  */
 
 public class VersionInfo {
@@ -12,6 +13,6 @@ public class VersionInfo {
     public static final String platform = "cos-android-sdk-" + BuildConfig.VERSION_NAME;
 
     public static String getUserAgent(){
-        return platform + "." + version;
+        return platform;
     }
 }

@@ -54,11 +54,12 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 初始化分块上传的同步方法.&nbsp;使用分块上传对象时，首先要进行初始化分片上传操作，获取对应分块上传的 uploadId，用于后续上传操
-     * 作.
+     * 初始化分块上传的同步方法.&nbsp;
      * <p>
-     * 分块上传适合于在弱网络或高带宽环境下上传较大的对象.SDK 支持自行切分对象并分别调用{@link #uploadPart(UploadPartRequest)}上传各
-     * 个分块.<br>
+     * 使用分块上传对象时，首先要进行初始化分片上传操作，获取对应分块上传的 uploadId，用于后续上传操
+     * 作.分块上传适合于在弱网络或高带宽环境下上传较大的对象.SDK 支持自行切分对象并分别调用{@link #uploadPart(UploadPartRequest)}或者{@link #uploadPartAsync(UploadPartRequest, CosXmlResultListener)}上传各
+     * 个分块.
+     * <p>
      * 关于分块上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112. &nbsp;</a><br>
      * 关于初始化分块上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7746">https://cloud.tencent.com/document/product/436/7746.</a><br>
      *
@@ -95,14 +96,15 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 初始化分块上传的异步方法.&nbsp;使用分块上传对象时，首先要进行初始化分片上传操作，获取对应分块上传的 uploadId，用于后续上传操
-     * 作.
+     * 初始化分块上传的异步方法.&nbsp;
      * <p>
-     * 分块上传适合于在弱网络或高带宽环境下上传较大的对象.SDK 支持自行切分对象并分别调用{@link #uploadPart(UploadPartRequest)}上传各
-     * 个分块.<br>
+     * 使用分块上传对象时，首先要进行初始化分片上传操作，获取对应分块上传的 uploadId，用于后续上传操
+     * 作.分块上传适合于在弱网络或高带宽环境下上传较大的对象.SDK 支持自行切分对象并分别调用{@link #uploadPart(UploadPartRequest)}上传各
+     * 个分块.
+     * <p>
      * 关于分块上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112. &nbsp;</a><br>
      * 关于初始化分块上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7746">https://cloud.tencent.com/document/product/436/7746.</a><br>
-     * <p>
+     *
      * cos Android SDK 中初始化分块上传请求的异步方法具体步骤如下：<br>
      * 1、通过调用 {@link InitMultipartUploadRequest} 构造方法，实例化 InitMultipartUploadRequest 对象;<br>
      * 2、通过调用 {@link #initMultipartUploadAsync(InitMultipartUploadRequest, CosXmlResultListener)} 异步方法，传入 InitMultipartUploadRequest 和 CosXmlResultListener 进行异步回调操作.<br>
@@ -137,7 +139,9 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 查询特定分块上传中的已上传的块的同步方法.&nbsp; COS 支持查询特定分块上传中的已上传的块, 即可以
+     * 查询特定分块上传中的已上传的块的同步方法.&nbsp;
+     * <p>
+     * COS 支持查询特定分块上传中的已上传的块, 即可以
      * 罗列出指定 UploadId 所属的所有已上传成功的分块. 因此，基于此可以完成续传功能.
      * <p>
      * 关于分块上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112,&nbsp;</a><br>
@@ -174,7 +178,9 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 查询特定分块上传中的已上传的块的异步方法.&nbsp;COS 支持查询特定分块上传中的已上传的块, 即可以
+     * 查询特定分块上传中的已上传的块的异步方法.&nbsp;
+     * <p>
+     * COS 支持查询特定分块上传中的已上传的块, 即可以
      * 罗列出指定 UploadId 所属的所有已上传成功的分块. 因此，基于此可以完成续传功能.
      * <p>
      * 关于分块上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112,&nbsp;</a><br>
@@ -215,7 +221,9 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 上传一个对象某个分片块的同步方法.&nbsp;将对象切分成一个个分块的方式上传到 COS 时，需要携带分块号（partNumber） 和 uploadId（{@link #initMultipartUpload(InitMultipartUploadRequest)}），
+     * 上传一个分片块的同步方法.&nbsp;
+     * <p>
+     * 使用分块上传时，可将对象切分成一个个分块的方式上传到 COS，每个分块上传需要携带分块号（partNumber） 和 uploadId（{@link #initMultipartUpload(InitMultipartUploadRequest)}），
      * 每个分块大小为 1 MB 到 5 GB ，最后一个分块可以小于 1 MB, 若传入 uploadId 和 partNumber都相同，
      * 后传入的块将覆盖之前传入的块，且支持乱序上传.
      * <p>
@@ -268,8 +276,10 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 上传一个对象某个分片块的异步方法.&nbsp;将对象切分成一个个分块的方式上传到 COS 时，需要携带分块号（partNumber） 和 uploadId（{@link #initMultipartUpload(InitMultipartUploadRequest)}），
-     * 每个分块大小为 1 MB 到 5 GB ，最后一个分块可以小于 1 MB, 若传入 uploadId 和 partNumber都相同，
+     * 上传一个分片块的异步方法.&nbsp;
+     * <p>
+     * 使用分块上传时，可将对象切分成一个个分块的方式上传到 COS，每个分块上传需要携带分块号（partNumber） 和 uploadId（{@link #initMultipartUpload(InitMultipartUploadRequest)}），
+     * 每个分块大小为 1 MB 到 5 GB ,最后一个分块可以小于 1 MB, 若传入 uploadId 和 partNumber都相同，
      * 后传入的块将覆盖之前传入的块，且支持乱序上传.
      * <p>
      * 关于分块上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112. &nbsp;</a>
@@ -323,9 +333,10 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 舍弃一个分块上传且删除已上传的分片块的同步方法.&nbsp;COS 支持舍弃一个分块上传且删除已上传的分
-     * 片块. 注意，已上传但是未终止的分片块会占用存储空间进而产生存储费用.因此，建议及时完成分块上传
-     * 或者舍弃分块上传.
+     * 舍弃一个分块上传且删除已上传的分片块的同步方法.&nbsp;
+     * <p>
+     * COS 支持舍弃一个分块上传且删除已上传的分片块. 注意，已上传但是未终止的分片块会占用存储空间进
+     * 而产生存储费用.因此，建议及时完成分块上传 或者舍弃分块上传.
      * <p>
      * 关于分块上传的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112.</a>
      * <br>
@@ -364,9 +375,10 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 舍弃一个分块上传且删除已上传的分片块的异步方法.&nbsp;COS 支持舍弃一个分块上传且删除已上传的分
-     * 片块. 注意，已上传但是未终止的分片块会占用存储空间进而产生存储费用.因此，建议及时完成分块上传
-     * 或者舍弃分块上传.
+     * 舍弃一个分块上传且删除已上传的分片块的异步方法.&nbsp;
+     * <p>
+     * COS 支持舍弃一个分块上传且删除已上传的分片块. 注意，已上传但是未终止的分片块会占用存储空间进
+     * 而产生存储费用.因此，建议及时完成分块上传 或者舍弃分块上传.
      * <p>
      * 关于分块上传的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112.</a>
      * <br>
@@ -407,7 +419,9 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 完成整个分块上传的同步方法.&nbsp;当使用分块上传完对象的所有块以后，必须调用该 {@link #completeMultiUpload(CompleteMultiUploadRequest)} 或者 {@link #completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)}
+     * 完成整个分块上传的同步方法.&nbsp;
+     * <p>
+     * 当使用分块上传（{@link #uploadPart(UploadPartRequest)}）完对象的所有块以后，必须调用该 {@link #completeMultiUpload(CompleteMultiUploadRequest)} 或者 {@link #completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)}
      * 来完成整个文件的分块上传.且在该请求的 Body 中需要给出每一个块的 PartNumber 和 ETag，用来校验块的准
      * 确性.
      * <p>
@@ -453,7 +467,9 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 完成整个分块上传的异步方法.&nbsp;当使用分块上传完对象的所有块以后，必须调用该 {@link #completeMultiUpload(CompleteMultiUploadRequest)} 或者 {@link #completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)}
+     * 完成整个分块上传的异步方法.&nbsp;
+     * <p>
+     * 当使用分块上传（{@link #uploadPart(UploadPartRequest)}）完对象的所有块以后，必须调用该 {@link #completeMultiUpload(CompleteMultiUploadRequest)} 或者 {@link #completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)}
      * 来完成整个文件的分块上传.且在该请求的 Body 中需要给出每一个块的 PartNumber 和 ETag，用来校验块的准
      * 确性.
      * <p>
@@ -501,8 +517,9 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 删除 COS 上单个对象的同步方法.&nbsp;COS 支持直接删除一个或多个对象，当仅需要删除一个对象时，
-     * 只需要提供对象的名称（即对象键)即可.
+     * 删除 COS 上单个对象的同步方法.&nbsp;
+     * <p>
+     * COS 支持直接删除一个或多个对象，当仅需要删除一个对象时,只需要提供对象的名称（即对象键)即可.
      * <p>
      * 关于删除 COS 上单个对象的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14119">https://cloud.tencent.com/document/product/436/14119.</a>
      * <br>
@@ -537,8 +554,9 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 删除 COS 上单个对象的异步方法.&nbsp; COS 支持直接删除一个或多个对象，当仅需要删除一个对象时，
-     * 只需要提供对象的名称（即对象键)即可.
+     * 删除 COS 上单个对象的异步方法.&nbsp;
+     * <p>
+     * COS 支持直接删除一个或多个对象，当仅需要删除一个对象时,只需要提供对象的名称（即对象键)即可.
      * <p>
      * 关于删除 COS 上单个对象的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14119">https://cloud.tencent.com/document/product/436/14119.</a>
      * <br>
@@ -578,8 +596,10 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 获取 COS 对象的同步方法.&nbsp;可以直接发起 GET 请求获取 COS 中完整的对象数据, 或者在 GET 请求
-     * 中传入 Range 请求头部获取对象的部分内容.<br>
+     * 下载 COS 对象的同步方法.&nbsp;
+     * <p>
+     * 可以直接发起 GET 请求获取 COS 中完整的对象数据, 或者在 GET 请求
+     * 中传入 Range 请求头部获取对象的部分内容.
      * 获取COS 对象的同时，对象的元数据将会作为 HTTP 响应头部随对象内容一同返回，COS 支持GET 请求时
      * 使用 URL 参数的方式覆盖响应的部分元数据值，例如覆盖 Content-iDisposition 的响应值.
      * <p>
@@ -625,8 +645,10 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 获取 COS 对象的异步方法.&nbsp;可以直接发起 GET 请求获取 COS 中完整的对象数据, 或者在 GET 请求
-     * 中传入 Range 请求头部获取对象的部分内容.<br>
+     * 下载 COS 对象的异步方法.&nbsp;
+     * <p>
+     * 可以直接发起 GET 请求获取 COS 中完整的对象数据, 或者在 GET 请求
+     * 中传入 Range 请求头部获取对象的部分内容.
      * 获取COS 对象的同时，对象的元数据将会作为 HTTP 响应头部随对象内容一同返回，COS 支持GET 请求时
      * 使用 URL 参数的方式覆盖响应的部分元数据值，例如覆盖 Content-iDisposition 的响应值.
      * <p>
@@ -674,10 +696,11 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 简单上传的同步方法.&nbsp; 简单上传主要适用于在单个请求中上传一个小于 5 GB 大小的对象.
+     * 简单上传的同步方法.&nbsp;
      * <p>
+     * 简单上传主要适用于在单个请求中上传一个小于 5 GB 大小的对象.
      * 对于大于 5 GB 的对象(或者在高带宽或弱网络环境中）优先使用分片上传的方式 (<a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112</a>).&nbsp;
-     * <br>
+     * <p>
      * 关于简单上传的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14113">https://cloud.tencent.com/document/product/436/14113.</a><br>
      * 关于简单上传接口的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7749">https://cloud.tencent.com/document/product/436/7749.</a><br>
      *
@@ -725,10 +748,11 @@ public interface SimpleCosXml {
 
     /**
      * <p>
-     * 简单上传的异步方法.&nbsp; 简单上传主要适用于在单个请求中上传一个小于 5 GB 大小的对象.
+     * 简单上传的异步方法.&nbsp;
      * <p>
+     * 简单上传主要适用于在单个请求中上传一个小于 5 GB 大小的对象.
      * 对于大于 5 GB 的对象(或者在高带宽或弱网络环境中）优先使用分片上传的方式 (<a href="https://cloud.tencent.com/document/product/436/14112">https://cloud.tencent.com/document/product/436/14112</a>).&nbsp;
-     * <br>
+     * <p>
      * 关于简单上传的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/14113">https://cloud.tencent.com/document/product/436/14113.</a><br>
      * 关于简单上传接口的具体描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7749">https://cloud.tencent.com/document/product/436/7749.</a><br>
      * 
@@ -789,7 +813,7 @@ public interface SimpleCosXml {
     void cancelAll();
 
     /**
-     * 释放所有的请求，请参阅 {@link #cancelAll()}
+     * 释放所有的请求. 请参阅 {@link #cancelAll()}
      */
     void release();
 

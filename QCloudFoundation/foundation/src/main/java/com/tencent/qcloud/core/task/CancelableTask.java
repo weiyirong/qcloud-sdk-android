@@ -64,7 +64,9 @@ public abstract class CancelableTask<T> extends Task<T> {
         }
 
         if (onCancel()) {
-            workerExecutor.remove(this);
+            if (workerExecutor != null) {
+                workerExecutor.remove(this);
+            }
             close();
             canceled = true;
             QCloudLogger.d(TASK_LOG_TAG, "[Call] %s cancel", this);

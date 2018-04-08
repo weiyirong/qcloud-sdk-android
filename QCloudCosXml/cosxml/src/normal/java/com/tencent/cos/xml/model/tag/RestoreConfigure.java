@@ -32,8 +32,8 @@ public class RestoreConfigure {
 
     public static enum Tier{
         Expedited("Expedited") ,
-        Standard("Expedited"),
-        Bulk("Expedited");
+        Standard("Standard"),
+        Bulk("Bulk");
         private String tier;
         Tier(String tier) {
             this.tier = tier;
