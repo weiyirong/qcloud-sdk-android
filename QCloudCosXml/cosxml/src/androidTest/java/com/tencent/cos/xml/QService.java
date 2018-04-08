@@ -49,8 +49,8 @@ public class QService {
                         .setAppidAndRegion(appid,region)
                         .builder();
                 QCloudCredentialProvider qCloudCredentialProvider = new ShortTimeCredentialProvider(
-                        "AKIDtgHguxSsaEykZHoIfqtlT1NY0MWTn4B5",
-                        "rWyGVcXHpCjDOSMaheQSNGyMfstiOAqu",
+                        "XXX",
+                        "XXX",
                         60 * 60);
                 cosXmlClient = new CosXmlService(context, configuration, qCloudCredentialProvider);
             }
