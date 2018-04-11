@@ -29,10 +29,10 @@ import java.util.List;
 //    private final String appid = "1253960454";
 //
 //    /** appid 对应的 秘钥 */
-//    private final String secretId = "AKIDtgHguxSsaEykZHoIfqtlT1NY0MWTn4B5";
+//    private final String secretId = "xxx";
 //
 //    /** appid 对应的 秘钥 */
-//    private final String secretKey = "rWyGVcXHpCjDOSMaheQSNGyMfstiOAqu";
+//    private final String secretKey = "xxx";
 //
 //    /** bucketForObjectAPITest 所处在的地域 */
 //    private String region = Region.AP_Guangzhou.getRegion();
