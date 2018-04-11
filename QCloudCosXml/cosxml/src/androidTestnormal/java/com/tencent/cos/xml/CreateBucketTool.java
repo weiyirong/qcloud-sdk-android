@@ -21,10 +21,10 @@ public class CreateBucketTool {
     private final String appid = "1253653367";
 
     /** appid 对应的 秘钥 */
-    private final String secretId = "XXX";
+    private final String secretId = "AKIDPiqmW3qcgXVSKN8jngPzRhvxzYyDL5qP";
 
     /** appid 对应的 秘钥 */
-    private final String secretKey = "XXX";
+    private final String secretKey = "EH8oHoLgpmJmBQUM1Uoywjmv7EFzd5OJ";
 
     /** bucketForObjectAPITest 所处在的地域 */
     private String region = "yfb";

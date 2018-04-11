@@ -10,9 +10,15 @@ android {
         minSdkVersion 15
 
         targetSdkVersion 26
-        
-        versionCode 50403
-        versionName "5.4.3"
+//<<<<<<< HEAD
+//
+//        versionCode 50405
+//        versionName "5.4.5"
+
+
+        versionCode 50405
+        versionName "5.4.5"
+
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -21,6 +27,19 @@ android {
     buildTypes {
         debug{
             testCoverageEnabled true
+//            java.util.Properties properties = new Properties()
+//            InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
+//            properties.load(inputStream)
+//            def appid = properties.get('COS.appid')
+//            def secretId = properties.get('COS.secretId')
+//            def secretKey = properties.get('COS.secretKey')
+//
+//            buildConfigField "String", "appid", "\"$appid\""
+//            buildConfigField "String", "secretId", "\"$secretId\""
+//            buildConfigField "String", "secretKey", "\"$secretKey\""
+//
+//            def testApiid = projects.project.rootProject.getProperties().get("test.appid")
+//            buildConfigField "String", "testApiid", "\"$testApiid\""
         }
         release {
             minifyEnabled false
@@ -42,7 +61,10 @@ android {
         version "0.7.1.201405082137"
     }
 
+    defaultPublishConfig "normalRelease"
 }
+
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -58,20 +80,36 @@ task slimJar(type: Copy, dependsOn: build){
     delete 'build/libs/'
     from('build/intermediates/bundles/slimRelease/')
     into('build/libs/')
-    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.slim.jar")
+    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.slim.jar")
 
 }
 
 task Jar(type: Copy, dependsOn: build) {
     from('build/intermediates/bundles/normalRelease/')
     into('build/libs/')
-    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.jar")
+    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}..jar")
 }
+
+//task javadoc(type: Javadoc) {
+////    options.addStringOption('Xdoclint:none', '-quiet')
+////    options.addStringOption('encoding', 'UTF-8')
+////    options.addStringOption('charSet', 'UTF-8')
+//    source = android.sourceSets.main.java.srcDirs
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//}
+//
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//    classifier = 'javadoc'
+//    from javadoc.destinationDir
+//}
 
 
 project.extensions.add('artifactId', 'cos-android-sdk')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
 project.extensions.add('artifactProduct', 'normal')
 
+
+//apply from: './install.gradle'
+//apply from: './bintrayUpload.gradle'
 
 

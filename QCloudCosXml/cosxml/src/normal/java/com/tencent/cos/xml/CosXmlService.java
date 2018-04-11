@@ -313,13 +313,6 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
         schedule(request, new UploadPartCopyResult(), cosXmlResultListener);
     }
 
-    /**
-     * <p>
-     * 删除跨域访问配置信息的同步方法.&nbsp;
-     *
-     * 详细介绍，请查看:{@link  CosXml#deleteBucketCORS(DeleteBucketCORSRequest request)}
-     *</p>
-     */
     @Override
     public RestoreResult restoreObject(RestoreRequest request) throws CosXmlClientException, CosXmlServiceException {
         return execute(request, new RestoreResult());

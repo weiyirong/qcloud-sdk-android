@@ -3,8 +3,9 @@
 buildscript {
     repositories {
         //google()
+        //jcenter()
+       // google()
         jcenter()
-        google()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
@@ -19,11 +20,22 @@ buildscript {
 allprojects {
     repositories {
         //google()
-       jcenter()
-        google()
+       //jcenter()
+        //google()
+        jcenter()
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
 }

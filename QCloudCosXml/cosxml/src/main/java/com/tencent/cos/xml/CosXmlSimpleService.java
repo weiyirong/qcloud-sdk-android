@@ -83,7 +83,6 @@ public class CosXmlSimpleService implements SimpleCosXml {
                 .path(cosXmlRequest.getPath())
                 .addHeader(HttpConstants.Header.HOST, host)
                 .userAgent(CosXmlServiceConfig.DEFAULT_USER_AGENT)
-                .setUseCache(false)
                 .tag(tag)
                 .signer("CosXmlSigner", cosXmlRequest.getSignSourceProvider());
 
