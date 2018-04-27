@@ -22,6 +22,7 @@ import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,6 +60,7 @@ public class UploadService {
     private UploadServiceResult uploadServiceResult;
     private long startTime = -1L;
     private long endTime = -1L;
+    private List<String> headers = new ArrayList<>();
 
     public UploadService(CosXmlSimpleService cosXmlService, ResumeData resumeData){
         this.cosXmlService = cosXmlService;
@@ -99,6 +101,22 @@ public class UploadService {
         if(cosXmlRequest != null){
             if(startTime > 0 && endTime >= startTime){
                 cosXmlRequest.setSign(startTime, endTime);
+            }
+        }
+    }
+
+    public void setRequestHeaders(String key, String value){
+        if(key != null && value != null){
+            headers.add(key);
+            headers.add(value);
+        }
+    }
+
+    private void setRequestHeaders(CosXmlRequest cosXmlRequest) throws CosXmlClientException {
+        if(cosXmlRequest != null){
+            int size = headers.size();
+            for(int i = 0; i < size - 2; i += 2){
+                cosXmlRequest.setRequestHeaders(headers.get(i), headers.get(i + 1));
             }
         }
     }
@@ -154,6 +172,7 @@ public class UploadService {
         putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
         putObjectRequest.setProgressListener(cosXmlProgressListener);
         setSignTime(putObjectRequest);
+        setRequestHeaders(putObjectRequest);
         cosXmlService.putObjectAsync(putObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
@@ -292,6 +311,7 @@ public class UploadService {
         initMultipartUploadRequest = new InitMultipartUploadRequest(bucket,
                 cosPath);
         setSignTime(initMultipartUploadRequest);
+        setRequestHeaders(initMultipartUploadRequest);
         return cosXmlService.initMultipartUpload(initMultipartUploadRequest);
     }
 
@@ -301,6 +321,7 @@ public class UploadService {
     private ListPartsResult listPart() throws CosXmlServiceException, CosXmlClientException {
         listPartsRequest = new ListPartsRequest(bucket, cosPath, uploadId);
         setSignTime(listPartsRequest);
+        setRequestHeaders(listPartsRequest);
         return cosXmlService.listParts(listPartsRequest);
     }
 
@@ -312,6 +333,12 @@ public class UploadService {
                 srcPath, offset, contentLength, uploadId);
         uploadPartRequestLongMap.put(uploadPartRequest, 0L);
         setSignTime(uploadPartRequest);
+        try {
+            setRequestHeaders(uploadPartRequest);
+        } catch (CosXmlClientException e) {
+            cosXmlResultListener.onFail(putObjectRequest, e, null);
+            return;
+        }
         uploadPartRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -338,6 +365,7 @@ public class UploadService {
             completeMultiUploadRequest.setPartNumberAndETag(slicePartStruct.partNumber, slicePartStruct.eTag);
         }
         setSignTime(completeMultiUploadRequest);
+        setRequestHeaders(completeMultiUploadRequest);
         return cosXmlService.completeMultiUpload(completeMultiUploadRequest);
     }
 
@@ -349,6 +377,12 @@ public class UploadService {
         AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucket, cosPath,
                 uploadId);
         setSignTime(abortMultiUploadRequest);
+        try {
+            setRequestHeaders(abortMultiUploadRequest);
+        } catch (CosXmlClientException e) {
+            cosXmlResultListener.onFail(abortMultiUploadRequest, e, null);
+            return;
+        }
         cosXmlService.abortMultiUploadAsync(abortMultiUploadRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
@@ -419,8 +453,8 @@ public class UploadService {
             List<ListParts.Part> parts = listPartsResult.listParts.parts;
             if(parts != null){
                 for(ListParts.Part part : parts){
-                    if(partStructMap.containsKey(part.partNumber)){
-                        SlicePartStruct slicePartStruct = partStructMap.get(part.partNumber);
+                    if(partStructMap.containsKey(Integer.valueOf(part.partNumber))){
+                        SlicePartStruct slicePartStruct = partStructMap.get(Integer.valueOf(part.partNumber));
                         slicePartStruct.isAlreadyUpload = true;
                         slicePartStruct.eTag = part.eTag;
                         UPLOAD_PART_COUNT.decrementAndGet();
