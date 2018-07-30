@@ -89,6 +89,9 @@ final public class AppendObjectRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
+        if(cosPath.equalsIgnoreCase("/")){
+            throw new CosXmlClientException("cosPath must not be / ");
+        }
         if(srcPath == null && data == null && inputStream == null){
             throw new CosXmlClientException("Data Source must not be null");
         }

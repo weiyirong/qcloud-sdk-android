@@ -10,14 +10,10 @@ android {
         minSdkVersion 15
 
         targetSdkVersion 26
-//<<<<<<< HEAD
-//
-//        versionCode 50405
-//        versionName "5.4.5"
 
 
-        versionCode 50405
-        versionName "5.4.5"
+        versionCode 50406
+        versionName "5.4.6"
 
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -27,19 +23,6 @@ android {
     buildTypes {
         debug{
             testCoverageEnabled true
-//            java.util.Properties properties = new Properties()
-//            InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
-//            properties.load(inputStream)
-//            def appid = properties.get('COS.appid')
-//            def secretId = properties.get('COS.secretId')
-//            def secretKey = properties.get('COS.secretKey')
-//
-//            buildConfigField "String", "appid", "\"$appid\""
-//            buildConfigField "String", "secretId", "\"$secretId\""
-//            buildConfigField "String", "secretKey", "\"$secretKey\""
-//
-//            def testApiid = projects.project.rootProject.getProperties().get("test.appid")
-//            buildConfigField "String", "testApiid", "\"$testApiid\""
         }
         release {
             minifyEnabled false
@@ -70,10 +53,11 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     compile project(path: ':foundation')
+//    compile 'com.tencent.qcloud:qcloud-foundation:1.4.1'
 }
 
 task slimJar(type: Copy, dependsOn: build){
@@ -87,7 +71,7 @@ task slimJar(type: Copy, dependsOn: build){
 task Jar(type: Copy, dependsOn: build) {
     from('build/intermediates/bundles/normalRelease/')
     into('build/libs/')
-    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}..jar")
+    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.jar")
 }
 
 //task javadoc(type: Javadoc) {
@@ -104,12 +88,11 @@ task Jar(type: Copy, dependsOn: build) {
 //}
 
 
-project.extensions.add('artifactId', 'cos-android-sdk')
-project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
-project.extensions.add('artifactProduct', 'normal')
+//project.extensions.add('artifactId', 'cos-android-sdk')
+//project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
+//project.extensions.add('artifactProduct', 'normal')
 
 
-//apply from: './install.gradle'
-//apply from: './bintrayUpload.gradle'
+//apply from:'./publish.gradle'
 
 

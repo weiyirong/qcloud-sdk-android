@@ -1,0 +1,103 @@
+//Gradle Android Maven plugin
+apply plugin: 'com.github.dcendents.android-maven'
+//Gradle Bintray Plugin
+apply plugin: 'com.jfrog.bintray'
+
+// 配置信息
+
+def siteUrl = 'https://github.com/tencentyun/cos_android_sdk'  // 项目的主页
+def gitUrl = 'https://github.com/tencentyun/cos_android_sdk.git' // Git仓库的url
+
+// gradle 引用格式： groupId:artifactId:version
+group = 'com.tencent.qcloud' // groupId
+version = '5.4.6' //version,以后更新library时,它也要更新
+
+//配置android-maven-gradle-plugin插件,生成对应的pom文件
+install{
+    repositories.mavenInstaller{
+        pom{
+            project{
+                packaging 'aar' //可以不填写，默认是aar类型
+                artifactId 'cosxml'   // 项目的名称 或者不填，不能填写其它值，否则出错
+                description 'tencent cos sdk for android.' //项目的描述
+                url siteUrl
+
+                //set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'tencent' //YOUR ID
+                        name 'tencentqcloudterminal' //YOUR NAME
+                        email 'maggieyimengying@gmail.com' //YOUR EMAIL
+                    }
+                }
+                scm {
+                    connection gitUrl // YOUR GIT REPO
+                    developerConnection gitUrl // YOUR GIT REPO
+                    url siteUrl // YOUR SITE
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    //from android.sourceSets.main.java.srcDirs
+    from('build/intermediates/bundles/normalRelease/')
+    exclude 'com/tencent/cos/BuildConfig.class'
+    exclude 'com/tencent/cos/BuildConfig\$.class'
+    exclude '**/R.class'
+    exclude('**/R\$*.class')
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    options.encoding = "UTF-8"
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    failOnError false
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+//拷贝javadoc文件
+task copyDoc(type: Copy) {
+    from "${buildDir}/docs/"
+    into "docs"
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+def jcenterPackageName = 'QCloudCosXml'//即在jcenter上创建项目的名称
+
+//配置gradle-bintray-plugin插件，上传到jecenter
+bintray{
+
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+
+    pkg{
+        userOrg = 'tencentqcloudterminal'
+        repo = 'maven' //仓库类型
+        name = jcenterPackageName //YOUR PACKAGE NAME
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"] // A LIST OF YOUR LICENCES
+        publish = true
+    }
+}

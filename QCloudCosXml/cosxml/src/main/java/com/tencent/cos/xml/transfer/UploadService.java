@@ -20,6 +20,7 @@ import com.tencent.cos.xml.model.object.PutObjectResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
+import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class UploadService {
 
+    private static String TAG = "UploadService";
     private CosXmlSimpleService cosXmlService;
     private String bucket;
     private String cosPath;
@@ -343,10 +345,16 @@ public class UploadService {
             @Override
             public void onProgress(long complete, long target) {
                 synchronized (objectSync){
-                    long dataLen = ALREADY_SEND_DATA_LEN.addAndGet(complete - uploadPartRequestLongMap.get(uploadPartRequest));
-                    uploadPartRequestLongMap.put(uploadPartRequest, complete);
-                    if(cosXmlProgressListener != null){
-                        cosXmlProgressListener.onProgress(dataLen,fileLength);
+                    try{
+                        long dataLen = ALREADY_SEND_DATA_LEN.addAndGet(complete - uploadPartRequestLongMap.get(uploadPartRequest));
+                        uploadPartRequestLongMap.put(uploadPartRequest, complete);
+                        if(cosXmlProgressListener != null){
+                            cosXmlProgressListener.onProgress(dataLen,fileLength);
+                        }
+                    }catch (Exception e){
+                        if(ERROR_EXIT_FLAG > 0){
+                            QCloudLogger.d(TAG, "upload file has been abort");
+                        }
                     }
                 }
             }

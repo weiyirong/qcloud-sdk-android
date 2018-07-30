@@ -136,6 +136,9 @@ final public class UploadPartRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
+        if(cosPath.equalsIgnoreCase("/")){
+            throw new CosXmlClientException("cosPath must not be / ");
+        }
         if(partNumber <= 0){
             throw new CosXmlClientException("partNumber must be >= 1");
         }

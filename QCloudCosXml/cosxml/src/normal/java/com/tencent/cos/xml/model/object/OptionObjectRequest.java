@@ -43,6 +43,9 @@ final public class OptionObjectRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
+        if(cosPath.equalsIgnoreCase("/")){
+            throw new CosXmlClientException("cosPath must not be / ");
+        }
         if(origin == null){
             throw new CosXmlClientException("option request origin must not be null");
         }

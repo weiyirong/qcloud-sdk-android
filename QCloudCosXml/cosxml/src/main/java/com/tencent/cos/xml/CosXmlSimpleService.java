@@ -99,12 +99,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
 
         if(cosXmlRequest instanceof GetObjectRequest){
             String absolutePath = ((GetObjectRequest) cosXmlRequest).getDownloadPath();
-            Range range = ((GetObjectRequest) cosXmlRequest).getRange();
-            long start = 0;
-            if(range != null){
-                start = range.getStart();
-            }
-            httpRequestBuilder.converter(new ResponseFileBodySerializer<T2>((GetObjectResult) cosXmlResult, absolutePath, start));
+            httpRequestBuilder.converter(new ResponseFileBodySerializer<T2>((GetObjectResult) cosXmlResult, absolutePath, 0));
         }else {
             httpRequestBuilder.converter(new ResponseXmlS3BodySerializer<T2>(cosXmlResult));
         }
