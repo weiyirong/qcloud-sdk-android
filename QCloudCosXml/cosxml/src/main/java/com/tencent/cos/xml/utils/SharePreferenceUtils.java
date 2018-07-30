@@ -9,30 +9,41 @@ import android.content.SharedPreferences;
 
 public class SharePreferenceUtils {
     private SharedPreferences sharedPreferences;
+    private static SharePreferenceUtils instance;
 
-    public SharePreferenceUtils(Context context){
-       sharedPreferences = context.getSharedPreferences("downloader", Context.MODE_PRIVATE);
+    private SharePreferenceUtils(Context context){
+       sharedPreferences = context.getSharedPreferences("upload_download", Context.MODE_PRIVATE);
     }
 
-
-    public synchronized void updateValue(String localFilePath, String eTag){
-        if(localFilePath != null){
-            sharedPreferences.edit().putString(localFilePath, eTag).apply();
+    public static SharePreferenceUtils instance(Context context){
+        synchronized (SharePreferenceUtils.class){
+            if(instance == null){
+                instance = new SharePreferenceUtils(context);
+            }
         }
+        return instance;
     }
 
-    public synchronized String getValue(String localFilePath){
-        if(localFilePath != null){
-            return sharedPreferences.getString(localFilePath, null);
+    public synchronized boolean updateValue(String key, String value){
+        if(key != null){
+            return sharedPreferences.edit().putString(key, value).commit();
+        }
+        return false;
+    }
+
+    public synchronized String getValue(String key){
+        if(key != null){
+            return sharedPreferences.getString(key, null);
         }else {
             return null;
         }
     }
 
-    public synchronized void clear(String localFilePath){
-        if(localFilePath != null){
-            sharedPreferences.edit().remove(localFilePath).apply();
+    public synchronized boolean clear(String key){
+        if(key != null){
+           return sharedPreferences.edit().remove(key).commit();
         }
+        return false;
     }
 
 }

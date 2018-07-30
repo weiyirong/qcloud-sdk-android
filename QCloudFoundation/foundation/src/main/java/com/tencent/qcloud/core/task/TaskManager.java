@@ -18,7 +18,7 @@ public final class TaskManager {
 
     static final String TASK_LOG_TAG = "QCloudTask";
 
-    private Map<String, Task> taskPool;
+    private Map<String, QCloudTask> taskPool;
 
     private static volatile TaskManager instance;
 
@@ -38,23 +38,23 @@ public final class TaskManager {
         taskPool = new ConcurrentHashMap<>(30);
     }
 
-    void add(Task task) {
+    void add(QCloudTask task) {
         taskPool.put(task.getIdentifier(), task);
         QCloudLogger.d(TASK_LOG_TAG, "[Pool] ADD %s, %d cached", task.getIdentifier(), taskPool.size());
     }
 
-    void remove(Task task) {
+    void remove(QCloudTask task) {
         if (taskPool.remove(task.getIdentifier()) != null) {
             QCloudLogger.d(TASK_LOG_TAG, "[Pool] REMOVE %s, %d cached",
                     task.getIdentifier(), taskPool.size());
         }
     }
 
-    public Task get(String identifier) {
+    public QCloudTask get(String identifier) {
         return taskPool.get(identifier);
     }
 
-    public List<Task> snapshot() {
+    public List<QCloudTask> snapshot() {
         return new ArrayList<>(taskPool.values());
     }
 

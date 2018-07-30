@@ -7,26 +7,27 @@ import com.tencent.qcloud.core.auth.QCloudSigner;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
-import com.tencent.qcloud.core.task.CancelableTask;
+import com.tencent.qcloud.core.task.QCloudTask;
 import com.tencent.qcloud.core.task.TaskExecutors;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import bolts.CancellationTokenSource;
 import okhttp3.Call;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import okhttp3.internal.Util;
 import okio.Buffer;
 
 /**
- *
- *
  * Created by wjielai on 2017/11/27.
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
-public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
+public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     private static AtomicInteger increments = new AtomicInteger(1);
 
     private final HttpRequest<T> httpRequest;
@@ -35,6 +36,7 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
     private Call httpCall;
     private HttpResponse<T> httpResponse;
     private HttpResult<T> httpResult;
+    private HttpMetric httpMetric;
 
     private QCloudProgressListener mProgressListener = new QCloudProgressListener() {
         @Override
@@ -44,7 +46,7 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
     };
 
     HttpTask(HttpRequest<T> httpRequest, QCloudCredentialProvider credentialProvider,
-                    QCloudHttpClient httpClient) {
+             QCloudHttpClient httpClient) {
         super("HttpTask-" + httpRequest.tag() + "-" + increments.getAndIncrement(), httpRequest.tag());
         this.httpRequest = httpRequest;
         this.httpClient = httpClient;
@@ -53,11 +55,11 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
 
     public HttpTask<T> schedule() {
         if (httpRequest.getRequestBody() instanceof ProgressBody) {
-            scheduleOn(TaskExecutors.UPLOAD_EXECUTOR);
+            scheduleOn(TaskExecutors.UPLOAD_EXECUTOR, new CancellationTokenSource());
         } else if (httpRequest.getResponseBodyConverter() instanceof ProgressBody) {
-            scheduleOn(TaskExecutors.DOWNLOAD_EXECUTOR);
+            scheduleOn(TaskExecutors.DOWNLOAD_EXECUTOR, new CancellationTokenSource());
         } else {
-            scheduleOn(TaskExecutors.COMMAND_EXECUTOR);
+            scheduleOn(TaskExecutors.COMMAND_EXECUTOR, new CancellationTokenSource());
         }
         return this;
     }
@@ -71,13 +73,16 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
         return httpResult;
     }
 
-    boolean isStreamingTask() {
-        return httpRequest.getRequestBody() instanceof ProgressBody ||
-                httpRequest.getResponseBodyConverter() instanceof ProgressBody;
+    public HttpTask<T> attachMetric(HttpMetric httpMetric) {
+        this.httpMetric = httpMetric;
+        return this;
     }
 
     boolean isUploadTask() {
-        return httpRequest.getRequestBody() instanceof ProgressBody;
+        if (httpRequest.getRequestBody() instanceof StreamingRequestBody) {
+            return ((StreamingRequestBody) httpRequest.getRequestBody()).isLargeData();
+        }
+        return false;
     }
 
     boolean isDownloadTask() {
@@ -99,7 +104,10 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
     }
 
     @Override
-    protected HttpResult<T> onCommand() throws QCloudClientException, QCloudServiceException {
+    protected HttpResult<T> execute() throws QCloudClientException, QCloudServiceException {
+        if (httpMetric != null) {
+            httpMetric.start();
+        }
         if (httpRequest.shouldCalculateContentMD5()) {
             calculateContentMD5();
         }
@@ -112,42 +120,74 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
             ((ProgressBody) httpRequest.getRequestBody()).setProgressListener(mProgressListener);
         }
 
+        QCloudClientException clientException = null;
+        QCloudServiceException serviceException = null;
+        Response response = null;
+
         try {
             httpRequest.setOkHttpRequestTag(getIdentifier());
             Request okHttpRequest = httpRequest.buildRealRequest();
             httpCall = httpClient.getOkHttpCall(okHttpRequest);
 
-            Response response = httpCall.execute();
+            if (httpMetric != null) {
+                httpMetric.setRequestUrl(okHttpRequest.url().toString());
+                httpMetric.setRequestMethod(okHttpRequest.method());
+                RequestBody requestBody = okHttpRequest.body();
+                if (requestBody != null) {
+                    httpMetric.setRequestPayloadSize(requestBody.contentLength());
+                    MediaType mediaType = requestBody.contentType();
+                    if (mediaType != null) {
+                        httpMetric.setRequestContentType(mediaType.type());
+                    }
+                }
+            }
+            response = httpCall.execute();
 
             if (response != null) {
                 if (httpResult == null) {
                     convertResponse(response);
-                } else {
-                    Util.closeQuietly(response.body());
                 }
             } else {
-                throw new QCloudServiceException("http response is null");
+                serviceException = new QCloudServiceException("http response is null");
             }
 
         } catch (IOException e) {
             if (e.getCause() instanceof QCloudClientException) {
-                throw (QCloudClientException) e.getCause();
+                clientException = (QCloudClientException) e.getCause();
             } else if (e.getCause() instanceof QCloudServiceException) {
-                throw (QCloudServiceException) e.getCause();
+                serviceException = (QCloudServiceException) e.getCause();
             } else {
-                throw new QCloudClientException(e);
+                clientException = new QCloudClientException(e);
             }
+        } finally {
+            Util.closeQuietly(response);
         }
 
-        return httpResult;
+        if (httpMetric != null) {
+            httpMetric.stop();
+        }
+
+        if (clientException != null) {
+            if (httpMetric != null) {
+                httpMetric.traceException(clientException);
+            }
+            throw clientException;
+        } else if (serviceException != null) {
+            if (httpMetric != null) {
+                httpMetric.traceException(serviceException);
+            }
+            throw serviceException;
+        } else {
+            return httpResult;
+        }
     }
 
     @Override
-    protected boolean onCancel() {
+    public void cancel() {
         if (httpCall != null) {
             httpCall.cancel();
         }
-        return true;
+        super.cancel();
     }
 
     private void signRequest(QCloudSigner signer, HttpRequest request) throws QCloudClientException {
@@ -185,16 +225,23 @@ public final class HttpTask<T> extends CancelableTask<HttpResult<T>> {
     }
 
     void convertResponse(Response response) throws QCloudClientException, QCloudServiceException {
-        try {
-            httpResponse = new HttpResponse<>(httpRequest, response);
-            ResponseBodyConverter<T> converter = httpRequest.getResponseBodyConverter();
-            if (converter instanceof ProgressBody) {
-                ((ProgressBody) converter).setProgressListener(mProgressListener);
+        if (httpMetric != null) {
+            httpMetric.setStatusCode(response.code());
+            ResponseBody responseBody = response.body();
+            if (responseBody != null) {
+                httpMetric.setResponsePayloadSize(responseBody.contentLength());
+                MediaType mediaType = responseBody.contentType();
+                if (mediaType != null) {
+                    httpMetric.setResponseContentType(mediaType.type());
+                }
             }
-            T content = converter.convert(httpResponse);
-            httpResult =  new HttpResult<>(httpResponse, content);
-        } finally {
-            Util.closeQuietly(response.body());
         }
+        httpResponse = new HttpResponse<>(httpRequest, response);
+        ResponseBodyConverter<T> converter = httpRequest.getResponseBodyConverter();
+        if (converter instanceof ProgressBody) {
+            ((ProgressBody) converter).setProgressListener(mProgressListener);
+        }
+        T content = converter.convert(httpResponse);
+        httpResult = new HttpResult<>(httpResponse, content);
     }
 }

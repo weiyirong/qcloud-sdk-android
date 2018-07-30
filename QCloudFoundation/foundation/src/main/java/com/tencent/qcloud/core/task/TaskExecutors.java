@@ -1,6 +1,7 @@
 package com.tencent.qcloud.core.task;
 
-import java.util.concurrent.Executor;
+import android.support.annotation.NonNull;
+
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,10 +42,6 @@ public class TaskExecutors {
         DOWNLOAD_EXECUTOR.allowCoreThreadTimeOut(true);
     }
 
-    static void schedule(Executor executor, Task task) {
-        executor.execute(task);
-    }
-
     static final class TaskThreadFactory implements ThreadFactory {
         private final AtomicInteger increment = new AtomicInteger(1);
         private final String tag;
@@ -54,7 +51,7 @@ public class TaskExecutors {
         }
 
         @Override
-        public final Thread newThread(Runnable runnable) {
+        public final Thread newThread(@NonNull Runnable runnable) {
             Thread newThread = new Thread(runnable, "QCloud-" + tag + increment.getAndIncrement());
             newThread.setDaemon(false);
             newThread.setPriority(9);

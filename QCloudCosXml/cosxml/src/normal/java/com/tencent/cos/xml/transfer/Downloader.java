@@ -38,7 +38,7 @@ public class Downloader {
     private SharePreferenceUtils sharePreferedUtils;
 
     public Downloader(Context appContext, CosXml cosXmlServer){
-        sharePreferedUtils = new SharePreferenceUtils(appContext);
+        sharePreferedUtils = SharePreferenceUtils.instance(appContext);
         this.cosXmlServer = cosXmlServer;
     }
 

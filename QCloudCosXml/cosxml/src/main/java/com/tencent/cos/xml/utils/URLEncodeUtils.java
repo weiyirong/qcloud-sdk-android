@@ -20,9 +20,9 @@ public class URLEncodeUtils {
                 result.append(URLEncoder.encode(division[i], "utf-8")).append("/");
             }
             if(!cosPath.endsWith("/")){
-                result.append(URLEncoder.encode(division[division.length - 1], "utf-8"));
+                result.append(division.length > 0 ? (URLEncoder.encode(division[division.length - 1], "utf-8")) : "");
             }else {
-                result.append(URLEncoder.encode(division[division.length - 1], "utf-8")).append("/");
+                result.append(division.length > 0 ? (URLEncoder.encode(division[division.length - 1], "utf-8")) : "").append("/");
             }
             return result.toString();
         }catch (UnsupportedEncodingException e) {

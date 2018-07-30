@@ -3,7 +3,6 @@ package com.tencent.cos.xml.model.object;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.RequestMethod;
-import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.ACLAccount;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
@@ -157,13 +156,5 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
     @Override
     public RequestBodySerializer getRequestBody() {
         return RequestBodySerializer.bytes(null, new byte[0]);
-    }
-
-    @Override
-    public void checkParameters() throws CosXmlClientException {
-        super.checkParameters();
-        if(cosPath.equalsIgnoreCase("/")){
-            throw new CosXmlClientException("cosPath must not be / ");
-        }
     }
 }

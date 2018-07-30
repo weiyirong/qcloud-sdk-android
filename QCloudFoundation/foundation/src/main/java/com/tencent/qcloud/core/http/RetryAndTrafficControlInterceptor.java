@@ -3,14 +3,14 @@ package com.tencent.qcloud.core.http;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.logger.QCloudLogger;
+import com.tencent.qcloud.core.task.RetryStrategy;
 import com.tencent.qcloud.core.task.TaskManager;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.net.ConnectException;
+import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.security.cert.CertificateException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -32,26 +32,10 @@ import static com.tencent.qcloud.core.http.QCloudHttpClient.HTTP_LOG_TAG;
 
 class RetryAndTrafficControlInterceptor implements Interceptor {
 
-    // 重试的指数退避
-    private static final int BACKOFF_MULTIPLIER = 2;
-
-    // 重试的初始间隔
-    private static final int RETRY_DELAY_BASE = 1000;
-
-    // 普通任务最少重试次数
-    private static final int MIN_NORMAL_ATTEMPTS = 3;
-    // 普通任务最长重试间隔
-    private static final int MAX_NORMAL_RETRY_WAIT_TIME = 2000;
-
-    // 上传下载任务最少重试次数
-    private static final int MIN_STREAMING_ATTEMPTS = 4;
-    // 上传下载任务最长重试间隔
-    private static final int MAX_STREAMING_RETRY_WAIT_TIME = 10000;
-    // 上传下载任务最小失败时长
-    private static final int MIN_STREAMING_TASK_FAIL_MILLIS_TOOK = 60000;
-
     private TrafficStrategy uploadTrafficStrategy = new ModerateTrafficStrategy("UploadStrategy-", 2);
     private TrafficStrategy downloadTrafficStrategy = new AggressiveTrafficStrategy("DownloadStrategy-", 3);
+
+    private RetryStrategy retryStrategy;
 
     private static class ResizableSemaphore extends Semaphore {
 
@@ -201,7 +185,8 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
         }
     }
 
-    RetryAndTrafficControlInterceptor() {
+    RetryAndTrafficControlInterceptor(RetryStrategy retryStrategy) {
+        this.retryStrategy = retryStrategy;
     }
 
     @Override
@@ -223,7 +208,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
         long startTime = System.currentTimeMillis();
         TrafficStrategy strategy = getSuitableStrategy(task);
 
-        while (shouldRetry(task, attempts, System.currentTimeMillis() - startTime)) {
+        while (attempts < 1 || retryStrategy.shouldRetry(attempts, System.currentTimeMillis() - startTime)) {
             long waitTook = 0;
             if (strategy != null) {
                 long before = System.currentTimeMillis();
@@ -232,7 +217,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
             }
 
             if (attempts > 0) {
-                long delay = getRetryDelay(task, e, attempts);
+                long delay = retryStrategy.getNextDelay(attempts);
                 try {
                     if (delay > waitTook + 500) {
                         TimeUnit.MILLISECONDS.sleep(delay - waitTook);
@@ -245,6 +230,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
             attempts++;
 
             long startNs = System.nanoTime();
+            int statusCode = -1;
             try {
                 response = executeTaskOnce(chain, request, task);
                 if (task.isDownloadTask()) {
@@ -257,6 +243,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 e = e1.getCause() instanceof IOException ? (IOException) e1.getCause() : new IOException(e1);
             } catch (QCloudServiceException e2) {
                 e = e2.getCause() instanceof IOException ? (IOException) e2.getCause() : new IOException(e2);
+                statusCode = e2.getStatusCode();
             }
             long networkMillsTook = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
 
@@ -265,7 +252,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                     strategy.reportSpeed(request, task.getAverageStreamingSpeed(networkMillsTook));
                 }
                 break;
-            } else if (!isUserCancelled(e) && isRecoverable(e)) {
+            } else if (!isUserCancelled(e) && isRecoverable(e) && isRecoverable(statusCode)) {
                 QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s", request, e);
                 if (strategy != null) {
                     if (e instanceof SocketTimeoutException) {
@@ -331,30 +318,9 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
         return chain.proceed(request);
     }
 
-    private boolean shouldRetry(HttpTask task, int attempts, long millsTook) {
-        if (task.isStreamingTask()) {
-            return attempts < MIN_STREAMING_ATTEMPTS || millsTook < MIN_STREAMING_TASK_FAIL_MILLIS_TOOK;
-        }
-        return attempts < MIN_NORMAL_ATTEMPTS;
-    }
-
-    private long getRetryDelay(HttpTask task, IOException e, int attempts) {
-        if (task.isStreamingTask()) {
-            if (e instanceof ConnectException || e instanceof UnknownHostException) {
-                // connection is closed, we should wait for a little more time
-                return MAX_STREAMING_RETRY_WAIT_TIME;
-            }
-            long delay = Math.min(RETRY_DELAY_BASE * (int) Math.pow(BACKOFF_MULTIPLIER, attempts),
-                    MAX_STREAMING_RETRY_WAIT_TIME);
-            if (e instanceof SocketTimeoutException) {
-                // wait a little more for socket timeout situation
-                return Math.max(delay, MAX_STREAMING_RETRY_WAIT_TIME / 2);
-            } else {
-                return delay;
-            }
-        }
-        return Math.min(RETRY_DELAY_BASE * (int) Math.pow(BACKOFF_MULTIPLIER, (attempts - 1)),
-                MAX_NORMAL_RETRY_WAIT_TIME);
+    private boolean isRecoverable(int statusCode) {
+        return statusCode != java.net.HttpURLConnection.HTTP_UNAUTHORIZED &&
+                statusCode != HttpURLConnection.HTTP_NOT_FOUND;
     }
 
     private boolean isRecoverable(IOException e) {

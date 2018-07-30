@@ -3,7 +3,8 @@ package com.tencent.qcloud.core.http;
 
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.logger.QCloudLogger;
-import com.tencent.qcloud.core.task.Task;
+import com.tencent.qcloud.core.task.QCloudTask;
+import com.tencent.qcloud.core.task.RetryStrategy;
 import com.tencent.qcloud.core.task.TaskManager;
 
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public final class QCloudHttpClient {
 
     private final Set<String> verifiedHost;
 
-    private static final QCloudHttpClient DEFAULT = new QCloudHttpClient.Builder().build();
+    private static volatile QCloudHttpClient gDefault;
 
     private HostnameVerifier mHostnameVerifier = new HostnameVerifier() {
         @Override
@@ -51,7 +52,15 @@ public final class QCloudHttpClient {
     };
 
     public static QCloudHttpClient getDefault() {
-        return DEFAULT;
+        if (gDefault == null) {
+            synchronized (QCloudHttpClient.class) {
+                if (gDefault == null) {
+                    gDefault = new QCloudHttpClient.Builder().build();
+                }
+            }
+        }
+
+        return gDefault;
     }
 
     public void addVerifiedHost(String hostname) {
@@ -61,7 +70,7 @@ public final class QCloudHttpClient {
     }
 
     public void setDebuggable(boolean debuggable) {
-        logInterceptor.setLevel(debuggable || QCloudLogger.isTagLoggable(HTTP_LOG_TAG) ?
+        logInterceptor.setLevel(debuggable || QCloudLogger.isLoggableOnLogcat(QCloudLogger.DEBUG, HTTP_LOG_TAG) ?
                 HttpLoggingInterceptor.Level.BODY :
                 HttpLoggingInterceptor.Level.NONE);
     }
@@ -89,7 +98,7 @@ public final class QCloudHttpClient {
         builder.addInterceptor(logInterceptor);
         setDebuggable(false);
 
-        builder.addInterceptor(new RetryAndTrafficControlInterceptor());
+        builder.addInterceptor(new RetryAndTrafficControlInterceptor(b.retryStrategy));
 
         okHttpClient = builder.build();
     }
@@ -100,8 +109,8 @@ public final class QCloudHttpClient {
             return tasks;
         }
 
-        List<Task> taskManagerSnapshot = taskManager.snapshot();
-        for (Task task : taskManagerSnapshot) {
+        List<QCloudTask> taskManagerSnapshot = taskManager.snapshot();
+        for (QCloudTask task : taskManagerSnapshot) {
             if (task instanceof HttpTask && tag.equals(task.getTag())) {
                 tasks.add((HttpTask) task);
             }
@@ -130,9 +139,10 @@ public final class QCloudHttpClient {
         return new HttpTask<>(request, credentialProvider, this);
     }
 
-    private final static class Builder {
+    public final static class Builder {
         int connectionTimeout = 15 * 1000;  //in milliseconds
         int socketTimeout = 30 * 1000;  //in milliseconds
+        RetryStrategy retryStrategy;
 
         public Builder() {
         }
@@ -153,7 +163,15 @@ public final class QCloudHttpClient {
             return this;
         }
 
+        public Builder setRetryStrategy(RetryStrategy retryStrategy) {
+            this.retryStrategy = retryStrategy;
+            return this;
+        }
+
         public QCloudHttpClient build() {
+            if (retryStrategy == null) {
+                retryStrategy = RetryStrategy.DEFAULT;
+            }
             return new QCloudHttpClient(this);
         }
     }

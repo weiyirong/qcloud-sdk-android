@@ -14,10 +14,10 @@ public enum COSStorageClass {
     STANDARD("Standard"),
 
     /** 冷存储 */
-    STANDARD_IA("Standard_IA"),
-
-    /** 近线存储 */
-    NEARLINE("Nearline");
+    STANDARD_IA("Standard_IA");
+//
+//    /** 近线存储 */
+//    NEARLINE("Nearline");
 
 
     private String cosStorageClass;

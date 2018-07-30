@@ -64,12 +64,4 @@ public class RestoreRequest extends ObjectRequest {
             restoreConfigure.casJobParameters.tier = tier.getTier();
         }
     }
-
-    @Override
-    public void checkParameters() throws CosXmlClientException {
-        super.checkParameters();
-        if(cosPath.equalsIgnoreCase("/")){
-            throw new CosXmlClientException("cosPath must not be / ");
-        }
-    }
 }

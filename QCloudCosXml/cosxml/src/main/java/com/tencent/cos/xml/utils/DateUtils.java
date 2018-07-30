@@ -34,4 +34,9 @@ public class DateUtils {
         return simpleDateFormat.format(new Date(dateSeconds));
     }
 
+    public static String getFormatTime(String dateFormat, long timeMills){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.ENGLISH);
+        return simpleDateFormat.format(new Date(timeMills));
+    }
+
 }

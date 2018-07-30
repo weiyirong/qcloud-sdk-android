@@ -3,6 +3,7 @@ package com.tencent.cos.xml;
 
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
+import com.tencent.cos.xml.listener.CosXmlBooleanListener;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSResult;
@@ -69,6 +70,7 @@ import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.model.service.GetServiceResult;
+import com.tencent.cos.xml.model.tag.COSMetaData;
 
 /**
  * <p>
@@ -2322,7 +2324,7 @@ public interface CosXml extends SimpleCosXml {
      * GetBucketVersioningRequest request = new GetBucketVersioningRequest(bucket);
      * request.setSign(signDuration,null,null); //签名
      * try {
-     *     GetBucketVersioningResult result = cosXml.putObject(putObjectRequest);
+     *     GetBucketVersioningResult result = cosXml.getBucketVersioning(request);
      *     Log.w("TEST","success");
      * } catch (CosXmlClientException e) {
      *     Log.w("TEST","CosXmlClientException =" + e.toString());
@@ -2398,7 +2400,7 @@ public interface CosXml extends SimpleCosXml {
      * PutBucketVersioningRequest request = new PutBucketVersioningRequest(bucket);
      * request.setSign(signDuration,null,null); //签名
      * try {
-     *     PutBucketVersioningResult result = cosXml.putObject(putObjectRequest);
+     *     PutBucketVersioningResult result = cosXml.putBucketVersioning(request);
      *     Log.w("TEST","success");
      * } catch (CosXmlClientException e) {
      *     Log.w("TEST","CosXmlClientException =" + e.toString());
@@ -2553,7 +2555,7 @@ public interface CosXml extends SimpleCosXml {
      * request.setReplicationConfigurationWithRule(ruleStruct);
      * request.setSign(signDuration,null,null); //签名
      * try {
-     *     PutBucketReplicationResult result = cosXml.putObject(request);
+     *     PutBucketReplicationResult result = cosXml.putBucketReplication(request);
      *     Log.w("TEST","success");
      * } catch (CosXmlClientException e) {
      *     Log.w("TEST","CosXmlClientException =" + e.toString());
@@ -2756,5 +2758,103 @@ public interface CosXml extends SimpleCosXml {
      * @param cosXmlResultListener 请求回调结果 {@link CosXmlResultListener}
      */
     void listBucketVersionsAsync(ListBucketVersionsRequest request, CosXmlResultListener cosXmlResultListener);
+
+
+    /**
+     * <p>
+     * 判断指定的 bucket 是否存在。
+     * </p>
+     *
+     * @param bucketName bucket 名称，如 test 等
+     * @return true/false
+     * @throws CosXmlClientException 抛出客户端异常
+     * @throws CosXmlServiceException 抛出服务端异常
+     */
+    boolean doesBucketExist(String bucketName) throws CosXmlClientException, CosXmlServiceException;
+
+
+    /**
+     * <p>
+     * 判断指定的 bucket 是否存在的异步方法。
+     * </p>
+     *
+     * @param bucketName bucket 名称，如 test 等
+     * @param booleanListener 结果回调函数
+     */
+    void doesBucketExistAsync(String bucketName, CosXmlBooleanListener booleanListener);
+
+
+    /**
+     * <p>
+     * 判断指定的对象是否存在，注意这里只能判断 {@link CosXmlService#region} 地域下是否存在。
+     * </p>
+     *
+     * @param bucketName bucket 名称
+     * @param objectName 对象的路径
+     * @return
+     * @throws CosXmlClientException 抛出的客户端异常
+     * @throws CosXmlServiceException 抛出的服务端异常
+     */
+    boolean doesObjectExist(String bucketName, String objectName) throws CosXmlClientException, CosXmlServiceException;
+
+
+    /**
+     * <p>
+     * 判断对象是否存在的异步方法。
+     * </p>
+     *
+     * @param bucketName bucket 名称
+     * @param objectName 对象的路径
+     * @param booleanListener 结果回调函数
+     */
+    void doesObjectExistAsync(String bucketName, String objectName, CosXmlBooleanListener booleanListener);
+
+
+    /**
+     * <p>
+     * 删除对象。
+     * </p>
+     *
+     * @param bucketName bucket 名称
+     * @param objectName 需要删除的对象的路径
+     * @return 删除是否成功
+     * @throws CosXmlClientException 抛出客户端异常
+     * @throws CosXmlServiceException 抛出服务端异常
+     */
+    boolean deleteObject(String bucketName, String objectName) throws CosXmlClientException, CosXmlServiceException;
+
+    /**
+     * <p>
+     * 删除对象的异步接口。
+     * </p>
+     *
+     * @param bucketName bucket 名称
+     * @param objectName 需要删除的对象路径
+     * @param booleanListener 删除结果回调函数
+     */
+    void deleteObjectAsync(String bucketName, String objectName, CosXmlBooleanListener booleanListener);
+
+    /**
+     *
+     * @param bucketName
+     * @param objectName
+     * @param metaData
+     * @return
+     * @throws CosXmlClientException
+     * @throws CosXmlServiceException
+     */
+    boolean updateObjectMeta(String bucketName, String objectName, COSMetaData metaData) throws CosXmlClientException, CosXmlServiceException;
+
+
+    /**
+     *
+     *
+     * @param bucketName
+     * @param objectName
+     * @param metaData
+     * @param booleanListener
+     */
+    void updateObjectMetaAsync(String bucketName, String objectName, COSMetaData metaData, final CosXmlBooleanListener booleanListener);
+
 
 }

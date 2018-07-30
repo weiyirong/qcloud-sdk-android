@@ -9,7 +9,7 @@ import com.tencent.qcloud.core.common.QCloudProgressListener;
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 
-interface ProgressBody {
+public interface ProgressBody {
 
     void setProgressListener(QCloudProgressListener progressListener);
 

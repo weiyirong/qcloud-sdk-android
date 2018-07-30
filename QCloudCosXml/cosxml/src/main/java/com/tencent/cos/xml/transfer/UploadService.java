@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.transfer;
 
 
+import android.content.Context;
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
@@ -20,6 +21,7 @@ import com.tencent.cos.xml.model.object.PutObjectResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
+import com.tencent.cos.xml.utils.SharePreferenceUtils;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.io.File;
@@ -37,7 +39,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 
 public class UploadService {
-
     private static String TAG = "UploadService";
     private CosXmlSimpleService cosXmlService;
     private String bucket;
@@ -62,14 +63,63 @@ public class UploadService {
     private UploadServiceResult uploadServiceResult;
     private long startTime = -1L;
     private long endTime = -1L;
+    ResumeData resumeData;
     private List<String> headers = new ArrayList<>();
+    private SharePreferenceUtils sharePreferenceUtils;
+    private OnUploadInfoListener onUploadInfoListener;
 
     public UploadService(CosXmlSimpleService cosXmlService, ResumeData resumeData){
         this.cosXmlService = cosXmlService;
         init(resumeData);
     }
 
-    private void init(ResumeData resumeData){
+    //用于crash 续传
+    public UploadService(CosXmlSimpleService cosXmlService, String bucket, String cosPath, String srcPath, long sliceSize, Context context){
+        String uploadId = null;
+        if(context != null){
+            sharePreferenceUtils = SharePreferenceUtils.instance(context.getApplicationContext());
+            String key = getKey(cosXmlService, bucket, cosPath, srcPath, sliceSize);
+            if(key != null){
+               uploadId = sharePreferenceUtils.getValue(key);
+            }
+        }
+        ResumeData resumeData = new ResumeData();
+        resumeData.bucket = bucket;
+        resumeData.cosPath = cosPath;
+        resumeData.sliceSize = sliceSize;
+        resumeData.srcPath = srcPath;
+        resumeData.uploadId = uploadId;
+        this.cosXmlService = cosXmlService;
+        init(resumeData);
+    }
+
+    String getKey(CosXmlSimpleService cosXmlService, String bucket, String cosPath, String srcPath, long sliceSize){
+        File file = new File(srcPath);
+        if(file.exists()){
+            StringBuffer stringBuffer = new StringBuffer();
+            String appid = cosXmlService != null ? cosXmlService.getAppid() : null;
+            stringBuffer.append(appid).append(";").append(bucket).append(";").append(cosPath).append(";")
+                    .append(srcPath).append(";").append(file.length()).append(";").append(file.lastModified()).append(";")
+                    .append(sliceSize);
+            return stringBuffer.toString();
+        }
+        return null;
+    }
+
+    void clearSharePreference(){
+        if(sharePreferenceUtils != null){
+            sharePreferenceUtils.clear(getKey(cosXmlService, bucket, cosPath, srcPath, sliceSize));
+        }
+    }
+
+    boolean updateSharePreference(String value){
+        if(sharePreferenceUtils != null){
+            return sharePreferenceUtils.updateValue(getKey(cosXmlService, bucket, cosPath, srcPath, sliceSize), value);
+        }
+        return false;
+    }
+
+    void init(ResumeData resumeData){
         bucket = resumeData.bucket;
         cosPath = resumeData.cosPath;
         srcPath = resumeData.srcPath;
@@ -80,6 +130,7 @@ public class UploadService {
         ERROR_EXIT_FLAG = 0;
         partStructMap = new LinkedHashMap<Integer, SlicePartStruct>();
         uploadPartRequestLongMap = new LinkedHashMap<UploadPartRequest, Long>();
+        this.resumeData = resumeData;
     }
 
     private void checkParameter() throws CosXmlClientException {
@@ -92,7 +143,6 @@ public class UploadService {
         }
         throw new CosXmlClientException("srcPath :" + srcPath + " is invalid or is not exist");
     }
-
 
     public void setSign(long startTime, long endTime){
         this.startTime = startTime;
@@ -112,6 +162,14 @@ public class UploadService {
             headers.add(key);
             headers.add(value);
         }
+    }
+
+    public void setProgressListener(CosXmlProgressListener cosXmlProgressListener){
+        this.cosXmlProgressListener = cosXmlProgressListener;
+    }
+
+    public void setOnUploadInfoListener(OnUploadInfoListener onUploadInfoListener){
+        this.onUploadInfoListener = onUploadInfoListener;
     }
 
     private void setRequestHeaders(CosXmlRequest cosXmlRequest) throws CosXmlClientException {
@@ -160,10 +218,6 @@ public class UploadService {
         completeMultiUploadRequest = null;
         partStructMap.clear();
         uploadPartRequestLongMap.clear();
-    }
-
-    public void setProgressListener(CosXmlProgressListener cosXmlProgressListener){
-        this.cosXmlProgressListener = cosXmlProgressListener;
     }
 
     /**
@@ -242,6 +296,17 @@ public class UploadService {
             InitMultipartUploadResult initMultipartUploadResult = initMultiUpload();
             uploadId = initMultipartUploadResult.initMultipartUpload.uploadId;
         }
+        if(onUploadInfoListener != null){
+            ResumeData resumeData = new ResumeData();
+            resumeData.bucket = bucket;
+            resumeData.cosPath = cosPath;
+            resumeData.sliceSize = sliceSize;
+            resumeData.srcPath = srcPath;
+            resumeData.uploadId = uploadId;
+            onUploadInfoListener.onInfo(resumeData);
+        }
+        updateSharePreference(uploadId);
+
         for(final Map.Entry<Integer, SlicePartStruct> entry : partStructMap.entrySet()){
             final SlicePartStruct slicePartStruct = entry.getValue();
             if(!slicePartStruct.isAlreadyUpload){
@@ -273,6 +338,10 @@ public class UploadService {
 
         //wait upload parts complete.
         while (UPLOAD_PART_COUNT.get() > 0 && ERROR_EXIT_FLAG == 0);
+
+        //clear sharePreference
+        clearSharePreference();
+
         //if error throw exception
         if(ERROR_EXIT_FLAG > 0){
             switch (ERROR_EXIT_FLAG){
@@ -345,7 +414,7 @@ public class UploadService {
             @Override
             public void onProgress(long complete, long target) {
                 synchronized (objectSync){
-                    try{
+                    try {
                         long dataLen = ALREADY_SEND_DATA_LEN.addAndGet(complete - uploadPartRequestLongMap.get(uploadPartRequest));
                         uploadPartRequestLongMap.put(uploadPartRequest, complete);
                         if(cosXmlProgressListener != null){
@@ -356,6 +425,7 @@ public class UploadService {
                             QCloudLogger.d(TAG, "upload file has been abort");
                         }
                     }
+
                 }
             }
         });
@@ -498,5 +568,13 @@ public class UploadService {
                     + "eTag:" + eTag + "\n"
                     + "accessUrl:" + accessUrl;
         }
+    }
+
+    void setUploadId(String uploadId) {
+        this.uploadId = uploadId;
+    }
+
+    public static interface OnUploadInfoListener{
+        void onInfo(ResumeData resumeData);
     }
 }

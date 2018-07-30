@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.http;
 
+import android.util.Log;
+
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 
 import java.io.IOException;
@@ -30,7 +32,7 @@ class CountingSink extends ForwardingSink {
     }
 
     private void reportProgress() {
-        if (progressListener == null) {
+        if (progressListener == null || bytesTotal < 0) {
             return;
         }
         long delta = bytesWritten - recentReportBytes;
@@ -54,7 +56,6 @@ class CountingSink extends ForwardingSink {
     @Override
     public void write(Buffer source, long byteCount) throws IOException {
         super.write(source, byteCount);
-
         writeBytesInternal(byteCount);
     }
 

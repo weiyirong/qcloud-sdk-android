@@ -63,9 +63,6 @@ final public class AbortMultiUploadRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
-        if(cosPath.equalsIgnoreCase("/")){
-            throw new CosXmlClientException("cosPath must not be / ");
-        }
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
         }

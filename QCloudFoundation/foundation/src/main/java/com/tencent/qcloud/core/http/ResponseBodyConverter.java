@@ -33,6 +33,19 @@ public abstract class ResponseBodyConverter<T> {
         }
     }
 
+    private static final class BytesConverter extends ResponseBodyConverter<byte[]> {
+
+        @Override
+        protected byte[] convert(HttpResponse<byte[]> response) throws QCloudClientException, QCloudServiceException {
+
+            try {
+                return response.bytes();
+            } catch (IOException e) {
+                throw new QCloudClientException(e);
+            }
+        }
+    }
+
     public static ResponseBodyConverter<Void> file(String filePath) {
         return file(filePath, -1);
     }
@@ -43,5 +56,9 @@ public abstract class ResponseBodyConverter<T> {
 
     public static ResponseBodyConverter<String> string() {
         return new StringConverter();
+    }
+
+    public static ResponseBodyConverter<byte[]> bytes() {
+        return new BytesConverter();
     }
 }

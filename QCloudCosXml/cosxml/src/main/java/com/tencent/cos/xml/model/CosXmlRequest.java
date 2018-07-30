@@ -4,6 +4,7 @@ import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.auth.COSXmlSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
+import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpTask;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
@@ -92,6 +93,10 @@ public abstract class CosXmlRequest{
         return bucket + ".cos." + region + "." + suffix;
     }
 
+    public void setSign(String sign){
+        addHeader(HttpConstants.Header.AUTHORIZATION, sign);
+    }
+
     public void setSign(long signDuration){
         signSourceProvider = new COSXmlSignSourceProvider().setDuration(signDuration);
     }
@@ -110,6 +115,14 @@ public abstract class CosXmlRequest{
 
     public void setSign(long signDuration, Set<String> parameters, Set<String> headers){
         COSXmlSignSourceProvider cosXmlSignSourceProvider = new COSXmlSignSourceProvider().setDuration(signDuration);
+        cosXmlSignSourceProvider.parameters(parameters);
+        cosXmlSignSourceProvider.headers(headers);
+        signSourceProvider = cosXmlSignSourceProvider;
+    }
+
+    public void setSign(long startTime, long endTime, Set<String> parameters, Set<String> headers){
+        COSXmlSignSourceProvider cosXmlSignSourceProvider = new COSXmlSignSourceProvider().setSignBeginTime(startTime)
+                .setSignExpiredTime(endTime);
         cosXmlSignSourceProvider.parameters(parameters);
         cosXmlSignSourceProvider.headers(headers);
         signSourceProvider = cosXmlSignSourceProvider;

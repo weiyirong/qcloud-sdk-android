@@ -17,6 +17,8 @@ import com.tencent.cos.xml.model.object.InitMultipartUploadRequest;
 import com.tencent.cos.xml.model.object.InitMultipartUploadResult;
 import com.tencent.cos.xml.model.object.ListPartsRequest;
 import com.tencent.cos.xml.model.object.ListPartsResult;
+import com.tencent.cos.xml.model.object.PostObjectRequest;
+import com.tencent.cos.xml.model.object.PostObjectResult;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 import com.tencent.cos.xml.model.object.PutObjectResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
@@ -800,6 +802,32 @@ public interface SimpleCosXml {
      */
     void putObjectAsync(PutObjectRequest request, final CosXmlResultListener cosXmlResultListener);
 
+    PostObjectResult postObject(PostObjectRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void postObjectAsync(PostObjectRequest request, final  CosXmlResultListener cosXmlResultListener);
+
+    /**
+     * <p>
+     * 下载文件并保存到字节数组中，请不要通过本接口下载大文件，否则容易造成内存溢出。
+     * </p>
+     *
+     * <p>
+     * 示例：
+     * <blockquote><pre>
+     * String bucketName = "bucket"; // 存储桶名称
+     * String objectName = "cosPath"; // 远端路径，即存储到 COS 上的绝对路径
+     *
+     * byte[] data = simpleCosXml.getObject(bucketName, objectName);
+     *
+     *</pre></blockquote>
+     *
+     * @param bucketName bucket 名称
+     * @param objectName object 路径
+     * @return object 的字节数据
+     * @throws CosXmlClientException 抛出的客户端异常
+     * @throws CosXmlServiceException 抛出的服务端异常
+     */
+    byte[] getObject(String bucketName, String objectName) throws CosXmlClientException, CosXmlServiceException;
 
     /**
      * 取消请求任务

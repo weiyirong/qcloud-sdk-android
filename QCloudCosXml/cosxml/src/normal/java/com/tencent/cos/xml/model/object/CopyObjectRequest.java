@@ -45,9 +45,6 @@ public class CopyObjectRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
-        if(cosPath.equalsIgnoreCase("/")){
-            throw new CosXmlClientException("cosPath must not be / ");
-        }
         if(copySourceStruct == null){
             throw new CosXmlClientException("copy source must not be null");
         }else {

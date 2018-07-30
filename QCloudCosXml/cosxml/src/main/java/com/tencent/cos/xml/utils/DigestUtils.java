@@ -1,11 +1,15 @@
 package com.tencent.cos.xml.utils;
 
+import android.text.TextUtils;
+import android.util.Base64;
+
 import com.tencent.cos.xml.exception.CosXmlClientException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -117,5 +121,16 @@ public class DigestUtils {
            throw new CosXmlClientException(e);
        }
        return hmacSha1;
+    }
+
+    public static String getBase64(String content) throws CosXmlClientException {
+        if(TextUtils.isEmpty(content)){
+            return content;
+        }
+        try {
+            return Base64.encodeToString(content.getBytes("utf-8"), Base64.NO_WRAP); // NO_WARP
+        } catch (UnsupportedEncodingException e) {
+            throw new CosXmlClientException(e);
+        }
     }
 }

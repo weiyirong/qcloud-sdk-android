@@ -1,6 +1,10 @@
 package com.tencent.qcloud.core.http;
 
+import android.content.ContentResolver;
+import android.net.Uri;
+
 import com.tencent.qcloud.core.common.QCloudProgressListener;
+import com.tencent.qcloud.core.util.QCloudUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -8,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -23,14 +28,18 @@ import okio.Source;
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 
-class StreamingRequestBody extends RequestBody implements ProgressBody {
+public class StreamingRequestBody extends RequestBody implements ProgressBody {
 
     private File file;
     private byte[] bytes;
     private InputStream stream;
+    private URL url;
+    private Uri uri;
+    private ContentResolver contentResolver;
 
     private long offset = 0;
-    private long length = 0L;
+    private long requiredLength = -1;
+    private long contentRawLength = -1;
 
     private String contentType;
 
@@ -59,7 +68,7 @@ class StreamingRequestBody extends RequestBody implements ProgressBody {
         requestBody.file = file;
         requestBody.contentType = contentType;
         requestBody.offset = offset < 0 ? 0 : offset;
-        requestBody.length = length < 1 ? Long.MAX_VALUE : length;
+        requestBody.requiredLength = length;
 
         return requestBody;
     }
@@ -69,7 +78,7 @@ class StreamingRequestBody extends RequestBody implements ProgressBody {
         requestBody.bytes = bytes;
         requestBody.contentType = contentType;
         requestBody.offset = offset < 0 ? 0 : offset;
-        requestBody.length = length < 1 ? Long.MAX_VALUE : length;
+        requestBody.requiredLength = length;
 
         return requestBody;
     }
@@ -81,52 +90,117 @@ class StreamingRequestBody extends RequestBody implements ProgressBody {
         requestBody.contentType = contentType;
         requestBody.file = tmpFile;
         requestBody.offset = offset < 0 ? 0 : offset;
-        requestBody.length = length < 1 ? Long.MAX_VALUE : length;
+        requestBody.requiredLength = length;
 
         return requestBody;
     }
 
+    static StreamingRequestBody url(URL url, String contentType,
+                                    long offset, long length) {
+        StreamingRequestBody requestBody = new StreamingRequestBody();
+        requestBody.url = url;
+        requestBody.contentType = contentType;
+        requestBody.offset = offset < 0 ? 0 : offset;
+        requestBody.requiredLength = length;
+        return requestBody;
+    }
+
+    static StreamingRequestBody uri(Uri uri, ContentResolver contentResolver, String contentType,
+                                    long offset, long length) {
+        StreamingRequestBody requestBody = new StreamingRequestBody();
+        requestBody.uri = uri;
+        requestBody.contentResolver = contentResolver;
+        requestBody.contentType = contentType;
+        requestBody.offset = offset < 0 ? 0 : offset;
+        requestBody.requiredLength = length;
+        return requestBody;
+    }
+
+    boolean isLargeData() {
+        return file != null || stream != null;
+    }
+
     @Override
     public MediaType contentType() {
-        if(contentType != null){
+        if (contentType != null) {
             return MediaType.parse(contentType);
-        }else {
+        } else {
             return null;
         }
     }
 
     @Override
     public long contentLength() throws IOException {
-        if (stream != null) {
-            return Math.min(stream.available() - offset, length);
-        } else if (file != null) {
-            return Math.min(file.length() - offset, length);
+        long contentMaxLength = getContentRawLength();
+        if (contentMaxLength <= 0) {
+            return Math.max(requiredLength, -1);
+        } else if (requiredLength <= 0) {
+            return Math.max(contentMaxLength - offset, -1);
         } else {
-            return Math.min(bytes.length - offset, length);
+            return Math.min(contentMaxLength - offset, requiredLength);
         }
+    }
+
+    private long getContentRawLength() throws IOException {
+        if (contentRawLength < 0) {
+            if (stream != null) {
+                contentRawLength = stream.available();
+            } else if (file != null) {
+                contentRawLength = file.length();
+            } else if (bytes != null) {
+                contentRawLength = bytes.length;
+            } else if (uri != null) {
+                contentRawLength = QCloudUtils.getUriContentLength(uri, contentResolver);
+            }
+        }
+
+        return contentRawLength;
     }
 
     private InputStream getStream() throws IOException {
         if (bytes != null) {
             return new ByteArrayInputStream(bytes);
         } else if (stream != null) {
-            FileOutputStream fos = null;
             try {
-                fos = new FileOutputStream(file);
-                byte[] buffer = new byte[8 * 1024];
-                int bytesRead;
-                while ((bytesRead = stream.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytesRead);
-                }
-                fos.flush();
-                return new FileInputStream(file);
+                saveInputStreamToTmpFile(stream, file);
             } finally {
-                Util.closeQuietly(fos);
                 Util.closeQuietly(stream);
                 stream = null;
+                offset = 0;
             }
-        } else {
             return new FileInputStream(file);
+        } else if (file != null) {
+            return new FileInputStream(file);
+        } else if (url != null) {
+            return url.openStream();
+        } else if (uri != null) {
+            return contentResolver.openInputStream(uri);
+        }
+
+        return null;
+    }
+
+    private void saveInputStreamToTmpFile(InputStream stream, File file) throws IOException {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file);
+            byte[] buffer = new byte[8 * 1024];
+            int bytesRead;
+            long bytesTotal = 0;
+            long bytesLimit = contentLength();
+            if (bytesLimit < 0) {
+                bytesLimit = Long.MAX_VALUE;
+            }
+            if (offset > 0) {
+                long skip = stream.skip(offset);
+            }
+            while (bytesTotal < bytesLimit && (bytesRead = stream.read(buffer)) != -1) {
+                fos.write(buffer, 0, (int) Math.min(bytesRead, bytesLimit - bytesTotal));
+                bytesTotal += bytesRead;
+            }
+            fos.flush();
+        } finally {
+            Util.closeQuietly(fos);
         }
     }
 
@@ -136,16 +210,22 @@ class StreamingRequestBody extends RequestBody implements ProgressBody {
         Source source = null;
         try {
             inputStream = getStream();
-            if (offset > 0) {
-                long skip = inputStream.skip(offset);
-            }
-            source = Okio.source(inputStream);
+            if (inputStream != null) {
+                if (offset > 0) {
+                    long skip = inputStream.skip(offset);
+                }
+                source = Okio.source(inputStream);
 
-            long contentLength = contentLength();
-            countingSink = new CountingSink(sink, contentLength, progressListener);
-            BufferedSink bufferedSink = Okio.buffer(countingSink);
-            bufferedSink.write(source, contentLength);
-            bufferedSink.flush();
+                long contentLength = contentLength();
+                countingSink = new CountingSink(sink, contentLength, progressListener);
+                BufferedSink bufferedSink = Okio.buffer(countingSink);
+                if (contentLength > 0) {
+                    bufferedSink.write(source, contentLength);
+                } else {
+                    bufferedSink.writeAll(source);
+                }
+                bufferedSink.flush();
+            }
         } finally {
             Util.closeQuietly(inputStream);
             Util.closeQuietly(source);

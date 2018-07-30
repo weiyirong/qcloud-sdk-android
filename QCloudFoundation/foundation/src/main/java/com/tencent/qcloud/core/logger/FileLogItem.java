@@ -10,16 +10,17 @@ import java.util.Locale;
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 
-class Record {
+class FileLogItem {
     private String tag =null;// log 的TAG
     private String msg = null;//log 的msg
     private Throwable throwable = null;
-    private RecordLevel level = null; //log 的level
+    private int priority = 0; //log 的level
     private long timestamp;
     private long threadId;
     private String threadName = null;
-    public Record(String tag, RecordLevel level, String msg, Throwable t) {
-        this.level = level;
+
+    public FileLogItem(String tag, int priority, String msg, Throwable t) {
+        this.priority = priority;
         this.tag = tag;
         this.msg = msg;
         this.throwable = t;
@@ -32,7 +33,7 @@ class Record {
     @Override
     public String toString(){
         StringBuilder builder = new StringBuilder();
-        builder.append(level).append("/");
+        builder.append(getPriorityString(priority)).append("/");
         builder.append(timeUtils(timestamp,"yyyy-MM-dd HH:mm:ss"));
         builder.append("[").append(threadName).append(" ").append(threadId).append("]");
         builder.append("[").append(tag).append("]");
@@ -44,7 +45,24 @@ class Record {
         return  builder.toString();
     }
 
-    static String timeUtils(long seconds, String dateFormat){
+    private static String getPriorityString(int priority) {
+        switch (priority) {
+            case QCloudLogger.VERBOSE:
+                return "VERBOSE";
+            case QCloudLogger.DEBUG:
+                return "DEBUG";
+            case QCloudLogger.INFO:
+                return "INFO";
+            case QCloudLogger.WARN:
+                return "WARN";
+            case QCloudLogger.ERROR:
+                return "ERROR";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    private static String timeUtils(long seconds, String dateFormat){
         Date dat=new Date(seconds);
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTime(dat);

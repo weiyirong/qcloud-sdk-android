@@ -22,6 +22,7 @@ public class CosXmlServiceConfig {
 
     private String region;
     private String appid;
+    private String ip;
 
     private boolean isDebuggable;
 
@@ -31,6 +32,7 @@ public class CosXmlServiceConfig {
         appid = builder.appid;
         region = builder.region;
         isDebuggable = builder.isDebuggable;
+        this.ip = builder.ip;
     }
 
     public String getProtocol() {
@@ -49,6 +51,10 @@ public class CosXmlServiceConfig {
         return appid;
     }
 
+    public String getIp(){
+        return ip;
+    }
+
     public boolean isDebuggable(){
         return isDebuggable;
     }
@@ -60,6 +66,7 @@ public class CosXmlServiceConfig {
 
         private String region;
         private String appid;
+        private String ip;
 
         private boolean isDebuggable;
 
@@ -81,6 +88,11 @@ public class CosXmlServiceConfig {
         public Builder setAppidAndRegion(String appid, String region){
             this.appid = appid;
             this.region = region;
+            return this;
+        }
+
+        public Builder setHost(String ip){
+            this.ip = ip;
             return this;
         }
 

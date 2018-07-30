@@ -1,10 +1,16 @@
 package com.tencent.cos.xml;
 
 import android.content.Context;
+import android.util.Log;
 
+import com.tencent.cos.xml.common.Constants;
+import com.tencent.cos.xml.common.MetaDataDirective;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
+import com.tencent.cos.xml.listener.CosXmlBooleanListener;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
+import com.tencent.cos.xml.model.CosXmlRequest;
+import com.tencent.cos.xml.model.CosXmlResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketLifecycleRequest;
@@ -13,8 +19,6 @@ import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketResult;
-import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingRequest;
-import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.GetBucketACLRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketACLResult;
 import com.tencent.cos.xml.model.bucket.GetBucketCORSRequest;
@@ -27,8 +31,6 @@ import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketResult;
-import com.tencent.cos.xml.model.bucket.GetBucketTaggingRequest;
-import com.tencent.cos.xml.model.bucket.GetBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
@@ -49,14 +51,15 @@ import com.tencent.cos.xml.model.bucket.PutBucketRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketResult;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
-import com.tencent.cos.xml.model.object.AppendObjectRequest;
-import com.tencent.cos.xml.model.object.AppendObjectResult;
 import com.tencent.cos.xml.model.object.CopyObjectRequest;
 import com.tencent.cos.xml.model.object.CopyObjectResult;
 import com.tencent.cos.xml.model.object.DeleteMultiObjectRequest;
 import com.tencent.cos.xml.model.object.DeleteMultiObjectResult;
+import com.tencent.cos.xml.model.object.DeleteObjectRequest;
 import com.tencent.cos.xml.model.object.GetObjectACLRequest;
 import com.tencent.cos.xml.model.object.GetObjectACLResult;
+import com.tencent.cos.xml.model.object.GetObjectRequest;
+import com.tencent.cos.xml.model.object.GetObjectResult;
 import com.tencent.cos.xml.model.object.HeadObjectRequest;
 import com.tencent.cos.xml.model.object.HeadObjectResult;
 import com.tencent.cos.xml.model.object.OptionObjectRequest;
@@ -69,7 +72,16 @@ import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.model.service.GetServiceResult;
+import com.tencent.cos.xml.model.tag.COSMetaData;
+import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by bradyxiao on 2017/11/30.
@@ -860,4 +872,227 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     public void listBucketVersionsAsync(ListBucketVersionsRequest request, CosXmlResultListener cosXmlResultListener) {
         schedule(request, new ListBucketVersionsResult(), cosXmlResultListener);
     }
+
+
+    /**
+     * <p>
+     * 通过封装 HeadBucketRequest 请求来判断 bucket 是否存在。
+     * </p>
+     */
+    @Override
+    public boolean doesBucketExist(String bucketName) throws CosXmlClientException, CosXmlServiceException {
+
+        GetBucketACLRequest getBucketACLRequest = new GetBucketACLRequest(bucketName);
+        try {
+            getBucketACL(getBucketACLRequest);
+            return true;
+        } catch (CosXmlServiceException serviceException) {
+
+            if ((serviceException.getStatusCode() == Constants.BUCKET_REDIRECT_STATUS_CODE)
+                    || "AccessDenied".equals(serviceException.getErrorCode())) {
+                return true;
+            }
+
+            if (serviceException.getStatusCode() == Constants.NO_SUCH_BUCKET_STATUS_CODE) {
+                return false;
+            }
+            throw serviceException;
+        }
+    }
+
+    @Override
+    public void doesBucketExistAsync(final String bucketName, final CosXmlBooleanListener booleanListener) {
+
+        GetBucketACLRequest getBucketACLRequest = new GetBucketACLRequest(bucketName);
+
+        getBucketACLAsync(getBucketACLRequest, new CosXmlResultListener() {
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                booleanListener.onSuccess(true);
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException clientException, CosXmlServiceException serviceException) {
+
+                if (clientException == null && serviceException != null) {
+
+                    if ((serviceException.getStatusCode() == Constants.BUCKET_REDIRECT_STATUS_CODE)
+                            || "AccessDenied".equals(serviceException.getErrorCode())) {
+                        booleanListener.onSuccess(true);
+                    }
+
+                    if (serviceException.getStatusCode() == Constants.NO_SUCH_BUCKET_STATUS_CODE) {
+                        booleanListener.onSuccess(false);
+                    }
+                }
+
+                booleanListener.onFail(clientException, serviceException);
+            }
+        });
+    }
+
+
+    @Deprecated
+    private boolean doesBucketExistByGetService(GetServiceResult getServiceResult, String bucketName) {
+
+        if (getServiceResult == null || getServiceResult.listAllMyBuckets == null) {
+
+            return false;
+        }
+
+        ListAllMyBuckets listAllMyBuckets = getServiceResult.listAllMyBuckets;
+        List<ListAllMyBuckets.Bucket> buckets = listAllMyBuckets.buckets;
+        Log.d("tag", "buckets number is " + buckets.size());
+        if (buckets == null) {
+            return false;
+        }
+
+        for (ListAllMyBuckets.Bucket bucket : buckets) {
+
+            Log.d("tag", "bucket name is " + bucket.name);
+            if (bucket.name.equals(bucketName + "-" + appid)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * <p>
+     * 通过封装 HeadObjectRequest 请求来判断对象是否存在。
+     * </p>
+     *
+     * <p>
+     * 注意只能在单个 region 下判断，无法一次性判断所有的 region 。
+     * </p>
+     */
+    @Override
+    public boolean doesObjectExist(String bucketName, String objectName) throws CosXmlClientException, CosXmlServiceException {
+
+        HeadObjectRequest headObjectRequest = new HeadObjectRequest(bucketName, objectName);
+
+        try {
+            headObject(headObjectRequest);
+        } catch (CosXmlServiceException serviceException) {
+
+            if (serviceException.getStatusCode() == 404) {
+                return false;
+            } else {
+                throw serviceException;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void doesObjectExistAsync(String bucketName, String objectName, final CosXmlBooleanListener booleanListener) {
+
+        HeadObjectRequest headObjectRequest = new HeadObjectRequest(bucketName, objectName);
+        headObjectAsync(headObjectRequest, new CosXmlResultListener() {
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+
+                booleanListener.onSuccess(true);
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException clientException, CosXmlServiceException serviceException) {
+
+                if (serviceException != null && serviceException.getStatusCode() == 404) { // the object is no exist
+                    booleanListener.onSuccess(false);
+                } else {
+                    booleanListener.onFail(clientException, serviceException);
+                }
+            }
+        });
+
+    }
+
+
+    @Override
+    public boolean deleteObject(String bucketName, String objectName) throws CosXmlClientException, CosXmlServiceException {
+
+        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, objectName);
+        deleteObject(deleteObjectRequest);
+        return true;
+    }
+
+
+    @Override
+    public void deleteObjectAsync(String bucketName, String objectName, final CosXmlBooleanListener booleanListener) {
+
+        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, objectName);
+        deleteObjectAsync(deleteObjectRequest, new CosXmlResultListener() {
+
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+
+                booleanListener.onSuccess(true);
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+
+                booleanListener.onFail(exception, serviceException);
+            }
+        });
+    }
+
+
+    /**
+     * <p>
+     * 利用 CopyObjectRequest 来更新对象的 meta。
+     * </p>
+     *
+     */
+    @Override
+    public boolean updateObjectMeta(String bucketName, String objectName, COSMetaData metaData) throws CosXmlClientException, CosXmlServiceException{
+
+        CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(appid, bucketName, region, objectName);
+        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucketName, objectName, copySourceStruct);
+        copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);
+        for (String key : metaData.keySet()) {
+            copyObjectRequest.setXCOSMeta(key, metaData.get(key));
+        }
+
+        copyObject(copyObjectRequest);
+        return true;
+    }
+
+    /**
+     * <p>
+     * 利用 CopyObjectRequest 来更新对象的 meta 的异步方法。
+     * </p>
+     */
+    @Override
+    public void updateObjectMetaAsync(String bucketName, String objectName, COSMetaData metaData, final CosXmlBooleanListener booleanListener) {
+
+        CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(appid, bucketName, region, objectName);
+        CopyObjectRequest copyObjectRequest = null;
+        try {
+            copyObjectRequest = new CopyObjectRequest(bucketName, objectName, copySourceStruct);
+            copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);
+            for (String key : metaData.keySet()) {
+                copyObjectRequest.setXCOSMeta(key, metaData.get(key));
+            }
+        } catch (CosXmlClientException e) {
+            booleanListener.onFail(e, null);
+        }
+        copyObjectAsync(copyObjectRequest, new CosXmlResultListener() {
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                booleanListener.onSuccess(true);
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+
+                booleanListener.onFail(exception, serviceException);
+            }
+        });
+
+    }
+
+
 }

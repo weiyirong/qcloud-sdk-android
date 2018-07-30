@@ -1,201 +1,215 @@
 package com.tencent.qcloud.core.logger;
 
-import android.content.Context;
-import android.text.TextUtils;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
+ * QCloud Logger Utility.
  *
+ * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 public final class QCloudLogger {
 
-    private static RecordLog recordLog;
+    private static final List<LogAdapter> logAdapters = new ArrayList<>();
+    private static final AndroidLogcatAdapter logcatAdapter = new AndroidLogcatAdapter();
+    static {
+        logAdapters.add(logcatAdapter);
+    }
 
     /**
      * Priority constant for the println method; use LogUtils.v.
      */
-    private static final int VERBOSE = Log.VERBOSE;
+    public static final int VERBOSE = Log.VERBOSE;
 
     /**
      * Priority constant for the println method; use LogUtils.d.
      */
-    private static final int DEBUG = Log.DEBUG;
+    public static final int DEBUG = Log.DEBUG;
 
     /**
      * Priority constant for the println method; use LogUtils.i.
      */
-    private static final int INFO = Log.INFO;
+    public static final int INFO = Log.INFO;
 
     /**
      * Priority constant for the println method; use LogUtils.w.
      */
-    private static final int WARN = Log.WARN;
+    public static final int WARN = Log.WARN;
 
     /**
      * Priority constant for the println method; use LogUtils.e.
      */
-    private static final int ERROR = Log.ERROR;
+    public static final int ERROR = Log.ERROR;
 
-    public static void setUp(Context context) {
-        if(context == null) {
-            return;
-        }
-        recordLog = RecordLog.getInstance(context, "cloud");
-    }
 
     private QCloudLogger() {
     }
 
-    public static int v(String tag, String format, Object... args) {
-        if (isLoggable(tag, VERBOSE)) {
-            try {
-                return Log.v(tag, args.length > 0 ? String.format(format, args) : format);
-            } catch (Exception e) {
-                return Log.v(tag, format + ": !!!! Log format exception: ", e);
+    /**
+     * Add a new log output pipeline.
+     *
+     * @param adapter log pipeline
+     */
+    public static void addAdapter(LogAdapter adapter) {
+        if (adapter != null) {
+            synchronized (LogAdapter.class) {
+                boolean addBefore = false;
+                for (LogAdapter logAdapter : logAdapters) {
+                    if (logAdapter.getClass().equals(adapter.getClass())) {
+                        addBefore = true;
+                        break;
+                    }
+                }
+                if (!addBefore) {
+                    logAdapters.add(adapter);
+                }
             }
         }
-        return 0;
-    }
-
-    public static int v(String tag, Throwable tr, String format, Object... args) {
-        if (isLoggable(tag, VERBOSE)) {
-            try {
-                return Log.v(tag, args.length > 0 ? String.format(format, args) : format, tr);
-            } catch (Exception e) {
-                return Log.v(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int d(String tag, String format, Object... args) {
-        if (isLoggable(tag, DEBUG)) {
-            try {
-                return Log.d(tag, args.length > 0 ? String.format(format, args) : format);
-            } catch (Exception e) {
-                return Log.d(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int d(String tag, Throwable tr, String format, Object... args) {
-        if (isLoggable(tag, DEBUG)) {
-            try {
-                return Log.d(tag, args.length > 0 ? String.format(format, args) : format, tr);
-            } catch (Exception e) {
-                return Log.d(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int i(String tag, String format, Object... args) {
-        if (isLoggable(tag, INFO)) {
-            try {
-                String message = args.length > 0 ? String.format(format, args) : format;
-                int r = Log.i(tag, message);
-                flush(tag, RecordLevel.INFO, message, null);
-                return r;
-            } catch (Exception e) {
-                return Log.i(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int i(String tag, Throwable tr, String format, Object... args) {
-        if (isLoggable(tag, INFO)) {
-            try {
-                String message = args.length > 0 ? String.format(format, args) : format;
-                int r = Log.i(tag, message, tr);
-                flush(tag, RecordLevel.INFO, message, tr);
-                return r;
-            } catch (Exception e) {
-                return Log.i(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int w(String tag, String format, Object... args) {
-        if (isLoggable(tag, WARN)) {
-            try {
-                String message = args.length > 0 ? String.format(format, args) : format;
-                int r = Log.w(tag, message);
-                flush(tag, RecordLevel.INFO, message, null);
-                return r;
-            } catch (Exception e) {
-                return Log.w(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int w(String tag, Throwable tr, String format, Object... args) {
-        if (isLoggable(tag, WARN)) {
-            try {
-                String message = args.length > 0 ? String.format(format, args) : format;
-                int r = Log.w(tag, message, tr);
-                flush(tag, RecordLevel.INFO, message, tr);
-                return r;
-            } catch (Exception e) {
-                return Log.w(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int e(String tag, String format, Object... args) {
-        if (isLoggable(tag, ERROR)) {
-            try {
-                String message = args.length > 0 ? String.format(format, args) : format;
-                int r = Log.e(tag, message);
-                flush(tag, RecordLevel.INFO, message, null);
-                return r;
-            } catch (Exception e) {
-                return Log.e(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static int e(String tag, Throwable tr, String format, Object... args) {
-        if (isLoggable(tag, ERROR)) {
-            try {
-                String message = args.length > 0 ? String.format(format, args) : format;
-                int r = Log.e(tag, message, tr);
-                flush(tag, RecordLevel.INFO, message, tr);
-                return r;
-            } catch (Exception e) {
-                return Log.e(tag, format + ": !!!! Log format exception: ", e);
-            }
-        }
-        return 0;
-    }
-
-    public static boolean isTagLoggable(String tag) {
-        return isLoggable(tag, Log.DEBUG);
     }
 
     /**
-     * Checks to see whether or not a log for the specified tag is loggable at the specified level.
+     * Send a {@link #VERBOSE} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
      */
-    private static boolean isLoggable(String tag, int level) {
-        if (TextUtils.isEmpty(tag) || tag.length() >= 23) {
-            return false;
-        }
-
-        // default level : INFO
-        // use "adb shell setprop log.tag.[tag] DEBUG" to enable DEBUG level for specific tag
-        return Log.isLoggable(tag, level);
+    public static void v(String tag, String format, Object... args) {
+        print(VERBOSE, tag, null, format, args);
     }
 
-    private static void flush(String tag, RecordLevel level, String msg, Throwable t) {
-        // info级别以上的写入文件
-        if (level.ordinal() >= RecordLevel.INFO.ordinal()) {
-            if (recordLog != null) {
-                recordLog.appendRecord(tag, level, msg, t);
+    /**
+     * Send a {@link #VERBOSE} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param tr An exception to log.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void v(String tag, Throwable tr, String format, Object... args) {
+        print(VERBOSE, tag, tr, format, args);
+    }
+
+    /**
+     * Send a {@link #DEBUG} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void d(String tag, String format, Object... args) {
+        print(DEBUG, tag, null, format, args);
+    }
+
+    /**
+     * Send a {@link #DEBUG} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param tr An exception to log.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void d(String tag, Throwable tr, String format, Object... args) {
+        print(DEBUG, tag, tr, format, args);
+    }
+
+    /**
+     * Send a {@link #INFO} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void i(String tag, String format, Object... args) {
+        print(INFO, tag, null, format, args);
+    }
+
+    /**
+     * Send a {@link #INFO} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param tr An exception to log.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void i(String tag, Throwable tr, String format, Object... args) {
+        print(INFO, tag, tr, format, args);
+    }
+
+    /**
+     * Send a {@link #WARN} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void w(String tag, String format, Object... args) {
+        print(WARN, tag, null, format, args);
+    }
+
+    /**
+     * Send a {@link #WARN} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param tr An exception to log.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void w(String tag, Throwable tr, String format, Object... args) {
+        print(WARN, tag, tr, format, args);
+    }
+
+    /**
+     * Send a {@link #ERROR} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void e(String tag, String format, Object... args) {
+        print(ERROR, tag, null, format, args);
+    }
+
+    /**
+     * Send a {@link #ERROR} log message.
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *        the class or activity where the log call occurs.
+     * @param tr An exception to log.
+     * @param format The format of message you would like logged.
+     * @param args The arguments of message you would like logged.
+     */
+    public static void e(String tag, Throwable tr, String format, Object... args) {
+        print(ERROR, tag, tr, format, args);
+    }
+
+    /**
+     * Used to determine whether log should be printed out or not on logcat.
+     *
+     * @param priority is the log level e.g. DEBUG, WARNING
+     * @param tag is the given tag for the log message
+     *
+     * @return is used to determine if log should printed.
+     *         If it is true, it will be printed, otherwise it'll be ignored.
+     */
+    public static boolean isLoggableOnLogcat(int priority, String tag) {
+        return logcatAdapter.isLoggable(priority, tag);
+    }
+
+    private static void print(int priority, String tag, @Nullable Throwable tr, String format, Object... args) {
+        String message;
+        try {
+            message = args.length > 0 ? String.format(format, args) : format;
+        } catch (Exception e) {
+            message = format + ": !!!! Log format exception: ";
+        }
+        synchronized (LogAdapter.class) {
+            for (LogAdapter adapter : logAdapters) {
+                if (adapter.isLoggable(priority, tag)) {
+                    adapter.log(priority, tag, message, tr);
+                }
             }
         }
     }

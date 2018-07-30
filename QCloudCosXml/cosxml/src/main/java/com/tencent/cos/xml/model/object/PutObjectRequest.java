@@ -12,6 +12,7 @@ import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * <p>
@@ -23,6 +24,8 @@ final public class PutObjectRequest extends ObjectRequest {
     private String srcPath;
     private byte[] data;
     private InputStream inputStream;
+    private String strData;
+    private URL url;
     private long fileLength;
     private CosXmlProgressListener progressListener;
 
@@ -54,6 +57,19 @@ final public class PutObjectRequest extends ObjectRequest {
 
     /**
      * PutObject 构造方法
+     *
+     * @param bucket 存储桶名称
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param stringBuilder 上传的字符串
+     */
+    public PutObjectRequest(String bucket, String cosPath, StringBuilder stringBuilder) {
+        this(bucket, cosPath);
+        strData = stringBuilder.toString();
+    }
+
+
+    /**
+     * PutObject 构造方法
      * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * @param cosPath 远端路径，即存储到 COS 上的绝对路径
      * @param inputStream 上传的数据流
@@ -62,6 +78,19 @@ final public class PutObjectRequest extends ObjectRequest {
         this(bucket, cosPath);
         this.inputStream = inputStream;
         //this.srcPath = FileUtils.tempCache(inputStream);
+    }
+
+
+    /**
+     * PutObject 构造方法
+     * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+     * @param cosPath 远端路径，即存储到 COS 上的绝对路径
+     * @param url 上传的url
+     */
+    public PutObjectRequest(String bucket, String cosPath, URL url) {
+
+        this(bucket, cosPath);
+        this.url = url;
     }
 
     @Override
@@ -76,19 +105,21 @@ final public class PutObjectRequest extends ObjectRequest {
         }else if(data != null){
             return RequestBodySerializer.bytes(null, data);
         }else if(inputStream != null){
-            return RequestBodySerializer.stream(null, new File(CosXmlSimpleService.appCachePath),
+            return RequestBodySerializer.stream(null, new File(CosXmlSimpleService.appCachePath, String.valueOf(System.currentTimeMillis())),
                     inputStream);
+        } else if (strData != null) {
+            return RequestBodySerializer.bytes(null, strData.getBytes());
+        } else if (url != null) {
+            return RequestBodySerializer.url(null, url);
         }
+
         return null;
     }
 
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
-        if(cosPath.equalsIgnoreCase("/")){
-            throw new CosXmlClientException("cosPath must not be / ");
-        }
-        if(srcPath == null && data == null && inputStream == null){
+        if(srcPath == null && data == null && inputStream == null && strData == null && url == null){
             throw new CosXmlClientException("Data Source must not be null");
         }
         if(srcPath != null){
@@ -144,6 +175,22 @@ final public class PutObjectRequest extends ObjectRequest {
         this.data = data;
     }
 
+    public void setStrData(String strData) {
+        this.strData = strData;
+    }
+
+    public String getStrData() {
+        return strData;
+    }
+
+    public URL getUrl() {
+        return url;
+    }
+
+    public void setUrl(URL url) {
+        this.url = url;
+    }
+
     /**
      * 获取用户设置的字节数组
      * @return byte[]
@@ -162,6 +209,8 @@ final public class PutObjectRequest extends ObjectRequest {
             fileLength = new File(srcPath).length();
         }else if(data != null){
             fileLength =  data.length;
+        } else if (strData != null) {
+            fileLength = strData.getBytes().length;
         }
         return fileLength;
     }

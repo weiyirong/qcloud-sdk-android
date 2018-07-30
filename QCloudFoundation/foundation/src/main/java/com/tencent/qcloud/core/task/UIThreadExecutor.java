@@ -2,6 +2,7 @@ package com.tencent.qcloud.core.task;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 
 import java.util.concurrent.Executor;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.Executor;
 final class UIThreadExecutor implements Executor {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-    public final void execute(Runnable runnable) {
+    public final void execute(@NonNull Runnable runnable) {
         mHandler.post(runnable);
     }
 }
