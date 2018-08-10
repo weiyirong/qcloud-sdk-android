@@ -65,6 +65,7 @@ public class UploadService {
     private long endTime = -1L;
     ResumeData resumeData;
     private List<String> headers = new ArrayList<>();
+    private boolean isNeedMd5 = false;
     private SharePreferenceUtils sharePreferenceUtils;
     private OnUploadInfoListener onUploadInfoListener;
 
@@ -164,6 +165,10 @@ public class UploadService {
         }
     }
 
+    public void setNeedMd5(boolean isNeed){
+        this.isNeedMd5 = isNeed;
+    }
+
     public void setProgressListener(CosXmlProgressListener cosXmlProgressListener){
         this.cosXmlProgressListener = cosXmlProgressListener;
     }
@@ -229,6 +234,7 @@ public class UploadService {
         putObjectRequest.setProgressListener(cosXmlProgressListener);
         setSignTime(putObjectRequest);
         setRequestHeaders(putObjectRequest);
+        putObjectRequest.setNeedMD5(isNeedMd5);
         cosXmlService.putObjectAsync(putObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
@@ -403,6 +409,7 @@ public class UploadService {
         final UploadPartRequest uploadPartRequest = new UploadPartRequest(bucket, cosPath, partNumber,
                 srcPath, offset, contentLength, uploadId);
         uploadPartRequestLongMap.put(uploadPartRequest, 0L);
+        uploadPartRequest.setNeedMD5(isNeedMd5);
         setSignTime(uploadPartRequest);
         try {
             setRequestHeaders(uploadPartRequest);
@@ -444,6 +451,7 @@ public class UploadService {
         }
         setSignTime(completeMultiUploadRequest);
         setRequestHeaders(completeMultiUploadRequest);
+        completeMultiUploadRequest.setNeedMD5(isNeedMd5);
         return cosXmlService.completeMultiUpload(completeMultiUploadRequest);
     }
 

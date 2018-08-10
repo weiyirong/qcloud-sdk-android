@@ -32,6 +32,7 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.transfer.ResponseFileBodySerializer;
 import com.tencent.cos.xml.transfer.ResponseXmlS3BodySerializer;
+import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.auth.BasicQCloudCredentials;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudLifecycleCredentials;
@@ -49,6 +50,8 @@ import com.tencent.cos.xml.transfer.ResponseBytesConverter;
 import com.tencent.qcloud.core.logger.FileLogAdapter;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
+import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.util.List;
 
 
@@ -86,6 +89,13 @@ public class CosXmlSimpleService implements SimpleCosXml {
         credentialProvider = qCloudCredentialProvider;
     }
 
+    public void addCustomerDNS(String domainName, String[] ipList) throws CosXmlClientException {
+        try {
+            client.addDnsRecord(domainName, ipList);
+        } catch (UnknownHostException e) {
+            throw new CosXmlClientException(e);
+        }
+    }
 
     /** 构建请求 */
     protected <T1 extends CosXmlRequest, T2 extends CosXmlResult> QCloudHttpRequest buildHttpRequest
@@ -239,6 +249,11 @@ public class CosXmlSimpleService implements SimpleCosXml {
     public String getAccessUrl(CosXmlRequest cosXmlRequest){
         String host = cosXmlRequest.getHost(appid, region);
         String path = cosXmlRequest.getPath();
+        try {
+            path = URLEncodeUtils.cosPathEncode(cosXmlRequest.getPath());
+        } catch (CosXmlClientException e) {
+
+        }
         return host + path;
     }
 
