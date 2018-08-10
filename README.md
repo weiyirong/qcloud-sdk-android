@@ -1,6 +1,6 @@
 # qcloud-sdk-android
 
-[![Download](https://api.bintray.com/packages/tencentqcloudterminal/maven/QCloudCosXml/images/download.svg?version=5.4.8) ](https://bintray.com/tencentqcloudterminal/maven/QCloudCosXml/5.4.8/link)
+![GitHub release](https://img.shields.io/github/release/tencentyun/qcloud-sdk-android.svg)
 
 腾讯云 Android SDK 发布仓库
 
