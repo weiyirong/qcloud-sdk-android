@@ -1,15 +1,21 @@
 package com.tencent.qcloud.core.http;
 
 
+import android.support.annotation.NonNull;
+
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.QCloudTask;
 import com.tencent.qcloud.core.task.RetryStrategy;
 import com.tencent.qcloud.core.task.TaskManager;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +24,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
 import okhttp3.Call;
+import okhttp3.Dns;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
@@ -34,6 +41,7 @@ public final class QCloudHttpClient {
     private final HttpLoggingInterceptor logInterceptor;
 
     private final Set<String> verifiedHost;
+    private final Map<String, List<InetAddress>> dnsMap;
 
     private static volatile QCloudHttpClient gDefault;
 
@@ -48,6 +56,17 @@ public final class QCloudHttpClient {
                 }
             }
             return HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session);
+        }
+    };
+
+    private Dns mDns = new Dns() {
+
+        @Override
+        public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+            if (dnsMap.containsKey(hostname)) {
+                return dnsMap.get(hostname);
+            }
+            return Dns.SYSTEM.lookup(hostname);
         }
     };
 
@@ -69,6 +88,16 @@ public final class QCloudHttpClient {
         }
     }
 
+    public void addDnsRecord(@NonNull String hostName, @NonNull String[] ipAddress) throws UnknownHostException {
+        if (ipAddress.length > 0) {
+            List<InetAddress> addresses = new ArrayList<>(ipAddress.length);
+            for (String ip : ipAddress) {
+                addresses.add(InetAddress.getByName(ip));
+            }
+            dnsMap.put(hostName, addresses);
+        }
+    }
+
     public void setDebuggable(boolean debuggable) {
         logInterceptor.setLevel(debuggable || QCloudLogger.isLoggableOnLogcat(QCloudLogger.DEBUG, HTTP_LOG_TAG) ?
                 HttpLoggingInterceptor.Level.BODY :
@@ -77,16 +106,8 @@ public final class QCloudHttpClient {
 
     private QCloudHttpClient(Builder b) {
         this.verifiedHost = new HashSet<>(5);
+        this.dnsMap = new HashMap<>(3);
         this.taskManager = TaskManager.getInstance();
-
-        OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                .followRedirects(true)
-                .followSslRedirects(true)
-                .hostnameVerifier(mHostnameVerifier);
-
-        builder.connectTimeout(b.connectionTimeout, TimeUnit.MILLISECONDS)
-                .readTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
-                .writeTimeout(b.socketTimeout, TimeUnit.MILLISECONDS);
 
         logInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
@@ -94,13 +115,19 @@ public final class QCloudHttpClient {
                 QCloudLogger.i(HTTP_LOG_TAG, message);
             }
         });
-        logInterceptor.setLevel(HttpLoggingInterceptor.Level.NONE);
-        builder.addInterceptor(logInterceptor);
         setDebuggable(false);
 
-        builder.addInterceptor(new RetryAndTrafficControlInterceptor(b.retryStrategy));
-
-        okHttpClient = builder.build();
+        okHttpClient = b.mBuilder
+                .followRedirects(true)
+                .followSslRedirects(true)
+                .hostnameVerifier(mHostnameVerifier)
+                .dns(mDns)
+                .connectTimeout(b.connectionTimeout, TimeUnit.MILLISECONDS)
+                .readTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
+                .writeTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
+                .addInterceptor(logInterceptor)
+                .addInterceptor(new RetryAndTrafficControlInterceptor(b.retryStrategy))
+                .build();
     }
 
     public List<HttpTask> getTasksByTag(String tag) {
@@ -143,6 +170,7 @@ public final class QCloudHttpClient {
         int connectionTimeout = 15 * 1000;  //in milliseconds
         int socketTimeout = 30 * 1000;  //in milliseconds
         RetryStrategy retryStrategy;
+        OkHttpClient.Builder mBuilder;
 
         public Builder() {
         }
@@ -168,9 +196,17 @@ public final class QCloudHttpClient {
             return this;
         }
 
+        public Builder setInheritBuilder(OkHttpClient.Builder builder) {
+            mBuilder = builder;
+            return this;
+        }
+
         public QCloudHttpClient build() {
             if (retryStrategy == null) {
                 retryStrategy = RetryStrategy.DEFAULT;
+            }
+            if (mBuilder == null) {
+                mBuilder = new OkHttpClient.Builder();
             }
             return new QCloudHttpClient(this);
         }
