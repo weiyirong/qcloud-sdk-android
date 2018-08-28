@@ -111,7 +111,8 @@ dependencies {
 //project.extensions.add('artifactProduct', 'normal')
 
 project.extensions.add('artifactId', 'cosxml')
-project.extensions.add('artifactDesc', 'the core module for tencent applicaiton cloud')
+project.extensions.add('packageName', 'QCloudCosXml')
+project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
 
 
 
