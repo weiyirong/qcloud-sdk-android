@@ -63,6 +63,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.SimpleTimeZone;
 
+import static com.tencent.cos.xml.QServer.cosXml;
 import static org.junit.Assert.assertEquals;
 import static com.tencent.cos.xml.QServer.TAG;
 
@@ -96,6 +97,7 @@ public class BucketTest {
 
     public void getBucket() throws CosXmlServiceException, CosXmlClientException {
         GetBucketRequest getBucketRequest = new GetBucketRequest(bucketName);
+        getBucketRequest.setPrefix("backend/gatling/chat_temp");
         GetBucketResult getBucketResult = QServer.cosXml.getBucket(getBucketRequest);
         Log.d(TAG, getBucketResult.printResult());
     }
@@ -157,7 +159,7 @@ public class BucketTest {
         rule.status = "Enabled";
         rule.transition = new LifecycleConfiguration.Transition();
         rule.transition.days = 1;
-        rule.transition.storageClass = COSStorageClass.NEARLINE.getStorageClass();
+        rule.transition.storageClass = COSStorageClass.STANDARD_IA.getStorageClass();
         putBucketLifecycleRequest.setRuleList(rule);
         PutBucketLifecycleResult putBucketLifecycleResult = QServer.cosXml.putBucketLifecycle(putBucketLifecycleRequest);
         Log.d(TAG, putBucketLifecycleResult.printResult());
@@ -235,6 +237,8 @@ public class BucketTest {
     public void testBucket() throws Exception{
         appContext = InstrumentationRegistry.getContext();
         QServer.init(appContext);
+        bucketName = QServer.bucketForObject;
+        getBucket();
 //        bucketName = "xy3";
 //        putBucket();
 //        getBucketLocation();
@@ -250,6 +254,6 @@ public class BucketTest {
 //        listMultiUploads();
 //        deleteAllUploadIdOfBucket();
 //        deleteBucket();
-        deleteAllBucketsOfAppid();
+//        deleteAllBucketsOfAppid();
     }
 }

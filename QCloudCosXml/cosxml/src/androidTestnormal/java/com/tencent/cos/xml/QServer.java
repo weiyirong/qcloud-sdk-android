@@ -6,6 +6,7 @@ import com.tencent.cos.xml.common.Region;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.object.DeleteObjectRequest;
+import com.tencent.qcloud.core.auth.BasicQCloudCredentials;
 import com.tencent.qcloud.core.auth.ShortTimeCredentialProvider;
 
 import java.io.File;
@@ -20,35 +21,40 @@ import java.io.RandomAccessFile;
 public class QServer {
 
     public final static String TAG = "UnitTest";
-//
-    public final static String ownUin = "1278687956";
-//
-//    /** 腾讯云 cos 服务的 appid */
-//    public final static String appid = "1253653367";
-//
-//    /** appid 对应的 秘钥 */
-//    private final String secretId = "xxx";
-//
-//    /** appid 对应的 秘钥 */
-//    private final String secretKey = "xxx";
 
-//    /** bucketForObjectAPITest 所处在的地域 */
-//    public final static String region = Region.AP_Guangzhou.getRegion();
 
-//    public static String bucketForObject = "xmlandroidtest";
+    public final static String ownUin = "2832742109";
 
-    public final static String appid = "1251668577";
+    /** 腾讯云 cos 服务的 appid */
 
-    /** appid 对应的 秘钥 */
-    private final String secretId = "xxx";
+    public final static String appid = "1253653367";
+    public static final String secretId = "AKIDPiqmW3qcgXVSKN8jngPzRhvxzYyDL5qP";
+    public static final String secretKey = "EH8oHoLgpmJmBQUM1Uoywjmv7EFzd5OJ";
 
-    /** appid 对应的 秘钥 */
-    private final String secretKey = "xxx";
+
+
+    public static final String guangZhouBucket = "android-demo-ap-guangzhou";
 
     /** bucketForObjectAPITest 所处在的地域 */
-    public final static String region = Region.AP_Beijing_1.getRegion();
+    public final static String region = Region.AP_Guangzhou.getRegion() ;// Region.AP_Guangzhou.getRegion();
 
-    public static String bucketForObject = "burningtestversioning";
+    public static String bucketForObject = "xmlandroidtest";
+
+//    public final static String appid = "1253960454";
+//
+//    /** appid 对应的 秘钥 */
+//    private final String secretId = "AKID4ygEetn1tZ6UingT44tU5smniXNEthIo";
+//
+//    /** appid 对应的 秘钥 */
+//    private final String secretKey = "gHnDWp7NuLlBVmxAoRyPl0PoLrQqBMQK";
+//
+//
+//    /** bucketForObjectAPITest 所处在的地域 */
+//    public final static String region = Region.AP_Guangzhou.getRegion();
+//
+//
+//    public static String bucketForObject = "tacimg";
+
 
     public static CosXml cosXml;
 
@@ -58,6 +64,7 @@ public class QServer {
         CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
                 .isHttps(false)
                 .setAppidAndRegion(appid, region)
+                //.setHost("14.119.113.161")
                 .setDebuggable(true)
                 .builder();
         cosXml = new CosXmlService(context, cosXmlServiceConfig,

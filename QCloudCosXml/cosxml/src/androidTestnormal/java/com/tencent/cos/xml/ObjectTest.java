@@ -5,8 +5,9 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
-
 import com.tencent.cos.xml.common.COSACL;
+import com.tencent.cos.xml.common.MetaDataDirective;
+import com.tencent.cos.xml.common.Region;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -116,13 +117,16 @@ public class ObjectTest {
     }
 
     public void copyObject() throws CosXmlClientException, CosXmlServiceException {
-        String destCosPath = "copy_" + cosPath;
+       // String destCosPath = "copy_" + cosPath;
+        String destCosPath = cosPath;
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-              QServer.appid, bucket, QServer.region, cosPath);
+              QServer.appid, "123123123", Region.AP_Beijing_1.getRegion(), "1.png");
         CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucket, destCosPath, copySourceStruct);
+        copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);
+        copyObjectRequest.setRequestHeaders("x-cos-xml", "cos");
         CopyObjectResult copyObjectResult = QServer.cosXml.copyObject(copyObjectRequest);
         Log.d(TAG, copyObjectResult.printResult());
-        QServer.deleteCOSObject(appContext, bucket, destCosPath);
+       // QServer.deleteCOSObject(appContext, bucket, destCosPath);
     }
 
     public void partCopyObject() throws CosXmlServiceException, CosXmlClientException {
@@ -243,11 +247,11 @@ public class ObjectTest {
     @org.junit.Test
     public void testObject() throws Exception{
         appContext = InstrumentationRegistry.getContext();
-        bucket = QServer.bucketForObject;
-        cosPath = "objecttest.txt";
+        bucket = QServer.guangZhouBucket;
+        cosPath = "ip.txt";
         srcPath = QServer.createFile(appContext, 1024 * 1024);
         QServer.init(appContext);
-//        putObject();
+        putObject();
 //        headObject();
 //       // optionObject();
 //        // putObjectACL();
@@ -257,7 +261,7 @@ public class ObjectTest {
 //        getObject();
 //        deleteObject();
 //        deleteMultiObject();
-        sliceUploadObject();
+//        sliceUploadObject();
 //        abortSliceUploadObject();
 //        deleteAllObjectsOfBucket();
         QServer.deleteLocalFile(srcPath);

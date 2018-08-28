@@ -1,5 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
+import android.util.Base64;
+
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.COSStorageClass;
@@ -7,8 +9,13 @@ import com.tencent.cos.xml.common.MetaDataDirective;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.ACLAccount;
+import com.tencent.cos.xml.utils.DigestUtils;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
+
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 
 /**
@@ -148,6 +155,42 @@ public class CopyObjectRequest extends ObjectRequest {
     }
 
     /**
+     *  copy encryption object
+     * @param sourceKey
+     * @throws CosXmlClientException
+     */
+    public void setCopySourceServerSideEncryptionCustomerKey(String sourceKey) throws CosXmlClientException {
+        if(sourceKey != null){
+            addHeader("x-cos-copy-source-server-side-encryption-customer-algorithm", "AES256");
+            addHeader("x-cos-copy-source-server-side-encryption-customer-key", DigestUtils.getBase64(sourceKey));
+            String base64ForKeyMd5;
+            try {
+                MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+                base64ForKeyMd5 = Base64.encodeToString(messageDigest.digest(sourceKey.getBytes( Charset.forName("UTF-8"))), Base64.NO_WRAP);
+            } catch (NoSuchAlgorithmException e) {
+                throw new CosXmlClientException(e);
+            }
+            addHeader("x-cos-copy-source-server-side-encryption-customer-key-MD5", base64ForKeyMd5);
+        }
+    }
+
+    /**
+     * copy encryption object
+     * @param customerKeyID
+     * @param json
+     * @throws CosXmlClientException
+     */
+    public void setCopySourceServerSideEncryptionKMS(String customerKeyID, String json) throws CosXmlClientException {
+        addHeader("'x-cos-copy-source-server-side-encryption", "cos/kms");
+        if(customerKeyID != null){
+            addHeader("x-cos-copy-source-server-side-encryption-cos-kms-key-id", customerKeyID);
+        }
+        if(json != null){
+            addHeader("x-cos-copy-source-server-side-encryption-context", DigestUtils.getBase64(json));
+        }
+    }
+
+    /**
      * storage class. Enumerated values: Standard, Standard_IA, Nearline; the default is Standard
      * @param cosStorageClass
      */
@@ -229,10 +272,7 @@ public class CopyObjectRequest extends ObjectRequest {
         }
 
         public CopySourceStruct(String appid, String bucket, String region, String cosPath, String versionId){
-            this.appid = appid;
-            this.bucket = bucket;
-            this.region = region;
-            this.cosPath = cosPath;
+            this(appid, bucket, region, cosPath);
             this.versionId = versionId;
         }
 

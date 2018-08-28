@@ -16,6 +16,7 @@ import com.tencent.cos.xml.model.object.InitMultipartUploadRequest;
 import com.tencent.cos.xml.model.object.InitMultipartUploadResult;
 import com.tencent.cos.xml.model.object.ListPartsRequest;
 import com.tencent.cos.xml.model.object.ListPartsResult;
+import com.tencent.cos.xml.model.object.ObjectRequest;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 import com.tencent.cos.xml.model.object.PutObjectResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
@@ -68,6 +69,8 @@ public class UploadService {
     private boolean isNeedMd5 = false;
     private SharePreferenceUtils sharePreferenceUtils;
     private OnUploadInfoListener onUploadInfoListener;
+    private EncryptionType encryptionType = EncryptionType.NONE;
+    private boolean isSupportAccelerate = false;
 
     public UploadService(CosXmlSimpleService cosXmlService, ResumeData resumeData){
         this.cosXmlService = cosXmlService;
@@ -169,6 +172,31 @@ public class UploadService {
         this.isNeedMd5 = isNeed;
     }
 
+    public void setCOSServerSideEncryptionType(EncryptionType encryptionType){
+        this.encryptionType = encryptionType;
+    }
+
+    public void isSupportAccelerate(boolean isSupportAccelerate){
+        this.isSupportAccelerate = isSupportAccelerate;
+    }
+
+    private void setEncryption(CosXmlRequest cosXmlRequest) throws CosXmlClientException {
+        if(cosXmlRequest == null)return;
+        switch (encryptionType){
+            case NONE:
+                break;
+            case SSE:
+                ((ObjectRequest)cosXmlRequest).setCOSServerSideEncryption();
+                break;
+            case SSEC:
+                ((ObjectRequest)cosXmlRequest).setCOSServerSideEncryptionWithCustomerKey(resumeData.customerKeyForSSEC);
+                break;
+            case SSEKMS:
+                ((ObjectRequest)cosXmlRequest).setCOSServerSideEncryptionWithKMS(resumeData.customerKeyIdForSSEKMS, resumeData.jsonContentForSSEKMS);
+                break;
+        }
+    }
+
     public void setProgressListener(CosXmlProgressListener cosXmlProgressListener){
         this.cosXmlProgressListener = cosXmlProgressListener;
     }
@@ -181,8 +209,14 @@ public class UploadService {
         if(cosXmlRequest != null){
             int size = headers.size();
             for(int i = 0; i < size - 2; i += 2){
-                cosXmlRequest.setRequestHeaders(headers.get(i), headers.get(i + 1));
+                cosXmlRequest.setRequestHeaders(headers.get(i), headers.get(i + 1), false);
             }
+        }
+    }
+
+    private void setSupportAccelerate(CosXmlRequest cosXmlRequest){
+        if(cosXmlRequest != null && isSupportAccelerate){
+            cosXmlRequest.isSupportAccelerate(isSupportAccelerate);
         }
     }
 
@@ -208,6 +242,9 @@ public class UploadService {
         resumeData.sliceSize = sliceSize;
         resumeData.srcPath = srcPath;
         resumeData.uploadId = uploadId;
+        resumeData.customerKeyForSSEC = this.resumeData.customerKeyForSSEC;
+        resumeData.customerKeyIdForSSEKMS = this.resumeData.customerKeyIdForSSEKMS;
+        resumeData.jsonContentForSSEKMS = this.resumeData.jsonContentForSSEKMS;
         return resumeData;
     }
 
@@ -234,6 +271,8 @@ public class UploadService {
         putObjectRequest.setProgressListener(cosXmlProgressListener);
         setSignTime(putObjectRequest);
         setRequestHeaders(putObjectRequest);
+        setSupportAccelerate(putObjectRequest);
+        setEncryption(putObjectRequest);
         putObjectRequest.setNeedMD5(isNeedMd5);
         cosXmlService.putObjectAsync(putObjectRequest, new CosXmlResultListener() {
             @Override
@@ -309,6 +348,9 @@ public class UploadService {
             resumeData.sliceSize = sliceSize;
             resumeData.srcPath = srcPath;
             resumeData.uploadId = uploadId;
+            resumeData.customerKeyForSSEC = this.resumeData.customerKeyForSSEC;
+            resumeData.customerKeyIdForSSEKMS = this.resumeData.customerKeyIdForSSEKMS;
+            resumeData.jsonContentForSSEKMS = this.resumeData.jsonContentForSSEKMS;
             onUploadInfoListener.onInfo(resumeData);
         }
         updateSharePreference(uploadId);
@@ -389,6 +431,8 @@ public class UploadService {
                 cosPath);
         setSignTime(initMultipartUploadRequest);
         setRequestHeaders(initMultipartUploadRequest);
+        setSupportAccelerate(initMultipartUploadRequest);
+        setEncryption(initMultipartUploadRequest);
         return cosXmlService.initMultipartUpload(initMultipartUploadRequest);
     }
 
@@ -399,6 +443,7 @@ public class UploadService {
         listPartsRequest = new ListPartsRequest(bucket, cosPath, uploadId);
         setSignTime(listPartsRequest);
         setRequestHeaders(listPartsRequest);
+        setSupportAccelerate(listPartsRequest);
         return cosXmlService.listParts(listPartsRequest);
     }
 
@@ -413,6 +458,8 @@ public class UploadService {
         setSignTime(uploadPartRequest);
         try {
             setRequestHeaders(uploadPartRequest);
+            setSupportAccelerate(uploadPartRequest);
+            setEncryption(uploadPartRequest);
         } catch (CosXmlClientException e) {
             cosXmlResultListener.onFail(putObjectRequest, e, null);
             return;
@@ -451,6 +498,8 @@ public class UploadService {
         }
         setSignTime(completeMultiUploadRequest);
         setRequestHeaders(completeMultiUploadRequest);
+        setSupportAccelerate(completeMultiUploadRequest);
+        //setEncryption(completeMultiUploadRequest);
         completeMultiUploadRequest.setNeedMD5(isNeedMd5);
         return cosXmlService.completeMultiUpload(completeMultiUploadRequest);
     }
@@ -465,6 +514,7 @@ public class UploadService {
         setSignTime(abortMultiUploadRequest);
         try {
             setRequestHeaders(abortMultiUploadRequest);
+            setSupportAccelerate(abortMultiUploadRequest);
         } catch (CosXmlClientException e) {
             cosXmlResultListener.onFail(abortMultiUploadRequest, e, null);
             return;
@@ -557,6 +607,9 @@ public class UploadService {
         public String srcPath;
         public String uploadId;
         public long sliceSize;
+        public String customerKeyForSSEC;
+        public String customerKeyIdForSSEKMS;
+        public String jsonContentForSSEKMS;
     }
 
     private static class SlicePartStruct{
@@ -576,6 +629,13 @@ public class UploadService {
                     + "eTag:" + eTag + "\n"
                     + "accessUrl:" + accessUrl;
         }
+    }
+
+    public enum EncryptionType{
+        SSE,
+        SSEC,
+        SSEKMS,
+        NONE;
     }
 
     void setUploadId(String uploadId) {

@@ -28,63 +28,63 @@ public class DownloaderTest {
 
     @Test
     public void download() throws Exception{
-        Context appContext = InstrumentationRegistry.getContext();
-        QServer.init(appContext);
-        String bucket = QServer.bucketForObject;
-        String cosPath = "Screenshot_2017-12-18-22-09-18-213_app.greyshirts.sslcapture.png";
-        String localPath = appContext.getExternalCacheDir().getPath();
-        String localFileName = "downloader.txt";
-        final Downloader downloader = new Downloader(appContext, QServer.cosXml);
-        downloader.setProgress(new CosXmlProgressListener() {
-            @Override
-            public void onProgress(long complete, long target) {
-                Log.d("UnitTest", complete + "/" + target);
-                if(target / complete < 2){
-//                    downloader.cancel();
-                }
-            }
-        });
-        downloader.download(bucket, cosPath, localPath, localFileName);
-        QServer.deleteLocalFile(localPath + File.separator + localFileName);
+//        Context appContext = InstrumentationRegistry.getContext();
+//        QServer.init(appContext);
+//        String bucket = QServer.bucketForObject;
+//        String cosPath = "guides/Messaging/show_custom_notification.png";
+//        String localPath = appContext.getExternalCacheDir().getPath();
+//        String localFileName = "downloader.txt";
+//        final Downloader downloader = new Downloader(appContext, QServer.cosXml);
+//        downloader.setProgress(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d("UnitTest", complete + "/" + target);
+//                if(target / complete < 2){
+////                    downloader.cancel();
+//                }
+//            }
+//        });
+//        downloader.download(bucket, cosPath, localPath, localFileName);
+//        QServer.deleteLocalFile(localPath + File.separator + localFileName);
     }
 
     volatile boolean isOver = false;
     @Test
     public void download2() throws Exception{
-        Context appContext = InstrumentationRegistry.getContext();
-        QServer.init(appContext);
-        String bucket = QServer.bucketForObject;
-        String cosPath = "Screenshot_2017-12-18-22-09-18-213_app.greyshirts.sslcapture.png";
-        String localPath = appContext.getExternalCacheDir().getPath();
-        String localFileName = "downloader.txt";
-        final Downloader downloader = new Downloader(appContext, QServer.cosXml);
-        downloader.setProgress(new CosXmlProgressListener() {
-            @Override
-            public void onProgress(long complete, long target) {
-                Log.d("UnitTest", complete + "/" + target);
-//                if(target / complete < 2){
-//                    downloader.cancel();
-//                }
-            }
-        });
-        downloader.download(bucket, cosPath, localPath, localFileName, new CosXmlResultListener() {
-            @Override
-            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
-                Log.d("UnitTest", result.printResult());
-                isOver = true;
-            }
-
-            @Override
-            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                Log.d("UnitTest", exception != null ? exception.getMessage() : serviceException.getMessage());
-                isOver = true;
-            }
-        });
-
-        while (isOver){
-            Thread.sleep(500);
-        }
-        QServer.deleteLocalFile(localPath + File.separator + localFileName);
+//        Context appContext = InstrumentationRegistry.getContext();
+//        QServer.init(appContext);
+//        String bucket = QServer.bucketForObject;
+//        String cosPath = "guides/Messaging/show_custom_notification.png";
+//        String localPath = appContext.getExternalCacheDir().getPath();
+//        String localFileName = "downloader.txt";
+//        final Downloader downloader = new Downloader(appContext, QServer.cosXml);
+//        downloader.setProgress(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d("UnitTest", complete + "/" + target);
+////                if(target / complete < 2){
+////                    downloader.cancel();
+////                }
+//            }
+//        });
+//        downloader.download(bucket, cosPath, localPath, localFileName, new CosXmlResultListener() {
+//            @Override
+//            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+//                Log.d("UnitTest", result.printResult());
+//                isOver = true;
+//            }
+//
+//            @Override
+//            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+//                Log.d("UnitTest", exception != null ? exception.getMessage() : serviceException.getMessage());
+//                isOver = true;
+//            }
+//        });
+//
+//        while (isOver){
+//            Thread.sleep(500);
+//        }
+//        QServer.deleteLocalFile(localPath + File.separator + localFileName);
     }
 
 }

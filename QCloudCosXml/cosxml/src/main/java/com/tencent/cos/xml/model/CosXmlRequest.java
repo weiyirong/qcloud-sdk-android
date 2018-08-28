@@ -35,6 +35,7 @@ public abstract class CosXmlRequest{
     private QCloudSignSourceProvider signSourceProvider;
     private HttpTask httpTask;
     private boolean isNeedMD5 = false;
+    private boolean isSupportAccelerate = false;
 
     public abstract String getMethod();
 
@@ -66,9 +67,31 @@ public abstract class CosXmlRequest{
         this.isNeedMD5 = isNeedMD5;
     }
 
+    /**
+     *  @see CosXmlRequest#setRequestHeaders(String, String, boolean)
+     * @param key
+     * @param value
+     * @throws CosXmlClientException
+     */
+    @Deprecated
     public void setRequestHeaders(String key, String value) throws CosXmlClientException {
         if(key != null && value != null){
             value = URLEncodeUtils.cosPathEncode(value);
+            addHeader(key, value);
+        }
+    }
+
+    /**
+     * set header value, and need to urlEncoder or not.
+     * @param key
+     * @param value
+     * @param isUrlEncoder true, it need url encoder,otherwise, do not need
+     */
+    public void setRequestHeaders(String key, String value, boolean isUrlEncoder) throws CosXmlClientException {
+        if(key != null && value != null){
+            if(isUrlEncoder){
+                value = URLEncodeUtils.cosPathEncode(value);
+            }
             addHeader(key, value);
         }
     }
@@ -84,13 +107,26 @@ public abstract class CosXmlRequest{
         requestHeaders.put(key, values);
     }
 
-    public String getHost(String appid, String region){
+    public String getHost(String appid, String region, boolean isSupportAccelerate){
         String suffix = "myqcloud.com";
         String bucket = getHostPrefix();
         if(!bucket.endsWith("-" + appid)){
             bucket = bucket + "-" + appid;
         }
-        return bucket + ".cos." + region + "." + suffix;
+        if(isSupportAccelerate){
+            return bucket + ".cos-accelerate" +  "." + suffix;
+        }else {
+            return bucket + ".cos." + region + "." + suffix;
+        }
+
+    }
+
+    public void isSupportAccelerate(boolean isSupportAccelerate){
+        this.isSupportAccelerate = isSupportAccelerate;
+    }
+
+    public boolean isSupportAccelerate() {
+        return isSupportAccelerate;
     }
 
     public void setSign(String sign){

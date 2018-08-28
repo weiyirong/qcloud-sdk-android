@@ -39,7 +39,7 @@ final public class GetServiceRequest extends CosXmlRequest {
     }
 
     @Override
-    public String getHost(String appid, String region){
+    public String getHost(String appid, String region, boolean isSupportAccelerate){
         String suffix = "myqcloud.com";
         return getHostPrefix() + ".cos." + suffix;
     }

@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/QCloudCosXml.iml" filepath="$PROJECT_DIR$/QCloudCosXml.iml" />
-      <module fileurl="file://E:\COS_SDK\COSXML\qcloud-sdk-android\QCloudCosXml\.idea\QCloudCosXml.iml" filepath="E:\COS_SDK\COSXML\qcloud-sdk-android\QCloudCosXml\.idea\QCloudCosXml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/QCloudCosXml.iml" filepath="$PROJECT_DIR$/.idea/QCloudCosXml.iml" />
       <module fileurl="file://$PROJECT_DIR$/cosxml/cosxml.iml" filepath="$PROJECT_DIR$/cosxml/cosxml.iml" />
       <module fileurl="file://$PROJECT_DIR$/../QCloudFoundation/foundation/foundation.iml" filepath="$PROJECT_DIR$/../QCloudFoundation/foundation/foundation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/myapplication/myapplication.iml" filepath="$PROJECT_DIR$/myapplication/myapplication.iml" />
     </modules>
   </component>
 </project>

@@ -78,7 +78,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
      */
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration, QCloudCredentialProvider qCloudCredentialProvider){
         QCloudLogger.addAdapter(new FileLogAdapter(context, "QLog"));
-        appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
+        //appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
+        appCachePath = context.getApplicationContext().getFilesDir().getPath();
         client = QCloudHttpClient.getDefault();
         client.addVerifiedHost("*.myqcloud.com");
         client.setDebuggable(configuration.isDebuggable());
@@ -101,11 +102,14 @@ public class CosXmlSimpleService implements SimpleCosXml {
     protected <T1 extends CosXmlRequest, T2 extends CosXmlResult> QCloudHttpRequest buildHttpRequest
     (T1 cosXmlRequest, T2 cosXmlResult) throws CosXmlClientException {
         cosXmlRequest.checkParameters();
-        String headerHost = cosXmlRequest.getHost(appid, region);
+        String headerHost = cosXmlRequest.getHost(appid, region, false);
+        String host = cosXmlRequest.isSupportAccelerate() ? cosXmlRequest.getHost(appid, region,
+                true): headerHost;
+
         QCloudHttpRequest.Builder<T2> httpRequestBuilder = new QCloudHttpRequest.Builder<T2>()
                 .method(cosXmlRequest.getMethod())
                 .scheme(scheme)
-                .host(ip == null ? headerHost : ip)
+                .host(ip == null ? host : ip)
                 .path(cosXmlRequest.getPath())
                 .addHeader(HttpConstants.Header.HOST, headerHost)
                 .userAgent(CosXmlServiceConfig.DEFAULT_USER_AGENT)
@@ -181,7 +185,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
             }else if(cosXmlRequest instanceof PostObjectRequest){
                 httpTask.addProgressListener(((PostObjectRequest) cosXmlRequest).getProgressListener());
             }
-            return httpTask.executeNow().content();
+
+            return httpTask.executeNow() != null ? httpTask.executeNow().content() : null;
         } catch (QCloudServiceException e) {
             throw (CosXmlServiceException) e;
         } catch (QCloudClientException e) {
@@ -247,7 +252,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
      * @return String
      */
     public String getAccessUrl(CosXmlRequest cosXmlRequest){
-        String host = cosXmlRequest.getHost(appid, region);
+        String host = cosXmlRequest.getHost(appid, region, false);
         String path = cosXmlRequest.getPath();
         try {
             path = URLEncodeUtils.cosPathEncode(cosXmlRequest.getPath());

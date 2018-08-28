@@ -2,18 +2,15 @@ apply plugin: 'com.android.library'
 apply plugin: 'jacoco'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
 
     defaultConfig {
 
         minSdkVersion 15
-
-        targetSdkVersion 26
-
-
-        versionCode 50406
-        versionName "5.4.6"
+        targetSdkVersion 27
+        versionCode 50411
+        versionName "5.4.11"
 
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -23,6 +20,19 @@ android {
     buildTypes {
         debug{
             testCoverageEnabled true
+//            java.util.Properties properties = new Properties()
+//            InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
+//            properties.load(inputStream)
+//            def appid = properties.get('COS.appid')
+//            def secretId = properties.get('COS.secretId')
+//            def secretKey = properties.get('COS.secretKey')
+//
+//            buildConfigField "String", "appid", "\"$appid\""
+//            buildConfigField "String", "secretId", "\"$secretId\""
+//            buildConfigField "String", "secretKey", "\"$secretKey\""
+//
+//            def testApiid = projects.project.rootProject.getProperties().get("test.appid")
+//            buildConfigField "String", "testApiid", "\"$testApiid\""
         }
         release {
             minifyEnabled false
@@ -48,49 +58,61 @@ android {
 }
 
 
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
+    compileOnly 'com.android.support:appcompat-v7:27.1.1'
+    testCompileOnly 'junit:junit:4.12'
+    androidTestImplementation  'com.android.support.test:runner:1.0.2'
+    androidTestCompile  'com.android.support.test.espresso:espresso-core:3.0.2'
     compile project(path: ':foundation')
-//    compile 'com.tencent.qcloud:qcloud-foundation:1.4.1'
 }
 
-task slimJar(type: Copy, dependsOn: build){
-    delete 'build/libs/'
-    from('build/intermediates/bundles/slimRelease/')
-    into('build/libs/')
-    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.slim.jar")
-
-}
-
-task Jar(type: Copy, dependsOn: build) {
-    from('build/intermediates/bundles/normalRelease/')
-    into('build/libs/')
-    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.jar")
-}
+//task slimJar(type: Copy, dependsOn: build){
+//    delete 'build/libs/'
+//    from('build/intermediates/bundles/slimRelease/')
+//    into('build/libs/')
+//    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.slim.jar")
+//
+//}
+//
+//task Jar(type: Copy, dependsOn: build) {
+//    from('build/intermediates/bundles/normalRelease/')
+//    into('build/libs/')
+//    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.jar")
+//}
 
 //task javadoc(type: Javadoc) {
-////    options.addStringOption('Xdoclint:none', '-quiet')
-////    options.addStringOption('encoding', 'UTF-8')
-////    options.addStringOption('charSet', 'UTF-8')
+//    options.addStringOption('Xdoclint:none', '-quiet')
+//    options.addStringOption('encoding', 'UTF-8')
+//    options.addStringOption('charSet', 'UTF-8')
+//    source = android.sourceSets.main.java.srcDirs
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//}
+
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+
+//
+//task javadoc(type: Javadoc) {
+//    options.addStringOption('Xdoclint:none', '-quiet')
+//    options.addStringOption('encoding', 'UTF-8')
+//    options.addStringOption('charSet', 'UTF-8')
 //    source = android.sourceSets.main.java.srcDirs
 //    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 //}
 //
-//task javadocJar(type: Jar, dependsOn: javadoc) {
+//task docJar(type: Jar, dependsOn: javadoc) {
 //    classifier = 'javadoc'
 //    from javadoc.destinationDir
 //}
-
-
-//project.extensions.add('artifactId', 'cos-android-sdk')
+//
+//
+//project.extensions.add('artifactId', 'cosxml')
 //project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
 //project.extensions.add('artifactProduct', 'normal')
+
+project.extensions.add('artifactId', 'cosxml')
+project.extensions.add('artifactDesc', 'the core module for tencent applicaiton cloud')
+
 
 
 //apply from:'./publish.gradle'

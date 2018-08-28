@@ -17,6 +17,5 @@ public class COSStorageClassTest {
     public void test() throws Exception{
         assertEquals(COSStorageClass.STANDARD, COSStorageClass.fromString("Standard"));
         assertEquals(COSStorageClass.STANDARD_IA, COSStorageClass.fromString("Standard_IA"));
-        assertEquals(COSStorageClass.NEARLINE, COSStorageClass.fromString("Nearline"));
     }
 }
