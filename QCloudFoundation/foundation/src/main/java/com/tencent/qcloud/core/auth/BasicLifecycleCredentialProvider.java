@@ -30,7 +30,7 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
 
     @Override
     public final void refresh() throws QCloudClientException {
-        boolean locked;
+        boolean locked = false;
         try {
             locked = lock.tryLock(20, TimeUnit.SECONDS);
 
@@ -43,7 +43,9 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
         } catch (InterruptedException e) {
             throw new QCloudClientException("interrupt when try to get credential", e);
         } finally {
-            lock.unlock();
+            if (locked) {
+                lock.unlock();
+            }
         }
     }
 

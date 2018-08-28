@@ -59,10 +59,14 @@ public abstract class QCloudTask<T> implements Callable<T> {
         executeNowSilently();
 
         Exception exception = getException();
-        if (exception instanceof QCloudClientException) {
-            throw (QCloudClientException) exception;
-        } else if (exception instanceof QCloudServiceException) {
-            throw (QCloudServiceException) exception;
+        if (exception != null) {
+            if (exception instanceof QCloudClientException) {
+                throw (QCloudClientException) exception;
+            } else if (exception instanceof QCloudServiceException) {
+                throw (QCloudServiceException) exception;
+            } else {
+                throw new QCloudClientException(exception);
+            }
         }
 
         return getResult();
