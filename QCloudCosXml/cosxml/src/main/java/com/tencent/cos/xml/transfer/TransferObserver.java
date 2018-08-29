@@ -14,11 +14,9 @@ public class TransferObserver {
 
     private TransferState transferState;
 
-    public TransferObserver(String id) {
-
+    protected TransferObserver(String id) {
         transferId = id;
     }
-
 
     public TransferListener getTransferListener() {
         return transferListener;
@@ -32,7 +30,7 @@ public class TransferObserver {
         return transferId;
     }
 
-    public void setTransferState(TransferState transferState) {
+    protected void setTransferState(TransferState transferState) {
         this.transferState = transferState;
     }
 

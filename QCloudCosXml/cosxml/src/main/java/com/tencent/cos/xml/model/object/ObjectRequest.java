@@ -73,7 +73,7 @@ public abstract class ObjectRequest extends CosXmlRequest {
     }
 
     public void setCOSServerSideEncryptionWithKMS(String customerKeyID, String json) throws CosXmlClientException {
-        addHeader("'x-cos-server-side-encryption", "cos/kms");
+        addHeader("x-cos-server-side-encryption", "cos/kms");
         if(customerKeyID != null){
             addHeader("x-cos-server-side-encryption-cos-kms-key-id", customerKeyID);
         }

@@ -91,6 +91,7 @@ public class CosXmlServiceConfig {
             return this;
         }
 
+        @Deprecated
         public Builder setHost(String ip){
             this.ip = ip;
             return this;

@@ -98,20 +98,24 @@ public class CosXmlSimpleService implements SimpleCosXml {
         }
     }
 
+    public void addVerifiedHost(String hostName) {
+        client.addVerifiedHost(hostName);
+    }
+
     /** 构建请求 */
     protected <T1 extends CosXmlRequest, T2 extends CosXmlResult> QCloudHttpRequest buildHttpRequest
     (T1 cosXmlRequest, T2 cosXmlResult) throws CosXmlClientException {
         cosXmlRequest.checkParameters();
-        String headerHost = cosXmlRequest.getHost(appid, region, false);
-        String host = cosXmlRequest.isSupportAccelerate() ? cosXmlRequest.getHost(appid, region,
-                true): headerHost;
+
+        String realRegion = cosXmlRequest.getRegion() == null ? region : cosXmlRequest.getRegion();
+        String host = cosXmlRequest.getHost(appid, realRegion, cosXmlRequest.isSupportAccelerate());
 
         QCloudHttpRequest.Builder<T2> httpRequestBuilder = new QCloudHttpRequest.Builder<T2>()
                 .method(cosXmlRequest.getMethod())
                 .scheme(scheme)
                 .host(ip == null ? host : ip)
                 .path(cosXmlRequest.getPath())
-                .addHeader(HttpConstants.Header.HOST, headerHost)
+                .addHeader(HttpConstants.Header.HOST, host)
                 .userAgent(CosXmlServiceConfig.DEFAULT_USER_AGENT)
                 .tag(tag);
         if(credentialProvider == null){
@@ -133,10 +137,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
         }else {
             httpRequestBuilder .signer("CosXmlSigner", cosXmlRequest.getSignSourceProvider());
         }
-
         httpRequestBuilder.query(cosXmlRequest.getQueryString());
         httpRequestBuilder.addHeaders(cosXmlRequest.getRequestHeaders());
-
         if(cosXmlRequest.isNeedMD5()){
             httpRequestBuilder.contentMD5();
         }
@@ -252,7 +254,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
      * @return String
      */
     public String getAccessUrl(CosXmlRequest cosXmlRequest){
-        String host = cosXmlRequest.getHost(appid, region, false);
+        String realRegion = cosXmlRequest.getRegion() == null ? region : cosXmlRequest.getRegion();
+        String host = cosXmlRequest.getHost(appid, realRegion, false);
         String path = cosXmlRequest.getPath();
         try {
             path = URLEncodeUtils.cosPathEncode(cosXmlRequest.getPath());
@@ -518,7 +521,16 @@ public class CosXmlSimpleService implements SimpleCosXml {
         return appid;
     }
 
+    /**
+     * @see #getRegion(CosXmlRequest)
+     * @return
+     */
+    @Deprecated
     public String getRegion() {
         return region;
+    }
+
+    public String getRegion(CosXmlRequest cosXmlRequest){
+        return cosXmlRequest.getRegion() == null ? region : cosXmlRequest.getRegion();
     }
 }

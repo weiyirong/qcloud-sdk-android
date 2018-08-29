@@ -5,20 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="743e1f90-0f5d-46b2-91f3-728e80e30deb" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/build.gradle" afterPath="$PROJECT_DIR$/build.gradle" />
-      <change beforePath="$PROJECT_DIR$/cosxml/build.gradle" afterPath="$PROJECT_DIR$/cosxml/build.gradle" />
-      <change beforePath="$PROJECT_DIR$/cosxml/publish.gradle" afterPath="$PROJECT_DIR$/cosxml/publish.gradle" />
-      <change beforePath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/ObjectTest.java" afterPath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/ObjectTest.java" />
-      <change beforePath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/QServer.java" afterPath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/QServer.java" />
-      <change beforePath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/bucket/BucketTest.java" afterPath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/bucket/BucketTest.java" />
-      <change beforePath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/object/ObjectTest.java" afterPath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/object/ObjectTest.java" />
-      <change beforePath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/object/ObjectTest.java___jb_tmp___" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/object/PostObjectRequestTest.java" afterPath="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/object/PostObjectRequestTest.java" />
       <change beforePath="$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java" afterPath="$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java" />
-      <change beforePath="$PROJECT_DIR$/cosxml/src/test/java/com/tencent/cos/xml/ExampleUnitTest.java" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/gradle.properties" afterPath="$PROJECT_DIR$/gradle.properties" />
-      <change beforePath="$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle" afterPath="$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle" />
-      <change beforePath="$PROJECT_DIR$/../publish.gradle" afterPath="$PROJECT_DIR$/../publish.gradle" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -64,7 +51,7 @@
                 <item name="QCloudCosXml" type="f1a62948:ProjectNode" />
                 <item name=":foundation" type="2d1252cf:ModuleNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build" type="c8890929:TasksNode$1" />
+                <item name="other" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
@@ -74,108 +61,147 @@
     </system>
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="CosXmlSimpleService.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="493">
-              <caret line="81" column="64" lean-forward="false" selection-start-line="81" selection-start-column="64" selection-end-line="81" selection-end-column="64" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Context.java" pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Library/Android/sdk/sources/android-27/android/content/Context.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="899">
-              <caret line="968" column="10" lean-forward="false" selection-start-line="968" selection-start-column="10" selection-end-line="968" selection-end-column="10" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DownloaderTest.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/transfer/DownloaderTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="136">
-              <caret line="26" column="13" lean-forward="false" selection-start-line="26" selection-start-column="13" selection-end-line="26" selection-end-column="13" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ObjectTest.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/ObjectTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="531">
-              <caret line="249" column="41" lean-forward="false" selection-start-line="249" selection-start-column="41" selection-end-line="249" selection-end-column="41" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/cosxml/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1421">
-              <caret line="101" column="2" lean-forward="false" selection-start-line="101" selection-start-column="2" selection-end-line="101" selection-end-column="2" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="publish.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cosxml/publish.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="487">
-              <caret line="37" column="7" lean-forward="false" selection-start-line="37" selection-start-column="7" selection-end-line="37" selection-end-column="7" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="local.properties" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/local.properties">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" column="0" lean-forward="false" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="gradle.properties" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/gradle.properties">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="15" column="4" lean-forward="false" selection-start-line="15" selection-start-column="4" selection-end-line="15" selection-end-column="4" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="782">
-              <caret line="46" column="29" lean-forward="false" selection-start-line="46" selection-start-column="29" selection-end-line="46" selection-end-column="29" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="22" lean-forward="false" selection-start-line="6" selection-start-column="22" selection-end-line="6" selection-end-column="22" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <splitter split-orientation="horizontal" split-proportion="0.65851796">
+      <split-first>
+        <leaf>
+          <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cosxml/build.gradle">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="272">
+                  <caret line="60" column="34" lean-forward="false" selection-start-line="60" selection-start-column="34" selection-end-line="60" selection-end-column="34" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="CosXmlSimpleService.java" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="565">
+                  <caret line="100" column="50" lean-forward="true" selection-start-line="100" selection-start-column="50" selection-end-line="100" selection-end-column="50" />
+                  <folding>
+                    <element signature="e#4708#4709#0" expanded="true" />
+                    <element signature="e#21056#21057#0" expanded="true" />
+                    <element signature="e#21083#21084#0" expanded="true" />
+                    <element signature="e#21115#21116#0" expanded="true" />
+                    <element signature="e#21143#21144#0" expanded="true" />
+                    <element signature="e#21176#21177#0" expanded="true" />
+                    <element signature="e#21205#21206#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="CosXml.java" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cosxml/src/normal/java/com/tencent/cos/xml/CosXml.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="403">
+                  <caret line="2772" column="12" lean-forward="false" selection-start-line="2772" selection-start-column="12" selection-end-line="2772" selection-end-column="12" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="CosXmlService.java" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/cosxml/src/normal/java/com/tencent/cos/xml/CosXmlService.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="136">
+                  <caret line="89" column="42" lean-forward="false" selection-start-line="89" selection-start-column="42" selection-end-line="89" selection-end-column="42" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="QCloudHttpClient.java" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/src/main/java/com/tencent/qcloud/core/http/QCloudHttpClient.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="150">
+                  <caret line="84" column="16" lean-forward="false" selection-start-line="84" selection-start-column="16" selection-end-line="84" selection-end-column="16" />
+                  <folding>
+                    <element signature="e#1323#1826#0" expanded="true" />
+                    <element signature="e#1825#1826#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="QCloudTask.java" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/src/main/java/com/tencent/qcloud/core/task/QCloudTask.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="167">
+                  <caret line="57" column="19" lean-forward="false" selection-start-line="57" selection-start-column="19" selection-end-line="57" selection-end-column="19" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="QCloudServiceException.java" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/src/main/java/com/tencent/qcloud/core/common/QCloudServiceException.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="-1962">
+                  <caret line="6" column="13" lean-forward="false" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="settings.gradle" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/settings.gradle">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="68">
+                  <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="765">
+                  <caret line="45" column="0" lean-forward="false" selection-start-line="45" selection-start-column="0" selection-end-line="45" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/build.gradle">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="102">
+                  <caret line="6" column="22" lean-forward="false" selection-start-line="6" selection-start-column="22" selection-end-line="6" selection-end-column="22" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="181">
+                  <caret line="11" column="27" lean-forward="false" selection-start-line="11" selection-start-column="27" selection-end-line="11" selection-end-column="27" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="SimpleCosXml.java" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/SimpleCosXml.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="410">
+                  <caret line="819" column="17" lean-forward="false" selection-start-line="819" selection-start-column="17" selection-end-line="819" selection-end-column="17" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
@@ -183,10 +209,18 @@
       <find>execute</find>
       <find>does</find>
       <find>secretId or secretKey must not be null</find>
+      <find>jar</find>
       <find>cosxml</find>
+      <find>javadocJar</find>
+      <find>qcloud-foundation</find>
+      <find>projectPackageName =</find>
+      <find>addVer</find>
+      <find>veri</find>
     </findStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml</dir>
+      <dir>$PROJECT_DIR$</dir>
+      <dir>$PROJECT_DIR$/cosxml/src</dir>
     </dirStrings>
   </component>
   <component name="Git.Settings">
@@ -225,10 +259,6 @@
               <ExternalProjectPojo>
                 <option name="name" value=":foundation" />
                 <option name="path" value="$PROJECT_DIR$/../QCloudFoundation/foundation" />
-              </ExternalProjectPojo>
-              <ExternalProjectPojo>
-                <option name="name" value=":myapplication" />
-                <option name="path" value="$PROJECT_DIR$/myapplication" />
               </ExternalProjectPojo>
             </list>
           </value>
@@ -5260,24 +5290,26 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/model/object/AppendObjectRequest.java" />
-        <option value="$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java" />
         <option value="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/object/PostObjectRequestTest.java" />
         <option value="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/QServer.java" />
         <option value="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/bucket/BucketTest.java" />
         <option value="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/model/object/ObjectTest.java" />
         <option value="$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/ObjectTest.java" />
-        <option value="$PROJECT_DIR$/cosxml/publish.gradle" />
-        <option value="$PROJECT_DIR$/cosxml/build.gradle" />
-        <option value="$PROJECT_DIR$/gradle.properties" />
         <option value="$PROJECT_DIR$/build.gradle" />
+        <option value="$PROJECT_DIR$/cosxml/publish.gradle" />
+        <option value="$PROJECT_DIR$/gradle.properties" />
+        <option value="$PROJECT_DIR$/cosxml/src/main/AndroidManifest.xml" />
         <option value="$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle" />
+        <option value="$PROJECT_DIR$/cosxml/build.gradle" />
+        <option value="$PROJECT_DIR$/settings.gradle" />
+        <option value="$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="36" />
-    <option name="y" value="54" />
-    <option name="width" value="1854" />
+    <option name="x" value="408" />
+    <option name="y" value="28" />
+    <option name="width" value="2059" />
     <option name="height" value="1155" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
@@ -5542,6 +5574,41 @@
             </path>
             <path>
               <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="foundation" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="foundation" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="foundation" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="foundation" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="foundation" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
               <item name="QCloudCosXml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
             </path>
             <path>
@@ -5560,7 +5627,48 @@
               <item name="QCloudCosXml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
               <item name="cosxml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="androidTest" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="QCloudCosXml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="cosxml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="QCloudCosXml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="cosxml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="xml" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="QCloudCosXml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="cosxml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="normal" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="QCloudCosXml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="cosxml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="normal" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="QCloudCosXml" type="b2602c69:ProjectViewProjectNode" />
+              <item name="QCloudCosXml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="cosxml" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="normal" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="xml" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -5591,7 +5699,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Gradle.QCloudCosXml [:foundation:build]">
+  <component name="RunManager" selected="Gradle.QCloudCosXml [:foundation:install]">
     <configuration default="true" type="AndroidJUnit" factoryName="Android JUnit">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <module name="" />
@@ -5614,50 +5722,6 @@
       <method>
         <option name="Android.Gradle.BeforeRunTask" enabled="true" />
       </method>
-    </configuration>
-    <configuration name="putObject()" type="AndroidTestRunConfigurationType" factoryName="Android Instrumented Tests" temporary="true" nameIsGenerated="true">
-      <module name="cosxml" />
-      <option name="TESTING_TYPE" value="3" />
-      <option name="INSTRUMENTATION_RUNNER_CLASS" value="" />
-      <option name="METHOD_NAME" value="putObject" />
-      <option name="CLASS_NAME" value="com.tencent.cos.xml.ObjectTest" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="EXTRA_OPTIONS" value="" />
-      <option name="CLEAR_LOGCAT" value="false" />
-      <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
-      <option name="SKIP_NOOP_APK_INSTALLATIONS" value="true" />
-      <option name="FORCE_STOP_RUNNING_APP" value="true" />
-      <option name="TARGET_SELECTION_MODE" value="SHOW_DIALOG" />
-      <option name="USE_LAST_SELECTED_DEVICE" value="false" />
-      <option name="PREFERRED_AVD" value="" />
-      <option name="SELECTED_CLOUD_MATRIX_CONFIGURATION_ID" value="-1" />
-      <option name="SELECTED_CLOUD_MATRIX_PROJECT_ID" value="" />
-      <option name="DEBUGGER_TYPE" value="Auto" />
-      <Auto>
-        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
-        <option name="SHOW_STATIC_VARS" value="true" />
-        <option name="WORKING_DIR" value="" />
-        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
-        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
-      </Auto>
-      <Hybrid>
-        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
-        <option name="SHOW_STATIC_VARS" value="true" />
-        <option name="WORKING_DIR" value="" />
-        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
-        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
-      </Hybrid>
-      <Java />
-      <Native>
-        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
-        <option name="SHOW_STATIC_VARS" value="true" />
-        <option name="WORKING_DIR" value="" />
-        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
-        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
-      </Native>
-      <Profilers>
-        <option name="ADVANCED_PROFILING_ENABLED" value="false" />
-      </Profilers>
     </configuration>
     <configuration name="testObject()" type="AndroidTestRunConfigurationType" factoryName="Android Instrumented Tests" temporary="true" nameIsGenerated="true">
       <module name="cosxml" />
@@ -5729,6 +5793,24 @@
         <option name="taskNames">
           <list>
             <option value=":foundation:build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+    </configuration>
+    <configuration name="QCloudCosXml [:foundation:install]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":foundation:install" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -5839,19 +5921,19 @@
       <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Android Instrumented Tests.putObject()" />
-      <item index="1" class="java.lang.String" itemvalue="Android Instrumented Tests.testObject()" />
-      <item index="2" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [bintrayUpload]" />
-      <item index="3" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [install]" />
-      <item index="4" class="java.lang.String" itemvalue="Gradle.QCloudCosXml [:foundation:build]" />
+      <item index="0" class="java.lang.String" itemvalue="Android Instrumented Tests.testObject()" />
+      <item index="1" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [bintrayUpload]" />
+      <item index="2" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [install]" />
+      <item index="3" class="java.lang.String" itemvalue="Gradle.QCloudCosXml [:foundation:build]" />
+      <item index="4" class="java.lang.String" itemvalue="Gradle.QCloudCosXml [:foundation:install]" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Gradle.QCloudCosXml [:foundation:build]" />
-        <item index="1" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [install]" />
-        <item index="2" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [bintrayUpload]" />
-        <item index="3" class="java.lang.String" itemvalue="Android Instrumented Tests.testObject()" />
-        <item index="4" class="java.lang.String" itemvalue="Android Instrumented Tests.putObject()" />
+        <item index="0" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [install]" />
+        <item index="1" class="java.lang.String" itemvalue="Gradle.QCloudCosXml [:foundation:install]" />
+        <item index="2" class="java.lang.String" itemvalue="Gradle.QCloudCosXml [:foundation:build]" />
+        <item index="3" class="java.lang.String" itemvalue="Gradle.QCloudCosXml:cosxml [bintrayUpload]" />
+        <item index="4" class="java.lang.String" itemvalue="Android Instrumented Tests.testObject()" />
       </list>
     </recent_temporary>
   </component>
@@ -5904,7 +5986,7 @@
     </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="36" y="54" width="1854" height="1155" extended-state="0" />
+    <frame x="408" y="28" width="2059" height="1155" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Android Profiler" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -5924,13 +6006,13 @@
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Image Layers" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.55255544" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39054966" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4927676" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22350994" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19881012" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3297975" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29304636" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.10758552" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -6001,14 +6083,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/src/main/java/com/tencent/qcloud/core/task/QCloudTask.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="386">
-          <caret line="67" column="54" lean-forward="false" selection-start-line="67" selection-start-column="54" selection-end-line="67" selection-end-column="54" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cosxml/src/androidTestnormal/java/com/tencent/cos/xml/Test.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -6024,22 +6098,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="187">
           <caret line="11" column="18" lean-forward="false" selection-start-line="11" selection-start-column="18" selection-end-line="11" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cosxml/src/normal/java/com/tencent/cos/xml/CosXmlService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="898" column="30" lean-forward="false" selection-start-line="898" selection-start-column="30" selection-end-line="898" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cosxml/src/normal/java/com/tencent/cos/xml/CosXml.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="130">
-          <caret line="2772" column="12" lean-forward="false" selection-start-line="2772" selection-start-column="12" selection-end-line="2772" selection-end-column="12" />
           <folding />
         </state>
       </provider>
@@ -6072,14 +6130,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="474">
           <caret line="267" column="0" lean-forward="false" selection-start-line="267" selection-start-column="0" selection-end-line="267" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/SimpleCosXml.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="139">
-          <caret line="804" column="42" lean-forward="false" selection-start-line="804" selection-start-column="42" selection-end-line="804" selection-end-column="42" />
           <folding />
         </state>
       </provider>
@@ -6150,14 +6200,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="493">
-          <caret line="81" column="64" lean-forward="false" selection-start-line="81" selection-start-column="64" selection-end-line="81" selection-end-column="64" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Library/Android/sdk/sources/android-27/android/content/Context.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="899">
@@ -6174,6 +6216,22 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/gradle.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="20" column="30" lean-forward="false" selection-start-line="20" selection-start-column="30" selection-end-line="20" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradlew">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/local.properties">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
@@ -6182,10 +6240,37 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gradle.properties">
+    <entry file="file://$PROJECT_DIR$/cosxml/src/main/res/values/strings.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="15" column="4" lean-forward="false" selection-start-line="15" selection-start-column="4" selection-end-line="15" selection-end-column="4" />
+        <state relative-caret-position="51">
+          <caret line="3" column="0" lean-forward="true" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosxml/src/main/AndroidManifest.xml">
+      <provider editor-type-id="android-manifest">
+        <state />
+      </provider>
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="80" lean-forward="false" selection-start-line="7" selection-start-column="80" selection-end-line="7" selection-end-column="80" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlServiceConfig.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="11" column="13" lean-forward="false" selection-start-line="11" selection-start-column="13" selection-end-line="11" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="765">
+          <caret line="45" column="0" lean-forward="false" selection-start-line="45" selection-start-column="0" selection-end-line="45" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -6198,27 +6283,94 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cosxml/publish.gradle">
+    <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/src/main/java/com/tencent/qcloud/core/common/QCloudServiceException.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="487">
-          <caret line="37" column="7" lean-forward="false" selection-start-line="37" selection-start-column="7" selection-end-line="37" selection-end-column="7" />
+        <state relative-caret-position="-1962">
+          <caret line="6" column="13" lean-forward="false" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/build.gradle">
+    <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/src/main/java/com/tencent/qcloud/core/task/QCloudTask.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="782">
-          <caret line="46" column="29" lean-forward="false" selection-start-line="46" selection-start-column="29" selection-end-line="46" selection-end-column="29" />
+        <state relative-caret-position="167">
+          <caret line="57" column="19" lean-forward="false" selection-start-line="57" selection-start-column="19" selection-end-line="57" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosxml/publish.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="408">
+          <caret line="24" column="34" lean-forward="true" selection-start-line="24" selection-start-column="34" selection-end-line="24" selection-end-column="34" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/cosxml/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1421">
-          <caret line="101" column="2" lean-forward="false" selection-start-line="101" selection-start-column="2" selection-end-line="101" selection-end-column="2" />
+        <state relative-caret-position="272">
+          <caret line="60" column="34" lean-forward="false" selection-start-line="60" selection-start-column="34" selection-end-line="60" selection-end-column="34" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/settings.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../QCloudFoundation/foundation/src/main/java/com/tencent/qcloud/core/http/QCloudHttpClient.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="84" column="16" lean-forward="false" selection-start-line="84" selection-start-column="16" selection-end-line="84" selection-end-column="16" />
+          <folding>
+            <element signature="e#1323#1826#0" expanded="true" />
+            <element signature="e#1825#1826#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosxml/src/normal/java/com/tencent/cos/xml/CosXmlService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="89" column="42" lean-forward="false" selection-start-line="89" selection-start-column="42" selection-end-line="89" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/SimpleCosXml.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="410">
+          <caret line="819" column="17" lean-forward="false" selection-start-line="819" selection-start-column="17" selection-end-line="819" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosxml/src/normal/java/com/tencent/cos/xml/CosXml.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="403">
+          <caret line="2772" column="12" lean-forward="false" selection-start-line="2772" selection-start-column="12" selection-end-line="2772" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cosxml/src/main/java/com/tencent/cos/xml/CosXmlSimpleService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="565">
+          <caret line="100" column="50" lean-forward="true" selection-start-line="100" selection-start-column="50" selection-end-line="100" selection-end-column="50" />
+          <folding>
+            <element signature="e#4708#4709#0" expanded="true" />
+            <element signature="e#21056#21057#0" expanded="true" />
+            <element signature="e#21083#21084#0" expanded="true" />
+            <element signature="e#21115#21116#0" expanded="true" />
+            <element signature="e#21143#21144#0" expanded="true" />
+            <element signature="e#21176#21177#0" expanded="true" />
+            <element signature="e#21205#21206#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

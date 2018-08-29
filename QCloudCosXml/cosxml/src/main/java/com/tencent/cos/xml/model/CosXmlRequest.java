@@ -1,5 +1,7 @@
 package com.tencent.cos.xml.model;
 
+import android.text.TextUtils;
+
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.auth.COSXmlSignSourceProvider;
@@ -36,6 +38,7 @@ public abstract class CosXmlRequest{
     private HttpTask httpTask;
     private boolean isNeedMD5 = false;
     private boolean isSupportAccelerate = false;
+    private String region;
 
     public abstract String getMethod();
 
@@ -162,6 +165,16 @@ public abstract class CosXmlRequest{
         cosXmlSignSourceProvider.parameters(parameters);
         cosXmlSignSourceProvider.headers(headers);
         signSourceProvider = cosXmlSignSourceProvider;
+    }
+
+    public void setRegion(String region){
+        if(!TextUtils.isEmpty(region)){
+            this.region = region;
+        }
+    }
+
+    public String getRegion(){
+        return region;
     }
 
     public void setTask(HttpTask httpTask){
