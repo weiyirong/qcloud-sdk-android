@@ -45,7 +45,7 @@ public class UploadService {
     private String bucket;
     private String cosPath;
     private String srcPath;
-    private long sliceSize = 1024 * 1024 * 1;
+    private long sliceSize = 1024 * 1024 * 2;
     private String uploadId;
     private long fileLength;
     private static final long SIZE_LIMIT = 2 * 1024 * 1024;
