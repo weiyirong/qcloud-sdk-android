@@ -50,7 +50,7 @@ allprojects {
 ```
 dependencies {
     //增加这行
-    compile 'com.tencent.qcloud:cos-android-sdk:5.4.3'
+    compile 'com.tencent.qcloud:cosxml:5.4.+'
 }
 ```
 
@@ -61,12 +61,12 @@ dependencies {
 ##### COS XML SDK
 
 ```
-compile 'com.tencent.qcloud:cos-android-sdk:5.4.3'
+compile 'com.tencent.qcloud:cosxml:5.4.+'
 ```
 
 ### 手动集成
 
-如果您无法采用远程依赖的方式，可以通过下载 [最新版本](https://github.com/tencentyun/qcloud-sdk-android/releases/tag/V5.4.3) 的压缩包，解压后，手动集成到您的工程中。
+如果您无法采用远程依赖的方式，可以通过下载 [最新版本](https://github.com/tencentyun/qcloud-sdk-android/releases) 的压缩包，解压后，手动集成到您的工程中。
 
 
 ## 开发文档
