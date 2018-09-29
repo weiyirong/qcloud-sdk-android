@@ -24,7 +24,7 @@ import java.util.List;
  * Created by bradyxiao on 2018/3/20.
  * 断点下载工具
  */
-
+@Deprecated
 public class Downloader {
 
     private CosXml cosXmlServer;

@@ -34,6 +34,7 @@ final public class UploadPartRequest extends ObjectRequest {
 
     private UploadPartRequest(String bucket, String cosPath){
         super(bucket, cosPath);
+        setNeedMD5(true);
     }
 
     public UploadPartRequest(String bucket, String cosPath, int partNumber, String srcPath, String uploadId){
@@ -112,7 +113,7 @@ final public class UploadPartRequest extends ObjectRequest {
     @Override
     public Map<String, String> getQueryString() {
         queryParameters.put("partNumber", String.valueOf(partNumber));
-        queryParameters.put("uploadID", uploadId);
+        queryParameters.put("uploadId", uploadId);
         return super.getQueryString();
     }
 

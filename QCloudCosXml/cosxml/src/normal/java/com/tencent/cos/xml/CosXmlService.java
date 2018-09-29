@@ -75,6 +75,7 @@ import com.tencent.cos.xml.model.service.GetServiceResult;
 import com.tencent.cos.xml.model.tag.COSMetaData;
 import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
+import com.tencent.qcloud.core.auth.QCloudSigner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -97,6 +98,10 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
      */
     public CosXmlService(Context context, CosXmlServiceConfig configuration, QCloudCredentialProvider qCloudCredentialProvider){
         super(context, configuration, qCloudCredentialProvider);
+    }
+
+    public CosXmlService(Context context, CosXmlServiceConfig configuration, QCloudSigner qCloudSigner) {
+        super(context, configuration, qCloudSigner);
     }
 
     /**
@@ -205,29 +210,29 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
         schedule(request, new GetObjectACLResult(), cosXmlResultListener);
     }
 
-    /**
-     * <p>
-     * 获取 COS 对象的元数据信息(meta data)的同步方法.&nbsp;
-     *
-     * 详细介绍，请查看:{@link  CosXml#headObject(HeadObjectRequest)}
-     *</p>
-     */
-    @Override
-    public HeadObjectResult headObject(HeadObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return execute(request, new HeadObjectResult());
-    }
-
-    /**
-     * <p>
-     * 获取 COS 对象的元数据信息(meta data)的异步方法.&nbsp;
-     *
-     * 详细介绍，请查看:{@link  CosXml#headObjectAsync(HeadObjectRequest request, CosXmlResultListener cosXmlResultListener)}
-     *</p>
-     */
-    @Override
-    public void headObjectAsync(HeadObjectRequest request, CosXmlResultListener cosXmlResultListener) {
-        schedule(request, new HeadObjectResult(), cosXmlResultListener);
-    }
+//    /**
+//     * <p>
+//     * 获取 COS 对象的元数据信息(meta data)的同步方法.&nbsp;
+//     *
+//     * 详细介绍，请查看:{@link  CosXml#headObject(HeadObjectRequest)}
+//     *</p>
+//     */
+//    @Override
+//    public HeadObjectResult headObject(HeadObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
+//        return execute(request, new HeadObjectResult());
+//    }
+//
+//    /**
+//     * <p>
+//     * 获取 COS 对象的元数据信息(meta data)的异步方法.&nbsp;
+//     *
+//     * 详细介绍，请查看:{@link  CosXml#headObjectAsync(HeadObjectRequest request, CosXmlResultListener cosXmlResultListener)}
+//     *</p>
+//     */
+//    @Override
+//    public void headObjectAsync(HeadObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+//        schedule(request, new HeadObjectResult(), cosXmlResultListener);
+//    }
 
     /**
      * <p>
@@ -277,53 +282,53 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
         schedule(request, new PutObjectACLResult(), cosXmlResultListener);
     }
 
-    /**
-     * <p>
-     * 简单复制对象的同步方法.&nbsp;
-     *
-     * 详细介绍，请查看:{@link  CosXml#copyObject(CopyObjectRequest request)}
-     *</p>
-     */
-    @Override
-    public CopyObjectResult copyObject(CopyObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return execute(request, new CopyObjectResult());
-    }
-
-    /**
-     * <p>
-     * 简单复制对象的异步方法.&nbsp;
-     *
-     * 详细介绍，请查看:{@link  CosXml#copyObjectAsync(CopyObjectRequest request, CosXmlResultListener cosXmlResultListener)}
-     *</p>
-     */
-    @Override
-    public void copyObjectAsync(CopyObjectRequest request, CosXmlResultListener cosXmlResultListener) {
-        schedule(request, new CopyObjectResult(), cosXmlResultListener);
-    }
-
-    /**
-     * <p>
-     * 分块复制的同步方法.&nbsp;
-     *
-     * 详细介绍，请查看:{@link  CosXml#copyObject(UploadPartCopyRequest)}
-     *</p>
-     */
-    @Override
-    public UploadPartCopyResult copyObject(UploadPartCopyRequest request) throws CosXmlClientException, CosXmlServiceException {
-        return execute(request, new UploadPartCopyResult());
-    }
-
-    /**
-     * <p>
-     * 分块复制的异步方法.&nbsp;
-     *
-     * 详细介绍，请查看:{@link  CosXml#copyObjectAsync(UploadPartCopyRequest request, CosXmlResultListener cosXmlResultListener)}
-     *</p>
-     */
-    @Override
-    public void copyObjectAsync(UploadPartCopyRequest request, CosXmlResultListener cosXmlResultListener) {
-        schedule(request, new UploadPartCopyResult(), cosXmlResultListener);
-    }
+//    /**
+//     * <p>
+//     * 简单复制对象的同步方法.&nbsp;
+//     *
+//     * 详细介绍，请查看:{@link  CosXml#copyObject(CopyObjectRequest request)}
+//     *</p>
+//     */
+//    @Override
+//    public CopyObjectResult copyObject(CopyObjectRequest request) throws CosXmlClientException, CosXmlServiceException {
+//        return execute(request, new CopyObjectResult());
+//    }
+//
+//    /**
+//     * <p>
+//     * 简单复制对象的异步方法.&nbsp;
+//     *
+//     * 详细介绍，请查看:{@link  CosXml#copyObjectAsync(CopyObjectRequest request, CosXmlResultListener cosXmlResultListener)}
+//     *</p>
+//     */
+//    @Override
+//    public void copyObjectAsync(CopyObjectRequest request, CosXmlResultListener cosXmlResultListener) {
+//        schedule(request, new CopyObjectResult(), cosXmlResultListener);
+//    }
+//
+//    /**
+//     * <p>
+//     * 分块复制的同步方法.&nbsp;
+//     *
+//     * 详细介绍，请查看:{@link  CosXml#copyObject(UploadPartCopyRequest)}
+//     *</p>
+//     */
+//    @Override
+//    public UploadPartCopyResult copyObject(UploadPartCopyRequest request) throws CosXmlClientException, CosXmlServiceException {
+//        return execute(request, new UploadPartCopyResult());
+//    }
+//
+//    /**
+//     * <p>
+//     * 分块复制的异步方法.&nbsp;
+//     *
+//     * 详细介绍，请查看:{@link  CosXml#copyObjectAsync(UploadPartCopyRequest request, CosXmlResultListener cosXmlResultListener)}
+//     *</p>
+//     */
+//    @Override
+//    public void copyObjectAsync(UploadPartCopyRequest request, CosXmlResultListener cosXmlResultListener) {
+//        schedule(request, new UploadPartCopyResult(), cosXmlResultListener);
+//    }
 
     @Override
     public RestoreResult restoreObject(RestoreRequest request) throws CosXmlClientException, CosXmlServiceException {
@@ -1076,8 +1081,8 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
             for (String key : metaData.keySet()) {
                 copyObjectRequest.setXCOSMeta(key, metaData.get(key));
             }
-        } catch (CosXmlClientException e) {
-            booleanListener.onFail(e, null);
+        } catch (Exception e) {
+            booleanListener.onFail(new CosXmlClientException(e), null);
         }
         copyObjectAsync(copyObjectRequest, new CosXmlResultListener() {
             @Override

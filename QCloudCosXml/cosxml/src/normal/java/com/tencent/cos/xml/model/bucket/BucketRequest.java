@@ -1,6 +1,9 @@
 package com.tencent.cos.xml.model.bucket;
 
 
+import android.text.TextUtils;
+
+import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.CosXmlRequest;
 
@@ -17,8 +20,22 @@ public abstract class BucketRequest extends CosXmlRequest {
     }
 
     @Override
-    public String getPath() {
-        return "/";
+    public String getPath(CosXmlServiceConfig config) {
+
+        StringBuilder path = new StringBuilder();
+        String appid = config.getAppid();
+        String fullBucketName = bucket;
+
+        if (config.isBucketInPath()) {
+
+            if(!fullBucketName.endsWith("-" + appid) && !TextUtils.isEmpty(appid)){
+                fullBucketName = fullBucketName + "-" + appid;
+            }
+            path.append("/");
+            path.append(fullBucketName);
+        }
+
+        return path + "/";
     }
 
     @Override

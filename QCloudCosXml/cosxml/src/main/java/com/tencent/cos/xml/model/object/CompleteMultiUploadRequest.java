@@ -110,7 +110,7 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
      */
     @Override
     public Map<String, String> getQueryString() {
-        queryParameters.put("uploadID", uploadId);
+        queryParameters.put("uploadId", uploadId);
         return queryParameters;
     }
 

@@ -1,9 +1,13 @@
 package com.tencent.cos.xml.model;
 
+import android.text.TextUtils;
+
+import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.auth.COSXmlSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
+import com.tencent.qcloud.core.common.QCloudTaskStateListener;
 import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpTask;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
@@ -36,12 +40,27 @@ public abstract class CosXmlRequest{
     private HttpTask httpTask;
     private boolean isNeedMD5 = false;
     private boolean isSupportAccelerate = false;
+    private String region;
+
+    protected String domainSuffix;
+
+    protected QCloudTaskStateListener qCloudTaskStateListener;
 
     public abstract String getMethod();
 
     protected abstract String getHostPrefix();
 
-    public abstract String getPath();
+    public abstract String getPath(CosXmlServiceConfig config);
+
+    public void setQueryParameters(java.util.Map<String, String> queryParameters) {
+        this.queryParameters = queryParameters;
+    }
+
+    public void setRequestHeaders(Map<String, List<String>> headers){
+        if(headers != null){
+            this.requestHeaders.putAll(headers);
+        }
+    }
 
     public Map<String, String> getQueryString(){
         return queryParameters;
@@ -65,6 +84,14 @@ public abstract class CosXmlRequest{
 
     public void setNeedMD5(boolean isNeedMD5){
         this.isNeedMD5 = isNeedMD5;
+    }
+
+    public void setTaskStateListener(QCloudTaskStateListener qCloudTaskStateListener){
+        this.qCloudTaskStateListener = qCloudTaskStateListener;
+    }
+
+    public  QCloudTaskStateListener getTaskStateListener(){
+        return qCloudTaskStateListener;
     }
 
     /**
@@ -107,18 +134,60 @@ public abstract class CosXmlRequest{
         requestHeaders.put(key, values);
     }
 
-    public String getHost(String appid, String region, boolean isSupportAccelerate){
-        String suffix = "myqcloud.com";
+    /**
+     * 获取实际的 host
+     *
+     * 默认域名：
+     *
+     * bucket-appid.cos.region.myqcloud.com
+     *
+     * 加速域名：
+     *
+     * bucket-appid.cos-accelerate.myqcloud.com
+     *
+     * CSP 域名：共四种
+     *
+     *   cos.region.domainSuffix/bucket-appid
+     *   bucket-appid.cos.region.domainSuffix
+     *
+     *   cos.domainSuffix/bucket-appid
+     *   bucket-appid.cos.domainSuffix
+     *
+     * @return host
+     */
+    private String getHost(String appid, String region, String domainSuffix, boolean isBucketInPath, boolean isSupportAccelerate) throws CosXmlClientException {
+
+        this.domainSuffix = domainSuffix;
         String bucket = getHostPrefix();
-        if(!bucket.endsWith("-" + appid)){
+        String realRegion = getRegion() == null ? region : getRegion();
+
+        if(!bucket.endsWith("-" + appid) && !TextUtils.isEmpty(appid)){
             bucket = bucket + "-" + appid;
         }
-        if(isSupportAccelerate){
-            return bucket + ".cos-accelerate" +  "." + suffix;
-        }else {
-            return bucket + ".cos." + region + "." + suffix;
+
+        StringBuilder host = new StringBuilder();
+        if (!isBucketInPath) {
+            host.append(bucket);
+            host.append(".");
         }
 
+        if (isSupportAccelerate) {
+            host.append("cos-accelerate");
+        } else {
+            host.append("cos");
+            if (!TextUtils.isEmpty(realRegion)) {
+                host.append(".");
+                host.append(realRegion);
+            }
+        }
+        host.append(".").append(domainSuffix);
+
+        return host.toString();
+    }
+
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
+
+        return getHost(config.getAppid(), config.getRegion(), config.getDomainSuffix(), config.isBucketInPath(), isSupportAccelerate);
     }
 
     public void isSupportAccelerate(boolean isSupportAccelerate){
@@ -162,6 +231,20 @@ public abstract class CosXmlRequest{
         cosXmlSignSourceProvider.parameters(parameters);
         cosXmlSignSourceProvider.headers(headers);
         signSourceProvider = cosXmlSignSourceProvider;
+    }
+
+    public void setSignSourceProvider(QCloudSignSourceProvider cosXmlSignSourceProvider){
+        this.signSourceProvider = cosXmlSignSourceProvider;
+    }
+
+    public void setRegion(String region){
+        if(!TextUtils.isEmpty(region)){
+            this.region = region;
+        }
+    }
+
+    public String getRegion(){
+        return region;
     }
 
     public void setTask(HttpTask httpTask){

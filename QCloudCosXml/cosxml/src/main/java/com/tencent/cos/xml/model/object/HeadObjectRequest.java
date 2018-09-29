@@ -2,7 +2,6 @@ package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.RequestMethod;
-import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 /**

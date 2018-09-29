@@ -1,8 +1,10 @@
 package com.tencent.cos.xml.model.object;
 
 
+import android.text.TextUtils;
 import android.util.Base64;
 
+import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.utils.DigestUtils;
@@ -30,12 +32,32 @@ public abstract class ObjectRequest extends CosXmlRequest {
         return bucket;
     }
 
+    /**
+     * 支持 CSP 的 Bucket 可能在 path 上
+     *
+     * @param config
+     * @return
+     */
     @Override
-    public String getPath() {
+    public String getPath(CosXmlServiceConfig config) {
+
+        StringBuilder path = new StringBuilder();
+        String appid = config.getAppid();
+        String fullBucketName = bucket;
+
+        if (config.isBucketInPath()) {
+
+            if(!fullBucketName.endsWith("-" + appid) && !TextUtils.isEmpty(appid)){
+                fullBucketName = fullBucketName + "-" + appid;
+            }
+            path.append("/");
+            path.append(fullBucketName);
+        }
+
         if(cosPath != null && !cosPath.startsWith("/")){
-            return  "/" + cosPath;
+            return  path + "/" + cosPath;
         }else {
-            return cosPath;
+            return path + cosPath;
         }
     }
 
@@ -73,7 +95,7 @@ public abstract class ObjectRequest extends CosXmlRequest {
     }
 
     public void setCOSServerSideEncryptionWithKMS(String customerKeyID, String json) throws CosXmlClientException {
-        addHeader("'x-cos-server-side-encryption", "cos/kms");
+        addHeader("x-cos-server-side-encryption", "cos/kms");
         if(customerKeyID != null){
             addHeader("x-cos-server-side-encryption-cos-kms-key-id", customerKeyID);
         }

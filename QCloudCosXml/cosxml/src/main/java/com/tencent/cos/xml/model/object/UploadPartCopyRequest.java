@@ -30,7 +30,7 @@ public class UploadPartCopyRequest extends CopyObjectRequest {
     }
 
     public UploadPartCopyRequest(String bucket, String cosPath, int partNumber, String uploadId, CopySourceStruct copySourceStruct,
-                                 long start, long end) throws CosXmlClientException {
+                                 long start, long end){
         super(bucket, cosPath, copySourceStruct);
         this.partNumber = partNumber;
         this.uploadId = uploadId;

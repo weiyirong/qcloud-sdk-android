@@ -16,7 +16,7 @@ import java.util.Map;
  * 关于下载接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7753">https://cloud.tencent.com/document/product/436/7753.</a><br>
  * </p>
  */
-final public class GetObjectRequest extends ObjectRequest {
+public class GetObjectRequest extends ObjectRequest {
 
     private String rspContentType;
     private String rspContentLanguage;
@@ -26,6 +26,7 @@ final public class GetObjectRequest extends ObjectRequest {
     private String rspContentEncoding;
     private String versionId;
     private Range range;
+    private long fileOffset = 0L;
 
     private CosXmlProgressListener progressListener;
     private String savePath;
@@ -54,6 +55,17 @@ final public class GetObjectRequest extends ObjectRequest {
         this.savePath = savePath;
         this.saveFileName = saveFileName;
     }
+
+    public long getFileOffset() {
+        return fileOffset;
+    }
+
+    public void setFileOffset(long fileOffset) {
+        if(fileOffset > 0L){
+            this.fileOffset = fileOffset;
+        }
+    }
+
 
 
     public void setVersionId(String versionId) {
@@ -247,6 +259,23 @@ final public class GetObjectRequest extends ObjectRequest {
      */
     public String getSavePath() {
         return savePath;
+    }
+
+    /**
+     * 设置文件存储在本地的文件名
+     * @param saveFileName
+     */
+    public void setSaveFileName(String saveFileName) {
+        this.saveFileName = saveFileName;
+    }
+
+    /**
+     * 获取文件存储在本地的文件名
+     * 如果用户没有设置，则返回null
+     * @return String
+     */
+    public String getSaveFileName() {
+        return saveFileName;
     }
 
     public String getDownloadPath(){

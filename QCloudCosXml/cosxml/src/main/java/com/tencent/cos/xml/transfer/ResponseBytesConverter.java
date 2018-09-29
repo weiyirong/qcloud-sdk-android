@@ -1,28 +1,19 @@
 package com.tencent.cos.xml.transfer;
 
+import com.tencent.cos.xml.MTAProxy;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
-import com.tencent.cos.xml.model.object.GetObjectBytesRequest;
 import com.tencent.cos.xml.model.object.GetObjectBytesResult;
 import com.tencent.cos.xml.model.tag.CosError;
 import com.tencent.qcloud.core.common.QCloudClientException;
-import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.http.HttpResponse;
 import com.tencent.qcloud.core.http.ResponseBodyConverter;
-import com.tencent.qcloud.core.util.QCloudHttpUtils;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
-
-import okhttp3.internal.Util;
-import okio.Buffer;
-import okio.BufferedSink;
-import okio.Okio;
 
 /**
  * 解析下载的字节流，并保存为文本
@@ -65,11 +56,14 @@ public class ResponseBytesConverter<T> extends ResponseBodyConverter<T> {
                 cosXmlServiceException.setRequestId(cosError.requestId);
                 cosXmlServiceException.setServiceName(cosError.resource);
             } catch (XmlPullParserException e) {
+                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
                 throw new CosXmlClientException(e);
             } catch (IOException e) {
+                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
                 throw new CosXmlClientException(e);
             }
         }
+        MTAProxy.getInstance().reportCosXmlServerException(cosXmlServiceException.getRequestId());
         throw cosXmlServiceException;
     }
 }

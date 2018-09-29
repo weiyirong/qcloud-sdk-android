@@ -373,88 +373,88 @@ public interface CosXml extends SimpleCosXml {
      */
     void getObjectACLAsync(GetObjectACLRequest request, final CosXmlResultListener cosXmlResultListener);
 
-    /**
-     * <p>
-     * 获取 COS 对象的元数据信息(meta data)的同步方法.&nbsp;
-     * <p>
-     * 获取 COS 对象的元数据信息，需要与 Get 的权限一致.且请求是不返回消息体的.若请求中需要设置If-Modified-Since
-     * 头部，则统一采用 GMT(RFC822) 时间格式，例如：Tue, 22 Oct 2017 01:35:21 GMT.如果对象不存在，则
-     * 返回404.
-     * <p>
-     * 关于获取 COS 对象的元数据信息接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/7745">https://cloud.tencent.com/document/product/436/7745.</a>
-     * 
-     * <p>
-     * cos Android SDK 中获取 COS 对象的元数据信息的同步方法具体步骤如下：<br>
-     * 1、通过调用 {@link HeadObjectRequest} 构造方法，实例化 HeadObjectRequest 对象;<br>
-     * 2、通过调用 {@link #headObject(HeadObjectRequest)} 同步方法，传入 HeadObjectRequest，返回 {@link HeadObjectResult} 对象.
-     * 
-
-     *
-     *<p>
-     * 示例：
-     * <blockquote><pre>
-     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
-     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
-     * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
-     * request.setSign(signDuration,null,null); //签名
-     * try {
-     *     HeadObjectResult result = cosXml.headObject(request);
-     *     Log.w("TEST","success");
-     * } catch (CosXmlClientException e) {
-     *     Log.w("TEST","CosXmlClientException =" + e.toString());
-     * } catch (CosXmlServiceException e) {
-     *     Log.w("TEST","CosXmlServiceException =" + e.toString());
-     * }
-     *</pre></blockquote>
-     * 
-     * @param request 获取 COS 对象的元数据信息请求 {@link HeadObjectRequest}
-     * @return HeadObjectResult 获取 COS 对象的元数据信息请求返回的结果 {@link HeadObjectResult}
-     * @throws CosXmlClientException 抛出客户异常 {@link CosXmlClientException}
-     * @throws CosXmlServiceException 抛出服务异常 {@link CosXmlServiceException}
-     */
-    HeadObjectResult headObject(HeadObjectRequest request) throws CosXmlClientException, CosXmlServiceException;
-
-    /**
-     * <p>
-     * 获取 COS 对象的元数据信息(meta data)的异步方法.&nbsp;
-     * <p>
-     * 获取 COS 对象的元数据信息，需要与 Get 的权限一致.且请求是不返回消息体的.若请求中需要设置If-Modified-Since
-     * 头部，则统一采用 GMT(RFC822) 时间格式，例如：Tue, 22 Oct 2017 01:35:21 GMT.如果对象不存在，则
-     * 返回404.
-     * 关于获取 COS 对象的元数据信息接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/7745">https://cloud.tencent.com/document/product/436/7745.</a>
-     *
-     * <p>
-     * cos Android SDK 中获取 COS 对象的元数据信息的异步方法具体步骤如下：<br>
-     * 1、通过调用 {@link HeadObjectRequest} 构造方法，实例化 HeadObjectRequest 对象;<br>
-     * 2、通过调用 {@link #headObjectAsync(HeadObjectRequest, CosXmlResultListener)} 异步方法，传入 HeadObjectRequest 和 CosXmlResultListener 进行异步回调操作.
-     * 
-
-     *<p>
-     * 示例：
-     * <blockquote><pre>
-     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
-     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
-     * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
-     * request.setSign(signDuration,null,null); //签名
-     * cosXml.headObjectAsync(request, new CosXmlResultListener() {
-     *    &nbsp;@Override
-     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
-     *         Log.w("TEST","success");
-     *     }
-     *    &nbsp;@Override
-     *     public void onFail(CosXmlRequest cosXmlRequest, CosXmlClientException clientException, CosXmlServiceException
-     *             serviceException)  {
-     *         String errorMsg = clientException != null ? clientException.toString() : serviceException.toString();
-     *         Log.w("TEST",errorMsg);
-     *     }
-     * })
-     *</pre></blockquote>
-     * 
-     * @param request 获取 COS 对象的元数据信息请求 {@link HeadObjectRequest}
-     * @param cosXmlResultListener 请求回调结果 {@link CosXmlResultListener}
-     */
-    void headObjectAsync(HeadObjectRequest request, final CosXmlResultListener cosXmlResultListener);
-
+//    /**
+//     * <p>
+//     * 获取 COS 对象的元数据信息(meta data)的同步方法.&nbsp;
+//     * <p>
+//     * 获取 COS 对象的元数据信息，需要与 Get 的权限一致.且请求是不返回消息体的.若请求中需要设置If-Modified-Since
+//     * 头部，则统一采用 GMT(RFC822) 时间格式，例如：Tue, 22 Oct 2017 01:35:21 GMT.如果对象不存在，则
+//     * 返回404.
+//     * <p>
+//     * 关于获取 COS 对象的元数据信息接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/7745">https://cloud.tencent.com/document/product/436/7745.</a>
+//     *
+//     * <p>
+//     * cos Android SDK 中获取 COS 对象的元数据信息的同步方法具体步骤如下：<br>
+//     * 1、通过调用 {@link HeadObjectRequest} 构造方法，实例化 HeadObjectRequest 对象;<br>
+//     * 2、通过调用 {@link #headObject(HeadObjectRequest)} 同步方法，传入 HeadObjectRequest，返回 {@link HeadObjectResult} 对象.
+//     *
+//
+//     *
+//     *<p>
+//     * 示例：
+//     * <blockquote><pre>
+//     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+//     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
+//     * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
+//     * request.setSign(signDuration,null,null); //签名
+//     * try {
+//     *     HeadObjectResult result = cosXml.headObject(request);
+//     *     Log.w("TEST","success");
+//     * } catch (CosXmlClientException e) {
+//     *     Log.w("TEST","CosXmlClientException =" + e.toString());
+//     * } catch (CosXmlServiceException e) {
+//     *     Log.w("TEST","CosXmlServiceException =" + e.toString());
+//     * }
+//     *</pre></blockquote>
+//     *
+//     * @param request 获取 COS 对象的元数据信息请求 {@link HeadObjectRequest}
+//     * @return HeadObjectResult 获取 COS 对象的元数据信息请求返回的结果 {@link HeadObjectResult}
+//     * @throws CosXmlClientException 抛出客户异常 {@link CosXmlClientException}
+//     * @throws CosXmlServiceException 抛出服务异常 {@link CosXmlServiceException}
+//     */
+//    HeadObjectResult headObject(HeadObjectRequest request) throws CosXmlClientException, CosXmlServiceException;
+//
+//    /**
+//     * <p>
+//     * 获取 COS 对象的元数据信息(meta data)的异步方法.&nbsp;
+//     * <p>
+//     * 获取 COS 对象的元数据信息，需要与 Get 的权限一致.且请求是不返回消息体的.若请求中需要设置If-Modified-Since
+//     * 头部，则统一采用 GMT(RFC822) 时间格式，例如：Tue, 22 Oct 2017 01:35:21 GMT.如果对象不存在，则
+//     * 返回404.
+//     * 关于获取 COS 对象的元数据信息接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/7745">https://cloud.tencent.com/document/product/436/7745.</a>
+//     *
+//     * <p>
+//     * cos Android SDK 中获取 COS 对象的元数据信息的异步方法具体步骤如下：<br>
+//     * 1、通过调用 {@link HeadObjectRequest} 构造方法，实例化 HeadObjectRequest 对象;<br>
+//     * 2、通过调用 {@link #headObjectAsync(HeadObjectRequest, CosXmlResultListener)} 异步方法，传入 HeadObjectRequest 和 CosXmlResultListener 进行异步回调操作.
+//     *
+//
+//     *<p>
+//     * 示例：
+//     * <blockquote><pre>
+//     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+//     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
+//     * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
+//     * request.setSign(signDuration,null,null); //签名
+//     * cosXml.headObjectAsync(request, new CosXmlResultListener() {
+//     *    &nbsp;@Override
+//     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
+//     *         Log.w("TEST","success");
+//     *     }
+//     *    &nbsp;@Override
+//     *     public void onFail(CosXmlRequest cosXmlRequest, CosXmlClientException clientException, CosXmlServiceException
+//     *             serviceException)  {
+//     *         String errorMsg = clientException != null ? clientException.toString() : serviceException.toString();
+//     *         Log.w("TEST",errorMsg);
+//     *     }
+//     * })
+//     *</pre></blockquote>
+//     *
+//     * @param request 获取 COS 对象的元数据信息请求 {@link HeadObjectRequest}
+//     * @param cosXmlResultListener 请求回调结果 {@link CosXmlResultListener}
+//     */
+//    void headObjectAsync(HeadObjectRequest request, final CosXmlResultListener cosXmlResultListener);
+//
 
     /**
      * <p>
@@ -642,223 +642,223 @@ public interface CosXml extends SimpleCosXml {
      */
     void putObjectACLAsync(PutObjectACLRequest request, final CosXmlResultListener cosXmlResultListener);
 
-    /**
-     * <p>
-     * 简单复制对象的同步方法.&nbsp;
-     * <p>
-     * COS 中复制对象可以完成如下功能:
-     * <ul>
-     * <li>创建一个新的对象副本.</li>
-     * <li>复制对象并更名，删除原始对象，实现重命名</li>
-     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
-     * <li>在不同的腾讯云 COS 地域复制对象.</li>
-     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
-     * </ul>
-     * <p>
-     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
-     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
-     * 来实现复制.<br>
-     * 关于简单复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/10881">https://cloud.tencent.com/document/product/436/10881.</a>
-     * 
-     * <p>
-     * cos Android SDK 中简单复制对象的同步方法具体步骤如下：<br>
-     * 1、通过调用 {@link CopyObjectRequest} 构造方法，实例化 CopyObjectRequest 对象;<br>
-     * 2、通过调用 {@link #copyObject(CopyObjectRequest)} 同步方法，传入 CopyObjectRequest，返回 {@link CopyObjectResult} 对象.
-     * 
-
-     *<p>
-     * 示例：
-     * <blockquote><pre>
-     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
-     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
-     * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-     * "appid", "*source_bucket", "source_region", "source");
-     * request.setSign(signDuration,null,null); //签名
-     * try {
-     *     CopyObjectResult result = cosXml.copyObject(request);
-     *     Log.w("TEST","success");
-     * } catch (CosXmlClientException e) {
-     *     Log.w("TEST","CosXmlClientException =" + e.toString());
-     * } catch (CosXmlServiceException e) {
-     *     Log.w("TEST","CosXmlServiceException =" + e.toString());
-     * }
-     *</pre></blockquote>
-     * 
-     * @param request 简单复制对象请求 {@link CopyObjectRequest}
-     * @return CopyObjectResult 简单复制对象请求返回的结果 {@link CopyObjectResult}
-     * @throws CosXmlClientException 抛出客户异常 {@link CosXmlClientException}
-     * @throws CosXmlServiceException 抛出服务异常 {@link CosXmlServiceException}
-     */
-    CopyObjectResult copyObject(CopyObjectRequest request) throws CosXmlClientException, CosXmlServiceException;
-
-    /**
-     * <p>
-     * 简单复制对象的异步方法.&nbsp;<br>
-     * <p>
-     * COS 中复制对象可以完成如下功能:
-     * <ul>
-     * <li>创建一个新的对象副本.</li>
-     * <li>复制对象并更名，删除原始对象，实现重命名</li>
-     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
-     * <li>在不同的腾讯云 COS 地域复制对象.</li>
-     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
-     * </ul>
-     * <p>
-     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
-     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
-     * 来实现复制.<br>
-     * 关于简单复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/10881">https://cloud.tencent.com/document/product/436/10881.</a>
-     *
-     * <p>
-     * cos Android SDK 中简单复制对象的异步方法具体步骤如下：<br>
-     * 1、通过调用 {@link CopyObjectRequest} 构造方法，实例化 CopyObjectRequest 对象;<br>
-     * 2、通过调用 {@link #copyObjectAsync(CopyObjectRequest, CosXmlResultListener)} 异步方法，传入 CopyObjectRequest 和 CosXmlResultListener 进行异步回调操作.
-     * 
-
-     *<p>
-     * 示例：
-     * <blockquote><pre>
-     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
-     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
-     * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-     * "appid", "*source_bucket", "source_region", "source");
-     * CopyObjectRequest request = new CopyObjectRequest(bucket, cosPath, copySourceStruct);
-     * request.setSign(signDuration,null,null); //签名
-     * cosXml.copyObjectAsync(request, new CosXmlResultListener() {
-     *    &nbsp;@Override
-     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
-     *         Log.w("TEST","success");
-     *     }
-     *    &nbsp;@Override
-     *     public void onFail(CosXmlRequest cosXmlRequest, CosXmlClientException clientException, CosXmlServiceException
-     *             serviceException)  {
-     *         String errorMsg = clientException != null ? clientException.toString() : serviceException.toString();
-     *         Log.w("TEST",errorMsg);
-     *     }
-     * })
-     *</pre></blockquote>
-     * 
-     * @param request 简单复制对象请求 {@link CopyObjectRequest}
-     * @param cosXmlResultListener 请求回调结果 {@link CosXmlResultListener}
-     */
-    void copyObjectAsync(CopyObjectRequest request, final CosXmlResultListener cosXmlResultListener);
-
-
-    /**
-     * <p>
-     * 分块复制的同步方法.&nbsp;
-     * <p>
-     * COS 中复制对象可以完成如下功能:
-     * <ul>
-     * <li>创建一个新的对象副本.</li>
-     * <li>复制对象并更名，删除原始对象，实现重命名</li>
-     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
-     * <li>在不同的腾讯云 COS 地域复制对象.</li>
-     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
-     * </ul>
-     * <p>
-     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
-     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
-     * 来实现复制.<br>
-     * 关于分块复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/8287">https://cloud.tencent.com/document/product/436/8287.</a>
-     *
-     * <p>
-     * cos Android SDK 中分块复制的同步方法具体步骤如下：<br>
-     * 1、通过调用 {@link UploadPartCopyRequest} 构造方法，实例化 UploadPartCopyRequest 对象;<br>
-     * 2、通过调用 {@link #copyObject(UploadPartCopyRequest)} 同步方法，传入 UploadPartCopyRequest，返回 {@link UploadPartCopyResult} 对象.
-     * 
-
-     *<p>
-     * 示例：
-     * <blockquote><pre>
-     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
-     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
-     * String srcPath = "srcPath"; //本地文件的绝对路径
-     * PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
-     * putObjectRequest.setSign(signDuration,null,null); //签名
-     * putObjectRequest.setProgressListener(new CosXmlProgressListener() {// 进度回调
-     *    &nbsp;@Override
-     *     public void onProgress(long progress, long max) {
-     *         float result = (float) (progress * 100.0/max);
-     *         Log.w("TEST","progress =" + (long)result + "%");
-     *    }
-     * });
-     * String eTag = null; //上传返回的文件 md5
-     * String accessUrl = null; //访问文件的地址
-     * try {
-     *     UploadPartCopyResult result = cosXml.copyObject(request);
-     *     Log.w("TEST","success");
-     * } catch (CosXmlClientException e) {
-     *     Log.w("TEST","CosXmlClientException =" + e.toString());
-     * } catch (CosXmlServiceException e) {
-     *     Log.w("TEST","CosXmlServiceException =" + e.toString());
-     * }
-     *</pre></blockquote>
-     * 
-     * @param request 分块复制请求 {@link UploadPartCopyRequest}
-     * @return UploadPartCopyResult 分块复制请求返回的结果 {@link UploadPartCopyResult}
-     * @throws CosXmlClientException 抛出客户异常 {@link CosXmlClientException}
-     * @throws CosXmlServiceException 抛出服务异常 {@link CosXmlServiceException}
-     */
-    UploadPartCopyResult copyObject(UploadPartCopyRequest request) throws CosXmlClientException, CosXmlServiceException;
-
-    /**
-     * <p>
-     * 分块复制的异步方法.&nbsp;
-     * <p>
-     * COS 中复制对象可以完成如下功能:
-     * <ul>
-     * <li>创建一个新的对象副本.</li>
-     * <li>复制对象并更名，删除原始对象，实现重命名</li>
-     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
-     * <li>在不同的腾讯云 COS 地域复制对象.</li>
-     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
-     * </ul>
-     * <p>
-     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
-     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
-     * 来实现复制.<br>
-     * 关于分块复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/8287">https://cloud.tencent.com/document/product/436/8287.</a>
-     *
-     * <p>
-     * cos Android SDK 中分块复制的异步方法具体步骤如下：<br>
-     * 1、通过调用 {@link UploadPartCopyRequest} 构造方法，实例化 UploadPartCopyRequest 对象;<br>
-     * 2、通过调用 {@link #copyObjectAsync(UploadPartCopyRequest, CosXmlResultListener)} 异步方法，传入 UploadPartCopyRequest 和 CosXmlResultListener 进行异步回调操作.
-     * 
-
-     *<p>
-     * 示例：
-     * <blockquote><pre>
-     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
-     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
-     * String srcPath = "srcPath"; //本地文件的绝对路径
-     * PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
-     * putObjectRequest.setSign(signDuration,null,null); //签名
-     * putObjectRequest.setProgressListener(new CosXmlProgressListener() { // 进度回调
-     *    &nbsp;@Override
-     *     public void onProgress(long progress, long max) {
-     *         float result = (float) (progress * 100.0/max);
-     *         Log.w("TEST","progress =" + (long)result + "%");
-     *    }
-     * });
-     * cosXml.copyObjectAsync(request,  new CosXmlResultListener() {
-     *    &nbsp;@Override
-     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
-     *         Log.w("TEST","success");
-     *     }
-     *    &nbsp;@Override
-     *     public void onFail(CosXmlRequest cosXmlRequest, CosXmlClientException clientException, CosXmlServiceException
-     *             serviceException)  {
-     *         String errorMsg = clientException != null ? clientException.toString() : serviceException.toString();
-     *         Log.w("TEST",errorMsg);
-     *     }
-     * })
-     *</pre></blockquote>
-     * 
-     * @param request 分块复制请求 {@link UploadPartCopyRequest}
-     * @param cosXmlResultListener 请求回调结果 {@link CosXmlResultListener}
-     */
-    void copyObjectAsync(UploadPartCopyRequest request,final CosXmlResultListener cosXmlResultListener);
+//    /**
+//     * <p>
+//     * 简单复制对象的同步方法.&nbsp;
+//     * <p>
+//     * COS 中复制对象可以完成如下功能:
+//     * <ul>
+//     * <li>创建一个新的对象副本.</li>
+//     * <li>复制对象并更名，删除原始对象，实现重命名</li>
+//     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
+//     * <li>在不同的腾讯云 COS 地域复制对象.</li>
+//     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
+//     * </ul>
+//     * <p>
+//     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
+//     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
+//     * 来实现复制.<br>
+//     * 关于简单复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/10881">https://cloud.tencent.com/document/product/436/10881.</a>
+//     *
+//     * <p>
+//     * cos Android SDK 中简单复制对象的同步方法具体步骤如下：<br>
+//     * 1、通过调用 {@link CopyObjectRequest} 构造方法，实例化 CopyObjectRequest 对象;<br>
+//     * 2、通过调用 {@link #copyObject(CopyObjectRequest)} 同步方法，传入 CopyObjectRequest，返回 {@link CopyObjectResult} 对象.
+//     *
+//
+//     *<p>
+//     * 示例：
+//     * <blockquote><pre>
+//     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+//     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
+//     * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
+//     * "appid", "*source_bucket", "source_region", "source");
+//     * request.setSign(signDuration,null,null); //签名
+//     * try {
+//     *     CopyObjectResult result = cosXml.copyObject(request);
+//     *     Log.w("TEST","success");
+//     * } catch (CosXmlClientException e) {
+//     *     Log.w("TEST","CosXmlClientException =" + e.toString());
+//     * } catch (CosXmlServiceException e) {
+//     *     Log.w("TEST","CosXmlServiceException =" + e.toString());
+//     * }
+//     *</pre></blockquote>
+//     *
+//     * @param request 简单复制对象请求 {@link CopyObjectRequest}
+//     * @return CopyObjectResult 简单复制对象请求返回的结果 {@link CopyObjectResult}
+//     * @throws CosXmlClientException 抛出客户异常 {@link CosXmlClientException}
+//     * @throws CosXmlServiceException 抛出服务异常 {@link CosXmlServiceException}
+//     */
+//    CopyObjectResult copyObject(CopyObjectRequest request) throws CosXmlClientException, CosXmlServiceException;
+//
+//    /**
+//     * <p>
+//     * 简单复制对象的异步方法.&nbsp;<br>
+//     * <p>
+//     * COS 中复制对象可以完成如下功能:
+//     * <ul>
+//     * <li>创建一个新的对象副本.</li>
+//     * <li>复制对象并更名，删除原始对象，实现重命名</li>
+//     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
+//     * <li>在不同的腾讯云 COS 地域复制对象.</li>
+//     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
+//     * </ul>
+//     * <p>
+//     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
+//     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
+//     * 来实现复制.<br>
+//     * 关于简单复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/10881">https://cloud.tencent.com/document/product/436/10881.</a>
+//     *
+//     * <p>
+//     * cos Android SDK 中简单复制对象的异步方法具体步骤如下：<br>
+//     * 1、通过调用 {@link CopyObjectRequest} 构造方法，实例化 CopyObjectRequest 对象;<br>
+//     * 2、通过调用 {@link #copyObjectAsync(CopyObjectRequest, CosXmlResultListener)} 异步方法，传入 CopyObjectRequest 和 CosXmlResultListener 进行异步回调操作.
+//     *
+//
+//     *<p>
+//     * 示例：
+//     * <blockquote><pre>
+//     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+//     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
+//     * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
+//     * "appid", "*source_bucket", "source_region", "source");
+//     * CopyObjectRequest request = new CopyObjectRequest(bucket, cosPath, copySourceStruct);
+//     * request.setSign(signDuration,null,null); //签名
+//     * cosXml.copyObjectAsync(request, new CosXmlResultListener() {
+//     *    &nbsp;@Override
+//     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
+//     *         Log.w("TEST","success");
+//     *     }
+//     *    &nbsp;@Override
+//     *     public void onFail(CosXmlRequest cosXmlRequest, CosXmlClientException clientException, CosXmlServiceException
+//     *             serviceException)  {
+//     *         String errorMsg = clientException != null ? clientException.toString() : serviceException.toString();
+//     *         Log.w("TEST",errorMsg);
+//     *     }
+//     * })
+//     *</pre></blockquote>
+//     *
+//     * @param request 简单复制对象请求 {@link CopyObjectRequest}
+//     * @param cosXmlResultListener 请求回调结果 {@link CosXmlResultListener}
+//     */
+//    void copyObjectAsync(CopyObjectRequest request, final CosXmlResultListener cosXmlResultListener);
+//
+//
+//    /**
+//     * <p>
+//     * 分块复制的同步方法.&nbsp;
+//     * <p>
+//     * COS 中复制对象可以完成如下功能:
+//     * <ul>
+//     * <li>创建一个新的对象副本.</li>
+//     * <li>复制对象并更名，删除原始对象，实现重命名</li>
+//     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
+//     * <li>在不同的腾讯云 COS 地域复制对象.</li>
+//     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
+//     * </ul>
+//     * <p>
+//     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
+//     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
+//     * 来实现复制.<br>
+//     * 关于分块复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/8287">https://cloud.tencent.com/document/product/436/8287.</a>
+//     *
+//     * <p>
+//     * cos Android SDK 中分块复制的同步方法具体步骤如下：<br>
+//     * 1、通过调用 {@link UploadPartCopyRequest} 构造方法，实例化 UploadPartCopyRequest 对象;<br>
+//     * 2、通过调用 {@link #copyObject(UploadPartCopyRequest)} 同步方法，传入 UploadPartCopyRequest，返回 {@link UploadPartCopyResult} 对象.
+//     *
+//
+//     *<p>
+//     * 示例：
+//     * <blockquote><pre>
+//     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+//     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
+//     * String srcPath = "srcPath"; //本地文件的绝对路径
+//     * PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
+//     * putObjectRequest.setSign(signDuration,null,null); //签名
+//     * putObjectRequest.setProgressListener(new CosXmlProgressListener() {// 进度回调
+//     *    &nbsp;@Override
+//     *     public void onProgress(long progress, long max) {
+//     *         float result = (float) (progress * 100.0/max);
+//     *         Log.w("TEST","progress =" + (long)result + "%");
+//     *    }
+//     * });
+//     * String eTag = null; //上传返回的文件 md5
+//     * String accessUrl = null; //访问文件的地址
+//     * try {
+//     *     UploadPartCopyResult result = cosXml.copyObject(request);
+//     *     Log.w("TEST","success");
+//     * } catch (CosXmlClientException e) {
+//     *     Log.w("TEST","CosXmlClientException =" + e.toString());
+//     * } catch (CosXmlServiceException e) {
+//     *     Log.w("TEST","CosXmlServiceException =" + e.toString());
+//     * }
+//     *</pre></blockquote>
+//     *
+//     * @param request 分块复制请求 {@link UploadPartCopyRequest}
+//     * @return UploadPartCopyResult 分块复制请求返回的结果 {@link UploadPartCopyResult}
+//     * @throws CosXmlClientException 抛出客户异常 {@link CosXmlClientException}
+//     * @throws CosXmlServiceException 抛出服务异常 {@link CosXmlServiceException}
+//     */
+//    UploadPartCopyResult copyObject(UploadPartCopyRequest request) throws CosXmlClientException, CosXmlServiceException;
+//
+//    /**
+//     * <p>
+//     * 分块复制的异步方法.&nbsp;
+//     * <p>
+//     * COS 中复制对象可以完成如下功能:
+//     * <ul>
+//     * <li>创建一个新的对象副本.</li>
+//     * <li>复制对象并更名，删除原始对象，实现重命名</li>
+//     * <li>修改对象的存储类型，在复制时选择相同的源和目标对象键，修改存储类型.</li>
+//     * <li>在不同的腾讯云 COS 地域复制对象.</li>
+//     * <li>修改对象的元数据，在复制时选择相同的源和目标对象键，并修改其中的元数据,复制对象时，默认将继承原对象的元数据，但创建日期将会按新对象的时间计算.</li>
+//     * </ul>
+//     * <p>
+//     * 当复制的对象小于等于 5 GB ，可以使用简单复制（<a href="https://cloud.tencent.com/document/product/436/14117">https://cloud.tencent.com/document/product/436/14117</a>).<br>
+//     * 当复制对象超过 5 GB 时，必须使用分块复制（<a href="https://cloud.tencent.com/document/product/436/14118">https://cloud.tencent.com/document/product/436/14118 </a>）
+//     * 来实现复制.<br>
+//     * 关于分块复制接口的具体描述，请查看<a href="https://cloud.tencent.com/document/product/436/8287">https://cloud.tencent.com/document/product/436/8287.</a>
+//     *
+//     * <p>
+//     * cos Android SDK 中分块复制的异步方法具体步骤如下：<br>
+//     * 1、通过调用 {@link UploadPartCopyRequest} 构造方法，实例化 UploadPartCopyRequest 对象;<br>
+//     * 2、通过调用 {@link #copyObjectAsync(UploadPartCopyRequest, CosXmlResultListener)} 异步方法，传入 UploadPartCopyRequest 和 CosXmlResultListener 进行异步回调操作.
+//     *
+//
+//     *<p>
+//     * 示例：
+//     * <blockquote><pre>
+//     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
+//     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
+//     * String srcPath = "srcPath"; //本地文件的绝对路径
+//     * PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
+//     * putObjectRequest.setSign(signDuration,null,null); //签名
+//     * putObjectRequest.setProgressListener(new CosXmlProgressListener() { // 进度回调
+//     *    &nbsp;@Override
+//     *     public void onProgress(long progress, long max) {
+//     *         float result = (float) (progress * 100.0/max);
+//     *         Log.w("TEST","progress =" + (long)result + "%");
+//     *    }
+//     * });
+//     * cosXml.copyObjectAsync(request,  new CosXmlResultListener() {
+//     *    &nbsp;@Override
+//     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
+//     *         Log.w("TEST","success");
+//     *     }
+//     *    &nbsp;@Override
+//     *     public void onFail(CosXmlRequest cosXmlRequest, CosXmlClientException clientException, CosXmlServiceException
+//     *             serviceException)  {
+//     *         String errorMsg = clientException != null ? clientException.toString() : serviceException.toString();
+//     *         Log.w("TEST",errorMsg);
+//     *     }
+//     * })
+//     *</pre></blockquote>
+//     *
+//     * @param request 分块复制请求 {@link UploadPartCopyRequest}
+//     * @param cosXmlResultListener 请求回调结果 {@link CosXmlResultListener}
+//     */
+//    void copyObjectAsync(UploadPartCopyRequest request,final CosXmlResultListener cosXmlResultListener);
 
     /**
      * <p>

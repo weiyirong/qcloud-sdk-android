@@ -3,6 +3,7 @@ package com.tencent.cos.xml.transfer;
 import android.util.Xml;
 
 import com.tencent.cos.xml.model.tag.CompleteMultipartUploadResult;
+import com.tencent.cos.xml.model.tag.CopyObject;
 import com.tencent.cos.xml.model.tag.CosError;
 import com.tencent.cos.xml.model.tag.InitiateMultipartUpload;
 import com.tencent.cos.xml.model.tag.ListParts;
@@ -193,6 +194,29 @@ public class XmlSlimParser {
             eventType = xmlPullParser.next();
         }
     }
+
+    public static void parseCopyObjectResult(InputStream inputStream, CopyObject result) throws XmlPullParserException, IOException {
+        XmlPullParser xmlPullParser =  Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        String tagName;
+        while (eventType != XmlPullParser.END_DOCUMENT){
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("ETag")){
+                        xmlPullParser.next();
+                        result.eTag = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("LastModified")){
+                        xmlPullParser.next();
+                        result.lastModified = xmlPullParser.getText();
+                    }
+                    break;
+            }
+            eventType = xmlPullParser.next();
+        }
+    }
+
 
     public static void parseError(InputStream inputStream, CosError error) throws XmlPullParserException, IOException {
         XmlPullParser xmlPullParser =  Xml.newPullParser();

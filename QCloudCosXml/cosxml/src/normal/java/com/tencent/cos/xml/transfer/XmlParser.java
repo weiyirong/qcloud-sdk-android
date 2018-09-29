@@ -5,18 +5,13 @@ import android.util.Xml;
 
 import com.tencent.cos.xml.model.tag.AccessControlPolicy;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
-import com.tencent.cos.xml.model.tag.CompleteMultipartUploadResult;
-import com.tencent.cos.xml.model.tag.CopyObject;
 import com.tencent.cos.xml.model.tag.CopyPart;
-import com.tencent.cos.xml.model.tag.CosError;
 import com.tencent.cos.xml.model.tag.DeleteResult;
-import com.tencent.cos.xml.model.tag.InitiateMultipartUpload;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
 import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
 import com.tencent.cos.xml.model.tag.ListBucket;
 import com.tencent.cos.xml.model.tag.ListBucketVersions;
 import com.tencent.cos.xml.model.tag.ListMultipartUploads;
-import com.tencent.cos.xml.model.tag.ListParts;
 import com.tencent.cos.xml.model.tag.LocationConstraint;
 import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
 import com.tencent.cos.xml.model.tag.VersioningConfiguration;
@@ -531,7 +526,7 @@ public class XmlParser extends XmlSlimParser {
                     }else if (tagName.equalsIgnoreCase("Key")){
                         xmlPullParser.next();
                         upload.key = xmlPullParser.getText();
-                    }else if (tagName.equalsIgnoreCase("UploadID")){
+                    }else if (tagName.equalsIgnoreCase("UploadId")){
                         xmlPullParser.next();
                         upload.uploadID = xmlPullParser.getText();
                     }else if (tagName.equalsIgnoreCase("StorageClass")){
@@ -644,28 +639,6 @@ public class XmlParser extends XmlSlimParser {
                     result.errorList.add(error);
                     error = null;
                 }
-                    break;
-            }
-            eventType = xmlPullParser.next();
-        }
-    }
-
-    public static void parseCopyObjectResult(InputStream inputStream, CopyObject result) throws XmlPullParserException, IOException {
-        XmlPullParser xmlPullParser =  Xml.newPullParser();
-        xmlPullParser.setInput(inputStream, "UTF-8");
-        int eventType = xmlPullParser.getEventType();
-        String tagName;
-        while (eventType != XmlPullParser.END_DOCUMENT){
-            switch (eventType){
-                case XmlPullParser.START_TAG:
-                    tagName = xmlPullParser.getName();
-                    if(tagName.equalsIgnoreCase("ETag")){
-                        xmlPullParser.next();
-                        result.eTag = xmlPullParser.getText();
-                    }else if(tagName.equalsIgnoreCase("LastModified")){
-                        xmlPullParser.next();
-                        result.lastModified = xmlPullParser.getText();
-                    }
                     break;
             }
             eventType = xmlPullParser.next();

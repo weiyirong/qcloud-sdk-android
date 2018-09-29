@@ -20,7 +20,7 @@ import java.net.URL;
  * https://cloud.tencent.com/document/product/436/7749.</a><br>
  * </p>
  */
-final public class PutObjectRequest extends ObjectRequest {
+public class PutObjectRequest extends ObjectRequest {
     private String srcPath;
     private byte[] data;
     private InputStream inputStream;
@@ -31,6 +31,7 @@ final public class PutObjectRequest extends ObjectRequest {
 
     private PutObjectRequest(String bucket, String cosPath){
         super(bucket, cosPath);
+        setNeedMD5(true);
     }
 
     /**

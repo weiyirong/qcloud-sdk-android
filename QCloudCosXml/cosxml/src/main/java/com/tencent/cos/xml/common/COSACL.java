@@ -15,7 +15,8 @@ package com.tencent.cos.xml.common;
 public enum  COSACL {
     PRIVATE("private"),
     PUBLIC_READ("public-read"),
-    PUBLIC_READ_WRITE("public-read-write");
+    PUBLIC_READ_WRITE("public-read-write"),
+    DEFAULT("default");
     private String acl;
     COSACL(String acl){
         this.acl = acl;

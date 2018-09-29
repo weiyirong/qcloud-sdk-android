@@ -58,7 +58,7 @@ final public class PutObjectACLRequest extends ObjectRequest {
      */
     public void setXCOSACL(COSACL cosacl){
         if(cosacl != null){
-            addHeader(COSRequestHeaderKey.X_COS_ACL,cosacl.getAcl());
+            addHeader(COSRequestHeaderKey.X_COS_ACL, cosacl.getAcl());
         }
     }
 

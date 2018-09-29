@@ -23,7 +23,7 @@ import java.util.Map;
  * Created by bradyxiao on 2017/12/4.
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
-
+@Deprecated
 public class CopyObjectService {
 
     private CosXmlService cosXmlService;

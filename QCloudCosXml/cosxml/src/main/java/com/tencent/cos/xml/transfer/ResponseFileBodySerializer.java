@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.transfer;
 
+import com.tencent.cos.xml.MTAProxy;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.object.GetObjectResult;
@@ -50,11 +51,14 @@ public class ResponseFileBodySerializer<T2> extends ResponseFileConverter<T2> {
                 cosXmlServiceException.setRequestId(cosError.requestId);
                 cosXmlServiceException.setServiceName(cosError.resource);
             } catch (XmlPullParserException e) {
+                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
                 throw new CosXmlClientException(e);
             } catch (IOException e) {
+                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
                 throw new CosXmlClientException(e);
             }
         }
+        MTAProxy.getInstance().reportCosXmlServerException(cosXmlServiceException.getRequestId());
         throw cosXmlServiceException;
     }
 }

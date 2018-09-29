@@ -92,7 +92,7 @@ public class PostObjectRequest extends ObjectRequest {
         if(formStruct.key == null){
             throw new CosXmlClientException("cosPath must not be null ");
         }
-        formStruct.signature.checkParameters();
+        //formStruct.signature.checkParameters();
     }
 
     /**

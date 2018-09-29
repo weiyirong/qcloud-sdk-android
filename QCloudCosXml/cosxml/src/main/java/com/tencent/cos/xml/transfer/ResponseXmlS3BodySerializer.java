@@ -1,9 +1,9 @@
 package com.tencent.cos.xml.transfer;
 
+import com.tencent.cos.xml.MTAProxy;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
-import com.tencent.cos.xml.model.object.GetObjectResult;
 import com.tencent.cos.xml.model.tag.CosError;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
@@ -56,11 +56,14 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
                 cosXmlServiceException.setRequestId(cosError.requestId);
                 cosXmlServiceException.setServiceName(cosError.resource);
             } catch (XmlPullParserException e) {
+                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
                 throw new CosXmlClientException(e);
             } catch (IOException e) {
+                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
                 throw new CosXmlClientException(e);
             }
         }
+        MTAProxy.getInstance().reportCosXmlServerException(cosXmlServiceException.getRequestId());
         throw cosXmlServiceException;
     }
 

@@ -39,7 +39,7 @@ final public class ListPartsRequest extends ObjectRequest {
     @Override
     public Map<String, String> getQueryString() {
         if(uploadId != null){
-            queryParameters.put("uploadID",uploadId);
+            queryParameters.put("uploadId",uploadId);
         }
         if(maxParts != null){
             queryParameters.put("max-parts",maxParts);

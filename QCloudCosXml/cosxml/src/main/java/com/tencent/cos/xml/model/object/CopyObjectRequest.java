@@ -1,7 +1,9 @@
 package com.tencent.cos.xml.model.object;
 
+import android.text.TextUtils;
 import android.util.Base64;
 
+import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.COSStorageClass;
@@ -16,6 +18,8 @@ import com.tencent.qcloud.core.http.RequestBodySerializer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -33,10 +37,10 @@ public class CopyObjectRequest extends ObjectRequest {
     // copy source struct
     private CopySourceStruct copySourceStruct;
 
-    public CopyObjectRequest(String bucket, String cosPath, CopySourceStruct copySourceStruct) throws CosXmlClientException {
+    public CopyObjectRequest(String bucket, String cosPath, CopySourceStruct copySourceStruct){
         super(bucket, cosPath);
         this.copySourceStruct = copySourceStruct;
-        setCopySource(copySourceStruct);
+        //setCopySource(copySourceStruct);
     }
 
     @Override
@@ -79,12 +83,27 @@ public class CopyObjectRequest extends ObjectRequest {
     public void setCopySource(CopySourceStruct copySource) throws CosXmlClientException {
         this.copySourceStruct = copySource;
         if(copySourceStruct != null){
-            addHeader(COSRequestHeaderKey.X_COS_COPY_SOURCE, copySourceStruct.getSource());
+            addHeader(COSRequestHeaderKey.X_COS_COPY_SOURCE, copySourceStruct.getSource(domainSuffix));
         }
     }
 
-    public String getCopySource(){
-        return copySourceStruct.toString();
+    @Override
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
+        String host =  super.getHost(config, isSupportAccelerate);
+        setCopySource(copySourceStruct);
+        return host;
+    }
+
+//        @Override
+//    public Map<String, List<String>> getRequestHeaders() {
+//        if(copySourceStruct != null){
+//            addHeader(COSRequestHeaderKey.X_COS_COPY_SOURCE, copySourceStruct.getSource(domainSuffix));
+//        }
+//        return super.getRequestHeaders();
+//    }
+
+    public CopySourceStruct getCopySource(){
+        return copySourceStruct;
     }
     /**
      * Indicate whether to copy metadata.
@@ -293,6 +312,11 @@ public class CopyObjectRequest extends ObjectRequest {
         }
 
         public String getSource() throws CosXmlClientException {
+            return getSource("myqcloud.com");
+        }
+
+        public String getSource(String domainSuffix) throws CosXmlClientException {
+
             if(cosPath != null){
                 if(!cosPath.startsWith("/")){
                     cosPath = "/" + cosPath;
@@ -300,15 +324,20 @@ public class CopyObjectRequest extends ObjectRequest {
             }
             cosPath = URLEncodeUtils.cosPathEncode(cosPath);
             StringBuilder copySource = new StringBuilder();
-            if(bucket.endsWith("-" + appid)){
-                copySource.append(bucket).append(".");
-            }else {
-                copySource.append(bucket).append("-")
-                        .append(appid).append(".");
+
+            copySource.append(bucket);
+            if (!TextUtils.isEmpty(appid) && !bucket.endsWith("-" + appid)) {
+                copySource.append("-")
+                        .append(appid);
             }
-            copySource.append("cos").append(".")
-                    .append(region).append(".")
-                    .append("myqcloud.com")
+            copySource.append(".");
+
+            copySource.append("cos").append(".");
+            if (!TextUtils.isEmpty(region)) {
+                copySource.append(region).append(".");
+            }
+
+            copySource.append(domainSuffix)
                     .append(cosPath);
             if(versionId != null){
                 copySource.append("?versionId=").append(versionId);

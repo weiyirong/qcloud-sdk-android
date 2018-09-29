@@ -45,7 +45,7 @@ final public class AbortMultiUploadRequest extends ObjectRequest {
      */
     @Override
     public Map<String, String> getQueryString() {
-        queryParameters.put("uploadID",uploadId);
+        queryParameters.put("uploadId",uploadId);
         return queryParameters;
     }
 
