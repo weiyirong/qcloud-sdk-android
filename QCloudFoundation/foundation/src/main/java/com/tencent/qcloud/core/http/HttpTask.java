@@ -196,14 +196,6 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         }
 
         QCloudCredentials credentials = credentialProvider.getCredentials();
-
-        if (credentials == null) {
-            throw new QCloudClientException("can't get credentials for provider : " + credentialProvider);
-        }
-        if (request.getSignProvider() == null) {
-            throw new QCloudClientException("no source to sign");
-        }
-
         signer.sign((QCloudHttpRequest) request, credentials);
     }
 

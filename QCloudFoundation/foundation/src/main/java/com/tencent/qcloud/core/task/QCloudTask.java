@@ -4,6 +4,7 @@ import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudResultListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
+import com.tencent.qcloud.core.common.QCloudTaskStateListener;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import bolts.CancellationTokenSource;
 import bolts.Continuation;
@@ -29,6 +29,13 @@ import static com.tencent.qcloud.core.task.TaskManager.TASK_LOG_TAG;
 
 public abstract class QCloudTask<T> implements Callable<T> {
 
+    // 任务正在排队
+    public static final int STATE_QUEUEING = 1;
+    // 任务正在执行
+    public static final int STATE_EXECUTING = 2;
+    // 任务执行结束
+    public static final int STATE_COMPLETE = 3;
+
     private final String identifier;
     private final Object tag;
 
@@ -36,14 +43,14 @@ public abstract class QCloudTask<T> implements Callable<T> {
 
     private Task<T> mTask;
     private CancellationTokenSource mCancellationTokenSource;
+    private int mState;
 
     private Executor observerExecutor;
     private Executor workerExecutor;
 
-    private AtomicBoolean mIsExecuting = new AtomicBoolean(false);
-
     private Set<QCloudResultListener<T>> mResultListeners = new HashSet<>(2);
     private Set<QCloudProgressListener> mProgressListeners = new HashSet<>(2);
+    private Set<QCloudTaskStateListener> mStateListeners = new HashSet<>(2);
 
     public QCloudTask(String identifier, Object tag) {
         this.identifier = identifier;
@@ -74,6 +81,7 @@ public abstract class QCloudTask<T> implements Callable<T> {
 
     public final void executeNowSilently() {
         taskManager.add(this);
+        onStateChanged(STATE_QUEUEING);
         mTask = Task.call(this);
     }
 
@@ -84,6 +92,7 @@ public abstract class QCloudTask<T> implements Callable<T> {
     protected QCloudTask<T> scheduleOn(Executor executor,
                                        CancellationTokenSource cancellationTokenSource) {
         taskManager.add(this);
+        onStateChanged(STATE_QUEUEING);
         workerExecutor = executor;
         mCancellationTokenSource = cancellationTokenSource;
 
@@ -123,26 +132,54 @@ public abstract class QCloudTask<T> implements Callable<T> {
         }
     }
 
+    /**
+     * 任务是否已经取消
+     *
+     * @return true 表示任务已取消
+     */
     public final boolean isCanceled() {
         return mCancellationTokenSource != null && mCancellationTokenSource.isCancellationRequested();
     }
 
+    /**
+     * 任务是否正在执行
+     *
+     * @return true 表示正在执行
+     */
     public final boolean isExecuting() {
-        return mTask != null && mIsExecuting.get();
+        return getState() == STATE_EXECUTING;
     }
 
+    /**
+     * 任务是否执行完成
+     *
+     * @return true 表示完成
+     */
     public final boolean isCompleted() {
-        return mTask != null && mTask.isCompleted();
+        return getState() == STATE_COMPLETE;
+    }
+
+    /**
+     * 获取任务执行状态
+     *
+     * @return 任务状态，，有以下几种状态：
+     * {@link QCloudTask#STATE_QUEUEING};
+     * {@link QCloudTask#STATE_EXECUTING};
+     * {@link QCloudTask#STATE_COMPLETE}
+     */
+    public final synchronized int getState() {
+        return mState;
     }
 
     @Override
     public T call() throws Exception {
         try {
             QCloudLogger.d(TaskManager.TASK_LOG_TAG, "[Task] %s start execute", getIdentifier());
-            mIsExecuting.compareAndSet(false, true);
+            onStateChanged(STATE_EXECUTING);
             return execute();
         } finally {
             QCloudLogger.d(TaskManager.TASK_LOG_TAG, "[Task] %s complete", getIdentifier());
+            onStateChanged(STATE_COMPLETE);
             taskManager.remove(QCloudTask.this);
         }
     }
@@ -188,6 +225,10 @@ public abstract class QCloudTask<T> implements Callable<T> {
         return new ArrayList<>(mProgressListeners);
     }
 
+    public final List<QCloudTaskStateListener> getAllStateListeners() {
+        return new ArrayList<>(mStateListeners);
+    }
+
     public final QCloudTask<T> addProgressListener(QCloudProgressListener progressListener) {
         if (progressListener != null) {
             mProgressListeners.add(progressListener);
@@ -205,6 +246,27 @@ public abstract class QCloudTask<T> implements Callable<T> {
     public final QCloudTask<T> removeProgressListener(QCloudProgressListener progressListener) {
         if (progressListener != null) {
             mProgressListeners.remove(progressListener);
+        }
+        return this;
+    }
+
+    public final QCloudTask<T> addStateListener(QCloudTaskStateListener stateListener) {
+        if (stateListener != null) {
+            mStateListeners.add(stateListener);
+        }
+        return this;
+    }
+
+    public final QCloudTask<T> addStateListeners(List<QCloudTaskStateListener> stateListeners) {
+        if (stateListeners != null) {
+            mStateListeners.addAll(stateListeners);
+        }
+        return this;
+    }
+
+    public final QCloudTask<T> removeStateListener(QCloudTaskStateListener stateListener) {
+        if (stateListener != null) {
+            mStateListeners.remove(stateListener);
         }
         return this;
     }
@@ -253,6 +315,25 @@ public abstract class QCloudTask<T> implements Callable<T> {
                 }
             });
         }
+    }
+
+    protected void onStateChanged(int newState) {
+        setState(newState);
+        if (mStateListeners.size() > 0) {
+            executeListener(new Runnable() {
+                @Override
+                public void run() {
+                    List<QCloudTaskStateListener> listeners = new ArrayList<>(mStateListeners);
+                    for (QCloudTaskStateListener listener : listeners) {
+                        listener.onStateChanged(identifier, mState);
+                    }
+                }
+            });
+        }
+    }
+
+    private synchronized void setState(int newState) {
+        mState = newState;
     }
 
     private void executeListener(Runnable callback) {

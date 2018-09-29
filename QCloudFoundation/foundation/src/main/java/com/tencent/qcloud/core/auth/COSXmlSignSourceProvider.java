@@ -363,7 +363,7 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
 
         // 3、取出需要的参数
         for (String key : orderKeys) {
-            List<String> values = headers.get(key);
+            List<String> values = headers.get(maps.get(key));
             if (values != null) {
                 for (String value : values) {
                     if (!isFirst) {

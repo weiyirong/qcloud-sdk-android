@@ -10,10 +10,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
+import okhttp3.ResponseBody;
 import okhttp3.internal.Util;
 import okio.Buffer;
 import okio.BufferedSink;
 import okio.Okio;
+import okio.Source;
 
 /**
  * 解析下载的字节流，并保存为文本
@@ -61,12 +63,22 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
         }
 
         BufferedSink sink = null;
+        Source source = null;
+        ResponseBody body = response.response.body();
+        if (body == null) {
+            throw new QCloudServiceException("response body is empty !");
+        }
         try {
+            source = body.source();
             if (offset <= 0) {
                 countingSink = new CountingSink(Okio.sink(downloadFilePath), contentLength,
                         progressListener);
                 sink = Okio.buffer(countingSink);
-                sink.write(response.response.body().source(), contentLength);
+                if (contentLength > 0) {
+                    sink.write(source, contentLength);
+                } else {
+                    sink.writeAll(source);
+                }
                 sink.flush();
             } else {
                 writeRandomAccessFile(downloadFilePath, response.byteStream(), contentLength);
@@ -76,6 +88,7 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
             throw new QCloudClientException("write local file error for " + e.toString(), e);
         } finally {
             Util.closeQuietly(sink);
+            Util.closeQuietly(source);
         }
     }
 

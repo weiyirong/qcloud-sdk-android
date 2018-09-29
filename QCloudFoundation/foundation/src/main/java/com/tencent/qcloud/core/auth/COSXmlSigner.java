@@ -21,9 +21,12 @@ public class COSXmlSigner implements QCloudSigner {
      */
     @Override
     public void sign(QCloudHttpRequest request, QCloudCredentials credentials) throws QCloudClientException{
+        if (credentials == null) {
+            throw new QCloudClientException("Credentials is null.");
+        }
         COSXmlSignSourceProvider sourceProvider = (COSXmlSignSourceProvider) request.getSignProvider();
         if (sourceProvider == null) {
-            throw new QCloudClientException("no sign provider for cos xml signer");
+            throw new QCloudClientException("No sign provider for cos xml signer.");
         }
 
         StringBuilder authorization = new StringBuilder();

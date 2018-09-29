@@ -27,6 +27,10 @@ public class SessionCredentialProvider extends ShortTimeCredentialProvider {
     private String appid;
     private String userAgent;
     private String region;
+    private String policy;
+
+    private static final String DEFAULT_POLICY = "{\"statement\": [{\"action\": [\"name/cos:*\"],\"effect\": \"allow\"," +
+            "\"resource\":[\"qcs::cos:%s:uid/%s:prefix//%s/*\"]}],\"version\": \"2.0\"}";
 
     @Deprecated
     public SessionCredentialProvider(String secretId, String secretKey, String appid, String region,
@@ -41,6 +45,15 @@ public class SessionCredentialProvider extends ShortTimeCredentialProvider {
 
     public SessionCredentialProvider(HttpRequest<String> httpRequest) {
         super(httpRequest);
+    }
+
+    /**
+     * 设置请求策略
+     *
+     * @param policy 策略
+     */
+    public void setPolicy(String policy) {
+        this.policy = policy;
     }
 
     @Override
@@ -98,11 +111,11 @@ public class SessionCredentialProvider extends ShortTimeCredentialProvider {
 
         Map<String, String> params = new TreeMap<>();
 
-        String policy = String.format("{\"statement\": [{\"action\": [\"name/cos:*\"],\"effect\": \"allow\"," +
-                        "\"resource\":[\"qcs::cos:%s:uid/%s:prefix//%s/*\"]}],\"version\": \"2.0\"}",
-                region, appid, appid);
+        if (policy == null) {
+            policy = String.format(DEFAULT_POLICY, region, appid, appid);
+        }
         params.put("policy", policy);
-        params.put("name", "Rabbitliu");
+        params.put("name", userAgent);
         params.put("Action", "GetFederationToken");
         params.put("SecretId", secretId);
         params.put("Nonce", "" + new Random().nextInt(Integer.MAX_VALUE));

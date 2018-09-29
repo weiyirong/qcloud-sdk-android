@@ -49,6 +49,10 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
         }
     }
 
+    public final void invalidate() {
+        credentials = null;
+    }
+
     protected abstract QCloudLifecycleCredentials fetchNewCredentials() throws QCloudClientException;
 
     private boolean needUpdateSignaturePair() {

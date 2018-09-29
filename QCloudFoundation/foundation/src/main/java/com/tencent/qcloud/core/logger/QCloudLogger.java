@@ -201,7 +201,7 @@ public final class QCloudLogger {
     private static void print(int priority, String tag, @Nullable Throwable tr, String format, Object... args) {
         String message;
         try {
-            message = args.length > 0 ? String.format(format, args) : format;
+            message = args != null && args.length > 0 ? String.format(format, args) : format;
         } catch (Exception e) {
             message = format + ": !!!! Log format exception: ";
         }

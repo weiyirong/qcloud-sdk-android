@@ -8,7 +8,8 @@ public final class SignerFactory {
 
     private static final String COS_XML_SIGNER = "CosXmlSigner";
 
-    private static final Map<String, Class<? extends QCloudSigner>> SIGNERS = new ConcurrentHashMap<String, Class<? extends QCloudSigner>>();
+    private static final Map<String, Class<? extends QCloudSigner>> SIGNERS = new ConcurrentHashMap<>(5);
+    private static final Map<String, QCloudSigner> SIGNER_INSTANCES = new ConcurrentHashMap<>(5);
 
     static {
         // Register the standard signer types.
@@ -42,6 +43,25 @@ public final class SignerFactory {
     }
 
     /**
+     * Register an signer instance for the given signer type.
+     *
+     * @param signerType The name of the signer type to register.
+     * @param signer The instance implementing the given signature protocol.
+     * @param <T> Class Type extends {@link QCloudSigner}.
+     */
+    public static <T extends QCloudSigner> void registerSigner(
+            final String signerType, final T signer) {
+        if (signerType == null) {
+            throw new IllegalArgumentException("signerType cannot be null");
+        }
+        if (signer == null) {
+            throw new IllegalArgumentException("signer instance cannot be null");
+        }
+
+        SIGNER_INSTANCES.put(signerType, signer);
+    }
+
+    /**
      *
      * @param signerType The signType to talk to.
      *
@@ -58,6 +78,9 @@ public final class SignerFactory {
      * name and region.
      */
     private static QCloudSigner lookupAndCreateSigner(String signerType) {
+        if (SIGNER_INSTANCES.containsKey(signerType)) {
+            return SIGNER_INSTANCES.get(signerType);
+        }
         return createSigner(signerType);
     }
 
@@ -72,6 +95,7 @@ public final class SignerFactory {
         QCloudSigner signer;
         try {
             signer = signerClass.newInstance();
+            SIGNER_INSTANCES.put(signerType, signer);
         } catch (InstantiationException ex) {
             throw new IllegalStateException(
                     "Cannot create an instance of " + signerClass.getName(),

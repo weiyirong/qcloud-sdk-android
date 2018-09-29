@@ -264,7 +264,7 @@ public class HttpRequest<T> {
                     for (String value : entry.getValue()) {
                         if (name != null && value != null) {
                             requestBuilder.addHeader(name, value);
-                            addHeaderNameValue(headers, name, value);
+                            addHeaderNameValue(this.headers, name, value);
                         }
                     }
                 }
@@ -280,6 +280,7 @@ public class HttpRequest<T> {
 
         public Builder<T> userAgent(String userAgent) {
             requestBuilder.addHeader(HttpConstants.Header.USER_AGENT, userAgent);
+            addHeaderNameValue(this.headers, HttpConstants.Header.USER_AGENT, userAgent);
             return this;
         }
 

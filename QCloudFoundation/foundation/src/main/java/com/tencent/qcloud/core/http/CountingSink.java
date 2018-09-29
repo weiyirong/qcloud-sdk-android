@@ -32,7 +32,7 @@ class CountingSink extends ForwardingSink {
     }
 
     private void reportProgress() {
-        if (progressListener == null || bytesTotal < 0) {
+        if (progressListener == null) {
             return;
         }
         long delta = bytesWritten - recentReportBytes;
