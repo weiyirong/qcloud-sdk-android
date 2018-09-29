@@ -43,6 +43,9 @@ public class TransferTaskTest {
         return file;
     }
 
+    @Test public void tet() {
+
+    }
 
 
     private File get100MFile() throws IOException{

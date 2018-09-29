@@ -63,32 +63,32 @@ public class PostObjectRequestTest {
         Log.d("XIAO", policy.content());
     }
 
-    @Test
-    public void testFormParameters() throws CosXmlClientException {
-        PostObjectRequest postObjectRequest = new PostObjectRequest("bucket", "1.txt", "/e/1.txt");
-        postObjectRequest.setAcl(COSACL.PRIVATE.getAcl());
-        postObjectRequest.setCacheControl("cache-control");
-        postObjectRequest.setContentType("text/plain");
-        postObjectRequest.setContentEncoding("utf-8");
-        postObjectRequest.setCosStorageClass(COSStorageClass.STANDARD.getStorageClass());
-        postObjectRequest.setExpires("100");
-        postObjectRequest.setContentDisposition("form-data");
-        postObjectRequest.setCustomerHeader("x-cos-meta-ssl", "sha1");
-        postObjectRequest.setSuccessActionStatus(204);
-        postObjectRequest.setSuccessActionRedirect("www.cloud.tencent.com");
-        postObjectRequest.setPolicy(new PostObjectRequest.Policy());
-        Map<String, String> map = postObjectRequest.testFormParameters();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(Map.Entry<String, String> entry : map.entrySet()){
-            stringBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
-        }
-        Log.d("XIAO", stringBuilder.toString());
-    }
+//    @Test
+//    public void testFormParameters() throws CosXmlClientException {
+//        PostObjectRequest postObjectRequest = new PostObjectRequest("bucket", "1.txt", "/e/1.txt");
+//        postObjectRequest.setAcl(COSACL.PRIVATE.getAcl());
+//        postObjectRequest.setCacheControl("cache-control");
+//        postObjectRequest.setContentType("text/plain");
+//        postObjectRequest.setContentEncoding("utf-8");
+//        postObjectRequest.setCosStorageClass(COSStorageClass.STANDARD.getStorageClass());
+//        postObjectRequest.setExpires("100");
+//        postObjectRequest.setContentDisposition("form-data");
+//        postObjectRequest.setCustomerHeader("x-cos-meta-ssl", "sha1");
+//        postObjectRequest.setSuccessActionStatus(204);
+//        postObjectRequest.setSuccessActionRedirect("www.cloud.tencent.com");
+//        postObjectRequest.setPolicy(new PostObjectRequest.Policy());
+//        Map<String, String> map = postObjectRequest.testFormParameters();
+//        StringBuilder stringBuilder = new StringBuilder();
+//        for(Map.Entry<String, String> entry : map.entrySet()){
+//            stringBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
+//        }
+//        Log.d("XIAO", stringBuilder.toString());
+//    }
 
     @Test
     public void testPostObject() throws Exception{
         Context context = InstrumentationRegistry.getContext();
-        String bucket = QServer.bucketForObject;
+        String bucket = QServer.guangZhouBucket;
         String cosPath = "postobject2.txt";
         String srcPath = QServer.createFile(context, 1024 * 1024);
         byte[] data = "this is post object test".getBytes("utf-8");
