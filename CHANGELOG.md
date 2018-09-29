@@ -1,4 +1,8 @@
-
+## V5.4.13
+1. 添加COSXMLUploadTask 代替 UploadServer
+2. 添加COSDownloadTask 代替 Downloader
+3. 添加COSXMLCopyTask 代替 CopyServer
+4. 引入腾讯 mta检测
 ## V5.4.13 
 
 1. 修复 bug。
