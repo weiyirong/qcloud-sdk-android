@@ -56,6 +56,10 @@ public class GetObjectRequest extends ObjectRequest {
         this.saveFileName = saveFileName;
     }
 
+    public GetObjectRequest(){
+        super(null, null);
+    }
+
     public long getFileOffset() {
         return fileOffset;
     }

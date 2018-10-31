@@ -68,7 +68,6 @@ public class PutObjectRequest extends ObjectRequest {
         strData = stringBuilder.toString();
     }
 
-
     /**
      * PutObject 构造方法
      * @param bucket 存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
@@ -89,9 +88,12 @@ public class PutObjectRequest extends ObjectRequest {
      * @param url 上传的url
      */
     public PutObjectRequest(String bucket, String cosPath, URL url) {
-
         this(bucket, cosPath);
         this.url = url;
+    }
+
+    public PutObjectRequest(){
+        super(null, null);
     }
 
     @Override

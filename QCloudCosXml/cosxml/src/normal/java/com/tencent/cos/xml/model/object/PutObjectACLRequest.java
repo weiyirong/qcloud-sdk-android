@@ -23,6 +23,10 @@ final public class PutObjectACLRequest extends ObjectRequest {
         super(bucket, cosPath);
     }
 
+    public PutObjectACLRequest(){
+        super(null, null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.PUT;

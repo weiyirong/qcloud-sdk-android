@@ -44,4 +44,14 @@ public class FileUtils {
             CloseUtil.closeQuietly(inputStream);
         }
     }
+
+    public static File[] listFile(File file){
+        if(file != null && file.isDirectory()){
+            return file.listFiles();
+        }else {
+            return null;
+        }
+    }
+
+
 }

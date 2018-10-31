@@ -31,6 +31,10 @@ final public class ListPartsRequest extends ObjectRequest {
         this.uploadId = uploadId;
     }
 
+    public ListPartsRequest(){
+        super(null, null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;
@@ -61,6 +65,9 @@ final public class ListPartsRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
+        if(requestURL != null){
+            return;
+        }
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
         }

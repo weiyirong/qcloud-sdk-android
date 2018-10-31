@@ -34,6 +34,12 @@ final public class PutBucketCORSRequest extends BucketRequest {
         corsConfiguration.corsRules = new ArrayList<>();
     }
 
+    public PutBucketCORSRequest(){
+        super(null);
+        corsConfiguration = new CORSConfiguration();
+        corsConfiguration.corsRules = new ArrayList<>();
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.PUT;

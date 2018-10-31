@@ -43,6 +43,10 @@ public class CopyObjectRequest extends ObjectRequest {
         //setCopySource(copySourceStruct);
     }
 
+    public CopyObjectRequest(){
+        super(null, null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.PUT;

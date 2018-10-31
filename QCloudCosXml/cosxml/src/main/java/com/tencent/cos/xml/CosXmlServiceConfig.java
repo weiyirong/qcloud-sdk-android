@@ -33,16 +33,21 @@ public class CosXmlServiceConfig {
 
     private RetryStrategy retryStrategy;
 
+    private int connectionTimeout;
+    private int socketTimeout;
+
     public CosXmlServiceConfig(Builder builder){
-        protocol = builder.protocol;
-        userAgent = builder.userAgent;
-        appid = builder.appid;
-        region = builder.region;
-        isDebuggable = builder.isDebuggable;
+        this.protocol = builder.protocol;
+        this.userAgent = builder.userAgent;
+        this.appid = builder.appid;
+        this.region = builder.region;
+        this.isDebuggable = builder.isDebuggable;
         this.ip = builder.ip;
         this.domainSuffix = builder.domainSuffix;
         this.retryStrategy = builder.retryStrategy;
         this.bucketInPath = builder.bucketInPath;
+        this.socketTimeout = builder.socketTimeout;
+        this.connectionTimeout = builder.connectionTimeout;
     }
 
     public String getProtocol() {
@@ -73,6 +78,13 @@ public class CosXmlServiceConfig {
         return domainSuffix;
     }
 
+    public int getSocketTimeout() {
+        return socketTimeout;
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
 
     public RetryStrategy getRetryStrategy() {
         return retryStrategy;
@@ -97,6 +109,9 @@ public class CosXmlServiceConfig {
 
         private RetryStrategy retryStrategy;
 
+        private int connectionTimeout = 15 * 1000;  //in milliseconds
+        private int socketTimeout = 30 * 1000;  //in milliseconds
+
         public Builder(){
             protocol = DEFAULT_PROTOCOL;
             userAgent =DEFAULT_USER_AGENT;
@@ -104,6 +119,16 @@ public class CosXmlServiceConfig {
             domainSuffix = "myqcloud.com";
             retryStrategy = RetryStrategy.DEFAULT;
             bucketInPath = false;
+        }
+
+        public Builder setConnectionTimeout(int connectionTimeoutMills){
+            this.connectionTimeout = connectionTimeoutMills;
+            return this;
+        }
+
+        public Builder setSocketTimeout(int socketTimeoutMills){
+            this.socketTimeout = socketTimeoutMills;
+            return this;
         }
 
         public Builder isHttps(boolean isHttps){

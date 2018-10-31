@@ -61,6 +61,24 @@ public class TransferManager{
     }
 
     /**
+     * 上传文件
+     * @param bucket 存储桶
+     * @param cosPath 文件存放于存储桶上的位置
+     * @param srcPath 文件本地路径
+     * @param uploadId 是否分片续传的uploadId
+     * @param onSignatureListener 签名注册器
+     * @return COSXMLUploadTask
+     */
+    public COSXMLUploadTask upload(String bucket, String cosPath, String srcPath, String uploadId, COSXMLTask.OnSignatureListener onSignatureListener){
+        COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, null, bucket, cosPath, srcPath, uploadId);
+        cosxmlUploadTask.multiUploadSizeDivision = transferConfig.divisionForUpload; // 分片上传的界限
+        cosxmlUploadTask.sliceSize = transferConfig.sliceSizeForUpload; // 分片上传的分片大小
+        cosxmlUploadTask.setOnSignatureListener(onSignatureListener);
+        cosxmlUploadTask.upload();
+        return cosxmlUploadTask;
+    }
+
+    /**
      * 下载文件
      * @param context app上下文
      * @param bucket 存储桶
@@ -100,6 +118,23 @@ public class TransferManager{
     }
 
     /**
+     * 下载文件
+     * @param context app上下文
+     * @param bucket 存储桶
+     * @param cosPath 文件存放于存储桶上的位置
+     * @param savedDirPath 文件下载到本地的路径
+     * @param savedFileName 文件下载本地的别名
+     * @param onSignatureListener 签名注册器
+     * @return COSXMLDownloadTask
+     */
+    public COSXMLDownloadTask download(Context context, String bucket, String cosPath, String savedDirPath, String savedFileName, COSXMLTask.OnSignatureListener onSignatureListener){
+        COSXMLDownloadTask cosxmlDownloadTask = new COSXMLDownloadTask(context, cosXmlService, null, bucket, cosPath, savedDirPath, savedFileName);
+        cosxmlDownloadTask.setOnSignatureListener(onSignatureListener);
+        cosxmlDownloadTask.download();
+        return cosxmlDownloadTask;
+    }
+
+    /**
      * 复制文件
      * @param bucket 存储桶
      * @param cosPath 文件存放于存储桶上的位置
@@ -127,4 +162,19 @@ public class TransferManager{
         return cosxmlCopyTask;
     }
 
+    /**
+     * 复制文件
+     * @param bucket 存储桶
+     * @param cosPath 文件存放于存储桶上的位置
+     * @param copySourceStruct 源文件存储于COS的位置
+     * @return COSXMLCopyTask
+     */
+    public COSXMLCopyTask copy(String bucket, String cosPath, CopyObjectRequest.CopySourceStruct copySourceStruct, COSXMLTask.OnSignatureListener onSignatureListener){
+        COSXMLCopyTask cosxmlCopyTask = new COSXMLCopyTask(cosXmlService, null, bucket, cosPath, copySourceStruct);
+        cosxmlCopyTask.multiCopySizeDivision = transferConfig.divisionForCopy;
+        cosxmlCopyTask.sliceSize = transferConfig.sliceSizeForCopy;
+        cosxmlCopyTask.setOnSignatureListener(onSignatureListener);
+        cosxmlCopyTask.copy();
+        return cosxmlCopyTask;
+    }
 }

@@ -42,6 +42,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     private AppendObjectRequest(String bucket, String cosPath){
         super(bucket, cosPath);
     }
+
     public AppendObjectRequest(String bucket, String cosPath, String srcPath, long position){
         this(bucket, cosPath);
         this.srcPath = srcPath;
@@ -59,6 +60,10 @@ final public class AppendObjectRequest extends ObjectRequest {
         this.inputStream = inputStream;
         //this.srcPath= FileUtils.tempCache(inputStream);
         this.position = position;
+    }
+
+    public AppendObjectRequest() {
+        super(null, null);
     }
 
     @Override

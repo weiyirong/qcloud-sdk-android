@@ -14,6 +14,9 @@ final public class HeadObjectRequest extends ObjectRequest {
         super(bucket, cosPath);
     }
 
+    public HeadObjectRequest(){
+        super(null, null);
+    }
 
     public void setVersionId(String versionId) {
         if(versionId != null){

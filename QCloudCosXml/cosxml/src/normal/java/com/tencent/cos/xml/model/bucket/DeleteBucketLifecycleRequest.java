@@ -21,6 +21,10 @@ final public class DeleteBucketLifecycleRequest extends BucketRequest {
         super(bucket);
     }
 
+    public DeleteBucketLifecycleRequest() {
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.DELETE ;

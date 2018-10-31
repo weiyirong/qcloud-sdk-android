@@ -55,6 +55,10 @@ public class PostObjectRequest extends ObjectRequest {
         formStruct.inputStream = inputStream;
     }
 
+    public PostObjectRequest(){
+        super(null, null);
+    }
+
     public void setRange(long offset, long contentSize){
         this.offset = offset;
         this.contentLength = contentSize;

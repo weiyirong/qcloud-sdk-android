@@ -20,6 +20,10 @@ final public class PutBucketACLRequest extends BucketRequest {
         super(bucket);
     }
 
+    public PutBucketACLRequest(){
+        super(null);
+    }
+
     /**
      * <p>
      * 设置Bucket访问权限

@@ -35,6 +35,12 @@ public class PutBucketReplicationRequest extends BucketRequest {
         replicationConfiguration.rules = new ArrayList<>();
     }
 
+    public PutBucketReplicationRequest(){
+        super(null);
+        replicationConfiguration = new ReplicationConfiguration();
+        replicationConfiguration.rules = new ArrayList<>();
+    }
+
     /**设置 replication的发起者身份标示*/
     public void setReplicationConfigurationWithRole(String ownerUin, String subUin){
         if(ownerUin != null && subUin != null){

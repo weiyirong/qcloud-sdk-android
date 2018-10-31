@@ -63,6 +63,9 @@ public abstract class ObjectRequest extends CosXmlRequest {
 
     @Override
     public void checkParameters() throws CosXmlClientException {
+        if(requestURL != null){
+            return;
+        }
         if(bucket == null){
             throw new CosXmlClientException("bucket must not be null ");
         }

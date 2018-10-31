@@ -26,6 +26,12 @@ public class RestoreRequest extends ObjectRequest {
         restoreConfigure.casJobParameters = new RestoreConfigure.CASJobParameters();
     }
 
+    public RestoreRequest() {
+        super(null, null);
+        restoreConfigure = new RestoreConfigure();
+        restoreConfigure.casJobParameters = new RestoreConfigure.CASJobParameters();
+    }
+
     @Override
     public Map<String, String> getQueryString() {
         queryParameters.put("restore", null);

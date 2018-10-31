@@ -19,6 +19,10 @@ final public class DeleteBucketCORSRequest extends BucketRequest {
         super(bucket);
     }
 
+    public DeleteBucketCORSRequest() {
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.DELETE ;

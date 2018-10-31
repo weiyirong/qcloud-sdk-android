@@ -17,6 +17,10 @@ final public class GetBucketCORSRequest extends BucketRequest {
       super(bucket);
     }
 
+    public GetBucketCORSRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

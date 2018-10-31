@@ -15,6 +15,10 @@ final public class HeadBucketRequest extends BucketRequest {
         super(bucket);
     }
 
+    public HeadBucketRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.HEAD;

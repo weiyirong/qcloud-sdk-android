@@ -18,6 +18,10 @@ final public class PutBucketRequest extends BucketRequest {
     public PutBucketRequest(String bucket){
         super(bucket);
     }
+
+    public PutBucketRequest(){
+        super(null);
+    }
     /**
      * <p>
      * 设置Bucket访问权限

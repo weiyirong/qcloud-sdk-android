@@ -19,6 +19,10 @@ public class DeleteBucketReplicationRequest extends BucketRequest {
        super(bucket);
     }
 
+    public DeleteBucketReplicationRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.DELETE;

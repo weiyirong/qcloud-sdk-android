@@ -41,10 +41,18 @@ public abstract class CosXmlRequest{
     private boolean isNeedMD5 = false;
     private boolean isSupportAccelerate = false;
     private String region;
-
     protected String domainSuffix;
+    protected String requestURL;
 
     protected QCloudTaskStateListener qCloudTaskStateListener;
+
+    public void setRequestURL(String requestURL){
+        this.requestURL = requestURL;
+    }
+
+    public String getRequestURL(){
+        return requestURL;
+    }
 
     public abstract String getMethod();
 
@@ -186,7 +194,6 @@ public abstract class CosXmlRequest{
     }
 
     public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
-
         return getHost(config.getAppid(), config.getRegion(), config.getDomainSuffix(), config.isBucketInPath(), isSupportAccelerate);
     }
 

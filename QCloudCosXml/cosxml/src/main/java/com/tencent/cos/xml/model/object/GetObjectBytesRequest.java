@@ -16,6 +16,10 @@ final public class GetObjectBytesRequest extends ObjectRequest {
         super(bucket, cosPath);
     }
 
+   public GetObjectBytesRequest(){
+        super(null, null);
+   }
+
     @Override
     public String getMethod() {
 

@@ -57,6 +57,8 @@ import com.tencent.qcloud.core.logger.FileLogAdapter;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.RetryStrategy;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
 
@@ -90,13 +92,13 @@ public class CosXmlSimpleService implements SimpleCosXml {
 //        appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
         appCachePath = context.getApplicationContext().getFilesDir().getPath();
         RetryStrategy retryStrategy = configuration.getRetryStrategy();
+        QCloudHttpClient.Builder builder = new QCloudHttpClient.Builder()
+                .setConnectionTimeout(configuration.getConnectionTimeout())
+                .setSocketTimeout(configuration.getSocketTimeout());
         if(retryStrategy != null){
-            client = new QCloudHttpClient.Builder()
-                    .setRetryStrategy(retryStrategy)
-                    .build();
-        }else {
-            client = QCloudHttpClient.getDefault();
+            builder.setRetryStrategy(retryStrategy);
         }
+        client = builder.build();
         config = configuration;
         //client.addVerifiedHost("*.myqcloud.com");
         client.addVerifiedHost("*." + configuration.getDomainSuffix());
@@ -109,18 +111,47 @@ public class CosXmlSimpleService implements SimpleCosXml {
         credentialProvider = qCloudCredentialProvider;
     }
 
+    /**
+     * cos android SDK 服务
+     * @param context Application 上下文{@link android.app.Application}
+     * @param configuration cos android SDK 服务配置{@link CosXmlServiceConfig}
+     */
+    public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration){
+        QCloudLogger.addAdapter(new FileLogAdapter(context, "QLog"));
+        MTAProxy.init(context.getApplicationContext());
+//        appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
+        appCachePath = context.getApplicationContext().getFilesDir().getPath();
+        RetryStrategy retryStrategy = configuration.getRetryStrategy();
+        QCloudHttpClient.Builder builder = new QCloudHttpClient.Builder()
+                .setConnectionTimeout(configuration.getConnectionTimeout())
+                .setSocketTimeout(configuration.getSocketTimeout());
+        if(retryStrategy != null){
+            builder.setRetryStrategy(retryStrategy);
+        }
+        client = builder.build();
+        config = configuration;
+        //client.addVerifiedHost("*.myqcloud.com");
+        client.addVerifiedHost("*." + configuration.getDomainSuffix());
+        client.setDebuggable(configuration.isDebuggable());
+        scheme = configuration.getProtocol();
+        region = configuration.getRegion();
+        domainSuffix = configuration.getDomainSuffix();
+        appid = configuration.getAppid();
+        ip = configuration.getIp();
+    }
+
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration, QCloudSigner qCloudSigner){
         QCloudLogger.addAdapter(new FileLogAdapter(context, "QLog"));
         //appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
         appCachePath = context.getApplicationContext().getFilesDir().getPath();
         RetryStrategy retryStrategy = configuration.getRetryStrategy();
+        QCloudHttpClient.Builder builder = new QCloudHttpClient.Builder()
+                .setConnectionTimeout(configuration.getConnectionTimeout())
+                .setSocketTimeout(configuration.getSocketTimeout());
         if(retryStrategy != null){
-            client = new QCloudHttpClient.Builder()
-                    .setRetryStrategy(retryStrategy)
-                    .build();
-        }else {
-            client = QCloudHttpClient.getDefault();
+            builder.setRetryStrategy(retryStrategy);
         }
+        client = builder.build();
         config = configuration;
         //client.addVerifiedHost("*.myqcloud.com");
         client.addVerifiedHost("*." + configuration.getDomainSuffix());
@@ -152,17 +183,29 @@ public class CosXmlSimpleService implements SimpleCosXml {
     (T1 cosXmlRequest, T2 cosXmlResult) throws CosXmlClientException {
         cosXmlRequest.checkParameters();
 
-        String host = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate());
-
         QCloudHttpRequest.Builder<T2> httpRequestBuilder = new QCloudHttpRequest.Builder<T2>()
                 .method(cosXmlRequest.getMethod())
-                .scheme(scheme)
-                .host(ip == null ? host : ip)
-                .path(cosXmlRequest.getPath(config))
-                .addHeader(HttpConstants.Header.HOST, host)
                 .userAgent(CosXmlServiceConfig.DEFAULT_USER_AGENT)
                 .tag(tag);
 
+        //add url
+        String requestURL = cosXmlRequest.getRequestURL();
+        if(requestURL != null){
+            try {
+                httpRequestBuilder.url(new URL(requestURL));
+            } catch (MalformedURLException e) {
+                throw new CosXmlClientException(e);
+            }
+        }else {
+            String host = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate());
+            httpRequestBuilder.host(ip == null ? host : ip)
+                    .scheme(scheme)
+                    .path(cosXmlRequest.getPath(config))
+                    .addHeader(HttpConstants.Header.HOST, host);
+            httpRequestBuilder.query(cosXmlRequest.getQueryString());
+        }
+
+        // add sign
         if(credentialProvider == null){
             httpRequestBuilder.signer(null, null);
         } else if(cosXmlRequest instanceof PostObjectRequest){
@@ -187,7 +230,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
         }else {
             httpRequestBuilder.signer(signerType, cosXmlRequest.getSignSourceProvider());
         }
-        httpRequestBuilder.query(cosXmlRequest.getQueryString());
+
+        //add headers
         httpRequestBuilder.addHeaders(cosXmlRequest.getRequestHeaders());
         if(cosXmlRequest.isNeedMD5()){
             httpRequestBuilder.contentMD5();
@@ -307,6 +351,11 @@ public class CosXmlSimpleService implements SimpleCosXml {
      * @return String
      */
     public String getAccessUrl(CosXmlRequest cosXmlRequest){
+        String requestURL = cosXmlRequest.getRequestURL();
+        if(requestURL != null){
+            int index = requestURL.indexOf("?");
+            return index > 0 ? requestURL.substring(0, index) : requestURL;
+        }
         String host = null;
         try {
             host = cosXmlRequest.getHost(config, false);
@@ -627,4 +676,10 @@ public class CosXmlSimpleService implements SimpleCosXml {
     public CosXmlServiceConfig getConfig() {
         return config;
     }
+
+
+    /**
+     * 添加 日志信息
+     */
+
 }

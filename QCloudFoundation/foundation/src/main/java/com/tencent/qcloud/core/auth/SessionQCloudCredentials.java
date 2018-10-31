@@ -45,7 +45,7 @@ public class SessionQCloudCredentials implements QCloudLifecycleCredentials {
             throw new IllegalArgumentException("token cannot be null.");
         }
         if (beginTime >= expiredTime) {
-            throw new IllegalArgumentException("beginTime must be larger than expiredTime.");
+            throw new IllegalArgumentException("beginTime must be less than expiredTime.");
         }
 
         this.secretId = secretId;

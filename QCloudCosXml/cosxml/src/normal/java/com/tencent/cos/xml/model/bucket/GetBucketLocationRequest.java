@@ -17,6 +17,10 @@ final public class GetBucketLocationRequest extends BucketRequest {
         super(bucket);
     }
 
+    public GetBucketLocationRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

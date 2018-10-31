@@ -36,6 +36,12 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         setObjectList(deleteObjectList);
     }
 
+    public DeleteMultiObjectRequest(){
+        super(null, null);
+        delete = new Delete();
+        delete.deleteObjects = new ArrayList<Delete.DeleteObject>();
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.POST;
@@ -60,6 +66,9 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
 
     @Override
     public void checkParameters() throws CosXmlClientException {
+        if(requestURL != null){
+            return;
+        }
         if(bucket == null){
             throw new CosXmlClientException("bucket must not be null");
         }

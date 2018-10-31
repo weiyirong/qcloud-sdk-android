@@ -104,6 +104,10 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
         super(context, configuration, qCloudSigner);
     }
 
+    public CosXmlService(Context context, CosXmlServiceConfig configuration) {
+        super(context, configuration);
+    }
+
     /**
      * <p>
      * 获取所属账户的所有存储空间列表的同步方法.&nbsp;

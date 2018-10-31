@@ -105,10 +105,10 @@ public class GenerateGetObjectURLUtils {
                                               long duration, QCloudAPI qCloudAPI) throws CosXmlClientException {
         StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(getObjectUrl(isHttps, appid, bucket, region, cosPath));
-        urlBuilder.append("?sign=");
+        urlBuilder.append("?");
 
         String sign = getSign("get", headers, queryParameters, cosPath, duration, qCloudAPI);
-        sign = URLEncodeUtils.cosPathEncode(sign);
+//        sign = URLEncodeUtils.cosPathEncode(sign);
         urlBuilder.append(sign);
 
         return urlBuilder.toString();
@@ -181,6 +181,7 @@ public class GenerateGetObjectURLUtils {
         String secretId = qCloudAPI.getSecretId();
         String secretKey = qCloudAPI.getSecretKey();
         long keyDuration = qCloudAPI.getKeyDuration();
+        String token = qCloudAPI.getSessionToken();
 
         if(keyDuration <= 0) keyDuration = signDuration;
         long current = System.currentTimeMillis() / 1000;
@@ -245,7 +246,12 @@ public class GenerateGetObjectURLUtils {
 //                .append(AuthConstants.Q_SIGNATURE).append("=").append(signature);
 //
 //        return authorization.toString();
-        return getSign(httpMethod, cosPath, headers, queryParameters, signTime, keyTime, secretId, signKey);
+//        return getSign(httpMethod, cosPath, headers, queryParameters, signTime, keyTime, secretId, signKey);
+        String sign = getSign(httpMethod, cosPath, headers, queryParameters, signTime, keyTime, secretId, signKey);
+        if(token != null){
+            sign += "&x-cos-security-token=" + token;
+        }
+        return sign;
     }
 
     private static String[] sort(Map<String, String> maps, boolean isHeader) throws CosXmlClientException {

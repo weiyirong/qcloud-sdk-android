@@ -16,6 +16,10 @@ final public class GetBucketLifecycleRequest extends BucketRequest {
         super(bucket);
     }
 
+    public GetBucketLifecycleRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

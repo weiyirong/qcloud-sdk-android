@@ -22,13 +22,15 @@ import com.tencent.qcloud.core.http.HttpTask;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by bradyxiao on 2018/8/23.
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
 
-public final class COSXMLDownloadTask extends COSXMLTask {
+public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
     private String localSaveDirPath;
     private String localSaveFileName;
@@ -42,6 +44,7 @@ public final class COSXMLDownloadTask extends COSXMLTask {
     private HeadObjectRequest headObjectRequest;
     private GetObjectRequest getObjectRequest;
     private SharedPreferences sharedPreferences;
+    private static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     COSXMLDownloadTask(Context context, CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, String localSaveDirPath, String localSaveFileName){
         this.region = region;
@@ -79,65 +82,13 @@ public final class COSXMLDownloadTask extends COSXMLTask {
     }
 
     protected void download(){
-        checkParameters();
-        updateState(TransferState.WAITING); // waiting
-        headObjectRequest = new HeadObjectRequest(bucket, cosPath);
-        headObjectRequest.setRegion(region);
-        headObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
-            @Override
-            public void onStateChanged(String taskId, int state) {
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
-            }
-        });
-        cosXmlService.headObjectAsync(headObjectRequest, new CosXmlResultListener() {
-            @Override
-            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
-                List<String> eTags = result.headers.get("ETag");
-                if(eTags != null && eTags.size() > 0){
-                    eTag = eTags.get(0);
-                }
-                String absolutePath = hasExisted();
-                if(absolutePath != null){
-                    File file = new File(absolutePath);
-                    if(file.exists()){
-                        long fileLength = file.length();
-                        List<String> contentLengths = result.headers.get("Content-Length");
-                        if(contentLengths != null && contentLengths.size() > 0 && Long.valueOf(contentLengths.get(0)) == fileLength){
-                            if(updateState(TransferState.COMPLETED)){
-                                if(cosXmlProgressListener != null){
-                                    cosXmlProgressListener.onProgress(fileLength, fileLength);
-                                }
-                                if(cosXmlResultListener != null){
-                                    cosXmlResultListener.onSuccess(request, result);
-                                }
-                            }
-                            clear();
-                        }else {
-                            hasWriteDataLen = fileLength - fileOffset;
-                            realDownload(rangeStart + hasWriteDataLen, rangeEnd, fileOffset + hasWriteDataLen);
-                        }
-                    }
-                }else {
-                    save(getDownloadPath());
-                    hasWriteDataLen = 0L;
-                    realDownload(rangeStart, rangeEnd, fileOffset);
-                }
-            }
+//        if(this.onSignatureListener != null){
+//            executorService.submit(this);
+//        }else {
+//            run();
+//        }
 
-            @Override
-            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(updateState(TransferState.FAILED)){
-                    // failed -> error
-                    mException = exception == null ? serviceException : exception;
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
-                    }
-                }
-            }
-        });
-
+        executorService.submit(this);
     }
 
     private void realDownload(long rangeStart, long rangeEnd, final long fileOffset){
@@ -147,7 +98,13 @@ public final class COSXMLDownloadTask extends COSXMLTask {
         getObjectRequest.setFileOffset(fileOffset);
         getObjectRequest.setQueryParameters(queries);
         getObjectRequest.setRequestHeaders(headers);
-        getObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
+
+        if(onSignatureListener != null){
+            getObjectRequest.setSign(onSignatureListener.onGetSign(getObjectRequest));
+        }else {
+            getObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
+        }
+
         getObjectRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -177,7 +134,7 @@ public final class COSXMLDownloadTask extends COSXMLTask {
                     if(cosXmlResultListener != null){
                         cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
                     }
-                    clear();
+//                    clear();
                 }
             }
         });
@@ -194,11 +151,11 @@ public final class COSXMLDownloadTask extends COSXMLTask {
     @Override
     public void pause() {
         if(updateState(TransferState.PAUSED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException("paused by user");
-            mException = cosXmlClientException;
-            if(cosXmlResultListener != null){
-                cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
-            }
+//            CosXmlClientException cosXmlClientException = new CosXmlClientException("paused by user");
+//            mException = cosXmlClientException;
+//            if(cosXmlResultListener != null){
+//                cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
+//            }
             cosXmlService.cancel(headObjectRequest);
             headObjectRequest = null;
             cosXmlService.cancel(getObjectRequest);
@@ -312,6 +269,76 @@ public final class COSXMLDownloadTask extends COSXMLTask {
             }
         }
         return path;
+    }
+
+    @Override
+    public void run() {
+        checkParameters();
+        updateState(TransferState.WAITING); // waiting
+        headObjectRequest = new HeadObjectRequest(bucket, cosPath);
+        headObjectRequest.setRegion(region);
+
+        if(onSignatureListener != null){
+            headObjectRequest.setSign(onSignatureListener.onGetSign(headObjectRequest));
+        }else {
+            headObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
+        }
+
+        headObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
+            @Override
+            public void onStateChanged(String taskId, int state) {
+                if(state == HttpTask.STATE_EXECUTING){
+                    updateState(TransferState.IN_PROGRESS); // running
+                }
+            }
+        });
+
+        cosXmlService.headObjectAsync(headObjectRequest, new CosXmlResultListener() {
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                List<String> eTags = result.headers.get("ETag");
+                if(eTags != null && eTags.size() > 0){
+                    eTag = eTags.get(0);
+                }
+                String absolutePath = hasExisted();
+                if(absolutePath != null){
+                    File file = new File(absolutePath);
+                    if(file.exists()){
+                        long fileLength = file.length();
+                        List<String> contentLengths = result.headers.get("Content-Length");
+                        if(contentLengths != null && contentLengths.size() > 0 && Long.valueOf(contentLengths.get(0)) == fileLength){
+                            if(updateState(TransferState.COMPLETED)){
+                                if(cosXmlProgressListener != null){
+                                    cosXmlProgressListener.onProgress(fileLength, fileLength);
+                                }
+                                if(cosXmlResultListener != null){
+                                    cosXmlResultListener.onSuccess(request, result);
+                                }
+                            }
+                            clear();
+                        }else {
+                            hasWriteDataLen = fileLength - fileOffset;
+                            realDownload(rangeStart + hasWriteDataLen, rangeEnd, fileOffset + hasWriteDataLen);
+                        }
+                    }
+                }else {
+                    save(getDownloadPath());
+                    hasWriteDataLen = 0L;
+                    realDownload(rangeStart, rangeEnd, fileOffset);
+                }
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(updateState(TransferState.FAILED)){
+                    // failed -> error
+                    mException = exception == null ? serviceException : exception;
+                    if(cosXmlResultListener != null){
+                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+                    }
+                }
+            }
+        });
     }
 
     public static class COSXMLDownloadTaskRequest extends GetObjectRequest{

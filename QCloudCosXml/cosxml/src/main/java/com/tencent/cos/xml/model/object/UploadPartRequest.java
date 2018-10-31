@@ -73,6 +73,12 @@ final public class UploadPartRequest extends ObjectRequest {
         fileContentLength = -1L;
     }
 
+    public UploadPartRequest(){
+        super(null, null);
+        fileOffset = -1L;
+        fileContentLength = -1L;
+    }
+
     /**
      * 设置上传的分块编号
      * @param partNumber 上传的分块数
@@ -137,11 +143,13 @@ final public class UploadPartRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
-        if(partNumber <= 0){
-            throw new CosXmlClientException("partNumber must be >= 1");
-        }
-        if(uploadId == null){
-            throw new CosXmlClientException("uploadID must not be null");
+        if(requestURL == null){
+            if(partNumber <= 0){
+                throw new CosXmlClientException("partNumber must be >= 1");
+            }
+            if(uploadId == null){
+                throw new CosXmlClientException("uploadID must not be null");
+            }
         }
         if(srcPath == null && data == null && inputStream == null){
             throw new CosXmlClientException("Data Source must not be null");

@@ -48,6 +48,12 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
         setPartNumberAndETag(partNumberAndETag);
     }
 
+    public CompleteMultiUploadRequest() {
+        super(null, null);
+        completeMultipartUpload = new CompleteMultipartUpload();
+        completeMultipartUpload.parts = new ArrayList<CompleteMultipartUpload.Part>();
+    }
+
     /***/
     public CompleteMultipartUpload getCompleteMultipartUpload() {
         return completeMultipartUpload;
@@ -135,6 +141,9 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
+        if(requestURL != null){
+            return;
+        }
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
         }

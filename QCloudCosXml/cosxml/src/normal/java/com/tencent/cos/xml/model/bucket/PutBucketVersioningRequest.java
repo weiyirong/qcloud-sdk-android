@@ -30,6 +30,11 @@ public class PutBucketVersioningRequest extends BucketRequest {
         versioningConfiguration = new VersioningConfiguration();
     }
 
+    public PutBucketVersioningRequest(){
+        super(null);
+        versioningConfiguration = new VersioningConfiguration();
+    }
+
 
     /** 版本是否开启，true:开启，false:不开启*/
     public void setEnableVersion(boolean isEnable){

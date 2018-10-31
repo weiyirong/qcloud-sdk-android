@@ -17,6 +17,10 @@ final public class GetObjectACLRequest extends ObjectRequest{
         super(bucket, cosPath);
     }
 
+    public GetObjectACLRequest(){
+        super(null, null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

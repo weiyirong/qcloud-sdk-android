@@ -17,6 +17,10 @@ final public class GetBucketACLRequest extends BucketRequest {
         super(bucket);
     }
 
+    public GetBucketACLRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

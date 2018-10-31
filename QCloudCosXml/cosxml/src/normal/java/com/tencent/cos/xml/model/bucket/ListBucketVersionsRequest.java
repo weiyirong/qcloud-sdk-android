@@ -25,6 +25,10 @@ public class ListBucketVersionsRequest extends BucketRequest {
         super(bucket);
     }
 
+    public ListBucketVersionsRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

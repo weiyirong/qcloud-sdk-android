@@ -18,6 +18,10 @@ public class GetBucketVersioningRequest extends BucketRequest {
         super(bucket);
     }
 
+    public GetBucketVersioningRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

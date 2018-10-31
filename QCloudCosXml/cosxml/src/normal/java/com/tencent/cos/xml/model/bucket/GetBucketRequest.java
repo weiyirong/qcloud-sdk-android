@@ -35,6 +35,10 @@ final public class GetBucketRequest extends BucketRequest {
         super(bucket);
     }
 
+    public GetBucketRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

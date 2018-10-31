@@ -17,6 +17,10 @@ final public class DeleteObjectRequest extends ObjectRequest {
         super(bucket, cosPath);
     }
 
+    public DeleteObjectRequest(){
+        super(null, null);
+    }
+
     /**
      * @see CosXmlRequest#getMethod()
      */

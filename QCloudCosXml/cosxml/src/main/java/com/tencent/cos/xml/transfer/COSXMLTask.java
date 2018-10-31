@@ -7,10 +7,20 @@ import com.tencent.cos.xml.listener.CosXmlProgressListener;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
 import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.model.CosXmlResult;
+import com.tencent.cos.xml.model.object.AbortMultiUploadRequest;
+import com.tencent.cos.xml.model.object.CompleteMultiUploadRequest;
+import com.tencent.cos.xml.model.object.InitMultipartUploadRequest;
+import com.tencent.cos.xml.model.object.ListPartsRequest;
+import com.tencent.cos.xml.model.object.PutObjectRequest;
+import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by bradyxiao on 2018/8/23.
@@ -43,6 +53,9 @@ public abstract class COSXMLTask {
     /** cosxml task state during the whole lifecycle */
     protected TransferState taskState  = TransferState.WAITING;
 
+    /** 直接提供签名串 */
+    protected OnSignatureListener onSignatureListener;
+
     protected void setCosXmlService(CosXmlSimpleService cosXmlService){
         this.cosXmlService = cosXmlService;
     }
@@ -72,6 +85,10 @@ public abstract class COSXMLTask {
         if(this.transferStateListener != null){
             this.transferStateListener.onStateChanged(taskState);
         }
+    }
+
+    public void setOnSignatureListener(OnSignatureListener onSignatureListener){
+        this.onSignatureListener = onSignatureListener;
     }
 
     public abstract void pause();
@@ -105,11 +122,21 @@ public abstract class COSXMLTask {
         }
     }
 
+    /**
+     * waiting: 准备状态, 任何状态都可以转为它, task 准备执行.
+     * in_progress: 运行状态，只能由waiting转为它, task 执行中.
+     * complete: 完成状态，只能由 in_progress状态转为它, task 执行完.
+     * failed: 失败状态，只能由waiting、in_progress状态转为它, task 执行失败.
+     * pause: 暂停状态，只能由waiting、in_progress状态转为它, task 暂停执行.
+     * cancel: 取消状态，除了complete之外，任何状态都可以转为它, task 取消，并释放资源.
+     * resume_waiting: 恢复状态，只能由 pause、failed. 这是一个特殊的状态，会直接过渡到waiting, task 恢复执行.
+     * @param newTaskState new state for operating
+     * @return boolean
+     */
     protected synchronized boolean updateState(TransferState newTaskState){
         switch (newTaskState){
             case WAITING:
-                if(taskState != TransferState.WAITING && taskState != TransferState.COMPLETED
-                        && taskState != TransferState.FAILED && taskState != TransferState.CANCELED){
+                if(taskState != TransferState.WAITING){
                     taskState = TransferState.WAITING;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
@@ -118,7 +145,7 @@ public abstract class COSXMLTask {
                 }
                 return false;
             case IN_PROGRESS:
-                if(taskState != TransferState.IN_PROGRESS){
+                if(taskState == TransferState.WAITING){
                     taskState = TransferState.IN_PROGRESS;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
@@ -136,7 +163,8 @@ public abstract class COSXMLTask {
                 }
                 return false;
             case FAILED:
-                if(taskState == TransferState.WAITING || taskState == TransferState.IN_PROGRESS){
+                if(taskState == TransferState.WAITING
+                        || taskState == TransferState.IN_PROGRESS){
                     taskState = TransferState.FAILED;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
@@ -145,7 +173,8 @@ public abstract class COSXMLTask {
                 }
                 return false;
             case PAUSED:
-                if(taskState == TransferState.WAITING || taskState == TransferState.IN_PROGRESS){
+                if(taskState == TransferState.WAITING
+                        || taskState == TransferState.IN_PROGRESS){
                     taskState = TransferState.PAUSED;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
@@ -154,7 +183,8 @@ public abstract class COSXMLTask {
                 }
                 return false;
             case CANCELED:
-                if(taskState == TransferState.WAITING || taskState == TransferState.IN_PROGRESS){
+                if(taskState != TransferState.CANCELED
+                        && taskState != TransferState.COMPLETED){
                     taskState = TransferState.CANCELED;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
@@ -163,12 +193,36 @@ public abstract class COSXMLTask {
                 }
                 return false;
             case RESUMED_WAITING:
-                if(taskState == TransferState.PAUSED){
+                if(taskState == TransferState.PAUSED
+                        || taskState == TransferState.FAILED){
                     taskState = TransferState.RESUMED_WAITING;
+                    if(transferStateListener != null){
+                        transferStateListener.onStateChanged(taskState);
+                    }
                     return true;
                 }
+                return false;
             default:
                 return false;
         }
+    }
+
+    /**
+     * @see
+     */
+    @Deprecated
+    public interface OnSignatureListener{
+        /**
+         * @see com.tencent.cos.xml.model.object.HeadObjectRequest
+         * @see PutObjectRequest
+         * @see InitMultipartUploadRequest
+         * @see ListPartsRequest
+         * @see UploadPartRequest
+         * @see CompleteMultiUploadRequest
+         * @see AbortMultiUploadRequest
+         * @param cosXmlRequest request
+         * @return String
+         */
+        String onGetSign(CosXmlRequest cosXmlRequest);
     }
 }

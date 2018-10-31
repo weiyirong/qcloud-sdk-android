@@ -50,6 +50,12 @@ final public class PutBucketLifecycleRequest extends BucketRequest {
         lifecycleConfiguration.rules = new ArrayList<>();
     }
 
+    public PutBucketLifecycleRequest(){
+        super(null);
+        lifecycleConfiguration = new LifecycleConfiguration();
+        lifecycleConfiguration.rules = new ArrayList<>();
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.PUT;

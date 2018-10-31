@@ -25,6 +25,11 @@ final public class InitMultipartUploadRequest extends ObjectRequest {
         super(bucket, cosPath);
     }
 
+
+    public InitMultipartUploadRequest(){
+        super(null, null);
+    }
+
     /**
      * 设置Cache-Control头部
      * @param cacheControl Cache-Control头部

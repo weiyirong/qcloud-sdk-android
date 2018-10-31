@@ -71,6 +71,7 @@ public class UploadService {
     private OnUploadInfoListener onUploadInfoListener;
     private EncryptionType encryptionType = EncryptionType.NONE;
     private boolean isSupportAccelerate = false;
+    private OnSignatureListener onSignatureListener;
 
     public UploadService(CosXmlSimpleService cosXmlService, ResumeData resumeData){
         this.cosXmlService = cosXmlService;
@@ -159,6 +160,10 @@ public class UploadService {
                 cosXmlRequest.setSign(startTime, endTime);
             }
         }
+    }
+
+    public void setOnSignatureListener(OnSignatureListener onSignatureListener){
+        this.onSignatureListener = onSignatureListener;
     }
 
     public void setRequestHeaders(String key, String value){
@@ -269,7 +274,13 @@ public class UploadService {
         UPLOAD_PART_COUNT.set(1);
         putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
         putObjectRequest.setProgressListener(cosXmlProgressListener);
-        setSignTime(putObjectRequest);
+        //calculation sign
+        if(onSignatureListener != null){
+            putObjectRequest.setSign(onSignatureListener.onGetSign(putObjectRequest));
+        }else {
+            setSignTime(putObjectRequest);
+        }
+
         setRequestHeaders(putObjectRequest);
         setSupportAccelerate(putObjectRequest);
         setEncryption(putObjectRequest);
@@ -429,7 +440,14 @@ public class UploadService {
     private InitMultipartUploadResult initMultiUpload() throws CosXmlServiceException, CosXmlClientException {
         initMultipartUploadRequest = new InitMultipartUploadRequest(bucket,
                 cosPath);
-        setSignTime(initMultipartUploadRequest);
+
+        //calculation sign
+        if(onSignatureListener != null){
+            initMultipartUploadRequest.setSign(onSignatureListener.onGetSign(initMultipartUploadRequest));
+        }else {
+            setSignTime(initMultipartUploadRequest);
+        }
+
         setRequestHeaders(initMultipartUploadRequest);
         setSupportAccelerate(initMultipartUploadRequest);
         setEncryption(initMultipartUploadRequest);
@@ -441,7 +459,14 @@ public class UploadService {
      */
     private ListPartsResult listPart() throws CosXmlServiceException, CosXmlClientException {
         listPartsRequest = new ListPartsRequest(bucket, cosPath, uploadId);
-        setSignTime(listPartsRequest);
+
+        //calculation sign
+        if(onSignatureListener != null){
+            listPartsRequest.setSign(onSignatureListener.onGetSign(listPartsRequest));
+        }else {
+            setSignTime(listPartsRequest);
+        }
+
         setRequestHeaders(listPartsRequest);
         setSupportAccelerate(listPartsRequest);
         return cosXmlService.listParts(listPartsRequest);
@@ -455,7 +480,14 @@ public class UploadService {
                 srcPath, offset, contentLength, uploadId);
         uploadPartRequestLongMap.put(uploadPartRequest, 0L);
         uploadPartRequest.setNeedMD5(isNeedMd5);
-        setSignTime(uploadPartRequest);
+
+        //calculation sign
+        if(onSignatureListener != null){
+            uploadPartRequest.setSign(onSignatureListener.onGetSign(uploadPartRequest));
+        }else {
+            setSignTime(uploadPartRequest);
+        }
+
         try {
             setRequestHeaders(uploadPartRequest);
             setSupportAccelerate(uploadPartRequest);
@@ -496,7 +528,14 @@ public class UploadService {
             SlicePartStruct slicePartStruct = entry.getValue();
             completeMultiUploadRequest.setPartNumberAndETag(slicePartStruct.partNumber, slicePartStruct.eTag);
         }
-        setSignTime(completeMultiUploadRequest);
+
+        //calculation sign
+        if(onSignatureListener != null){
+            completeMultiUploadRequest.setSign(onSignatureListener.onGetSign(completeMultiUploadRequest));
+        }else {
+            setSignTime(completeMultiUploadRequest);
+        }
+
         setRequestHeaders(completeMultiUploadRequest);
         setSupportAccelerate(completeMultiUploadRequest);
         //setEncryption(completeMultiUploadRequest);
@@ -511,7 +550,14 @@ public class UploadService {
         if(uploadId == null) return;
         AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucket, cosPath,
                 uploadId);
-        setSignTime(abortMultiUploadRequest);
+
+        //calculation sign
+        if(onSignatureListener != null){
+            abortMultiUploadRequest.setSign(onSignatureListener.onGetSign(abortMultiUploadRequest));
+        }else {
+            setSignTime(abortMultiUploadRequest);
+        }
+
         try {
             setRequestHeaders(abortMultiUploadRequest);
             setSupportAccelerate(abortMultiUploadRequest);
@@ -644,5 +690,19 @@ public class UploadService {
 
     public static interface OnUploadInfoListener{
         void onInfo(ResumeData resumeData);
+    }
+
+    public interface OnSignatureListener{
+        /**
+         * @see PutObjectRequest
+         * @see InitMultipartUploadRequest
+         * @see ListPartsRequest
+         * @see UploadPartRequest
+         * @see CompleteMultiUploadRequest
+         * @see AbortMultiUploadRequest
+         * @param cosXmlRequest request
+         * @return String
+         */
+        String onGetSign(CosXmlRequest cosXmlRequest);
     }
 }

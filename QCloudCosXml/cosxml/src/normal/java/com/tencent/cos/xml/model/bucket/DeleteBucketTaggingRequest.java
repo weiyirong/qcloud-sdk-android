@@ -20,6 +20,10 @@ final public class DeleteBucketTaggingRequest extends BucketRequest {
        super(bucket);
     }
 
+    public DeleteBucketTaggingRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.DELETE ;

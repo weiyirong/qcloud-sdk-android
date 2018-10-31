@@ -45,6 +45,10 @@ final public class ListMultiUploadsRequest extends BucketRequest {
         super(bucket);
     }
 
+    public ListMultiUploadsRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

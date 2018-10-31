@@ -19,6 +19,10 @@ public class GetBucketReplicationRequest extends BucketRequest {
         super(bucket);
     }
 
+    public GetBucketReplicationRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

@@ -37,6 +37,10 @@ public class UploadPartCopyRequest extends CopyObjectRequest {
         setCopyRange(start, end);
     }
 
+    public UploadPartCopyRequest(){
+        super(null, null, null);
+    }
+
     @Override
     public Map<String, String> getQueryString() {
         queryParameters.put("partNumber", String.valueOf(partNumber));
@@ -47,6 +51,7 @@ public class UploadPartCopyRequest extends CopyObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
+        if(requestURL != null)return;
         if(partNumber <= 0){
             throw new CosXmlClientException("partNumber must be >= 1");
         }

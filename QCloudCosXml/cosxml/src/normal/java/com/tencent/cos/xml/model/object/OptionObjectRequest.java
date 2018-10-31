@@ -30,6 +30,10 @@ final public class OptionObjectRequest extends ObjectRequest {
         setAccessControlMethod(accessControlMethod);
     }
 
+    public OptionObjectRequest(){
+        super(null, null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.OPTIONS;

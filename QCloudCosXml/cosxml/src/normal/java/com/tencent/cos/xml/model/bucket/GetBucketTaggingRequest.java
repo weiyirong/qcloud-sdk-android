@@ -17,6 +17,10 @@ final public class GetBucketTaggingRequest extends BucketRequest {
         super(bucket);
     }
 
+    public GetBucketTaggingRequest(){
+        super(null);
+    }
+
     @Override
     public String getMethod() {
         return RequestMethod.GET;

@@ -32,6 +32,10 @@ final public class AbortMultiUploadRequest extends ObjectRequest {
         this.uploadId = uploadId;
     }
 
+    public AbortMultiUploadRequest() {
+        super(null, null);
+    }
+
     /**
      * @see CosXmlRequest#getMethod()
      */
@@ -63,6 +67,9 @@ final public class AbortMultiUploadRequest extends ObjectRequest {
     @Override
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
+        if(requestURL != null){
+            return;
+        }
         if(uploadId == null){
             throw new CosXmlClientException("uploadID must not be null");
         }
