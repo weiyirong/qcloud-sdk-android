@@ -163,7 +163,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
         ip = configuration.getIp();
         credentialProvider = new StaticCredentialProvider(null);
         signerType = "UserCosXmlSigner";
-        SignerFactory.registerSigner(signerType, qCloudSigner.getClass());
+        SignerFactory.registerSigner(signerType, qCloudSigner);
     }
 
     public void addCustomerDNS(String domainName, String[] ipList) throws CosXmlClientException {
