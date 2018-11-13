@@ -1,12 +1,12 @@
-## V5.4.15
+## V5.4.16
 
 1. CosXmlService 支持 QCloudSigner 方式鉴权。
 
-## V5.4.14
+## V5.4.15
 
 1. 修复 bug
 
-## V5.4.13
+## V5.4.14
 1. 添加COSXMLUploadTask 代替 UploadServer
 2. 添加COSDownloadTask 代替 Downloader
 3. 添加COSXMLCopyTask 代替 CopyServer
