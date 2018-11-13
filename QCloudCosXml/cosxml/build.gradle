@@ -9,8 +9,8 @@ android {
         minSdkVersion 15
         targetSdkVersion 27
 
-        versionCode 50415
-        versionName "5.4.15"
+        versionCode 50416
+        versionName "5.4.16"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
