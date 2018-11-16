@@ -12,15 +12,22 @@ public class CosXmlClientException extends QCloudClientException {
 
     private static final long serialVersionUID = 1L;
 
-    public CosXmlClientException(String message){
+    public int errorCode;
+
+    public String errorMessage;
+
+    public CosXmlClientException(int errorCode, String message){
         super(message);
+        this.errorCode = errorCode;
     }
 
-    public CosXmlClientException(String message, Throwable cause){
+    public CosXmlClientException(int errorCode, String message, Throwable cause){
         super(message, cause);
+        this.errorCode = errorCode;
     }
 
-    public CosXmlClientException(Throwable cause){
+    public CosXmlClientException(int errorCode, Throwable cause){
         super(cause);
+        this.errorCode = errorCode;
     }
 }

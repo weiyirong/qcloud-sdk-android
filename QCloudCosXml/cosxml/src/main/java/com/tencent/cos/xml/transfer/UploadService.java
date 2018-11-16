@@ -3,6 +3,7 @@ package com.tencent.cos.xml.transfer;
 
 import android.content.Context;
 import com.tencent.cos.xml.CosXmlSimpleService;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -146,7 +147,7 @@ public class UploadService {
                 return;
             }
         }
-        throw new CosXmlClientException("srcPath :" + srcPath + " is invalid or is not exist");
+        throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "srcPath :" + srcPath + " is invalid or is not exist");
     }
 
     public void setSign(long startTime, long endTime){
@@ -320,9 +321,9 @@ public class UploadService {
                 case 2:
                     realCancel();
                     clear();
-                    throw new CosXmlClientException("request is cancelled by manual pause");
+                    throw new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "request is cancelled by manual pause");
                 case 3:
-                    throw new CosXmlClientException("request is cancelled by abort request");
+                    throw new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "request is cancelled by abort request");
                 case 1:
                     realCancel();
                     if(mException != null){
@@ -333,7 +334,7 @@ public class UploadService {
                             throw (CosXmlServiceException)mException;
                         }
                     }else{
-                        throw new CosXmlClientException("unknown exception");
+                        throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), "unknown exception");
                     }
             }
         }
@@ -407,9 +408,9 @@ public class UploadService {
                 case 2:
                     realCancel();
                     clear();
-                    throw new CosXmlClientException("request is cancelled by manual pause");
+                    throw new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "request is cancelled by manual pause");
                 case 3:
-                    throw new CosXmlClientException("request is cancelled by abort request");
+                    throw new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "request is cancelled by abort request");
                 case 1:
                     realCancel();
                     if(mException != null){
@@ -420,7 +421,7 @@ public class UploadService {
                             throw (CosXmlServiceException)mException;
                         }
                     }else{
-                        throw new CosXmlClientException("unknown exception");
+                        throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), "unknown exception");
                     }
             }
         }
@@ -603,7 +604,7 @@ public class UploadService {
         if(srcPath != null){
             File file = new File(srcPath);
             if(!file.exists()){
-                throw new CosXmlClientException("upload file does not exist");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "upload file does not exist");
             }
             fileLength = file.length();
         }
@@ -627,7 +628,7 @@ public class UploadService {
             UPLOAD_PART_COUNT.set(i);
             return;
         }
-        throw new CosXmlClientException("file size or slice size less than 0");
+        throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "file size or slice size less than 0");
     }
 
     private void updateSlicePart(ListPartsResult listPartsResult){

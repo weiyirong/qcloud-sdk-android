@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.transfer;
 
 import com.tencent.cos.xml.MTAProxy;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
@@ -14,6 +15,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 
 /**
  * Cos xml api下，成功和失败返回的xml文件的根目录节点不一致，导致解析困难，
@@ -56,14 +58,19 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
                 cosXmlServiceException.setRequestId(cosError.requestId);
                 cosXmlServiceException.setServiceName(cosError.resource);
             } catch (XmlPullParserException e) {
-                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
-                throw new CosXmlClientException(e);
+                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.SERVERERROR.getCode(), e.getCause() == null ?
+                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+                MTAProxy.getInstance().reportCosXmlClientException(ResponseXmlS3BodySerializer.class.getSimpleName(), reportMessage);
+                throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
             } catch (IOException e) {
-                MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
-                throw new CosXmlClientException(e);
+                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.IO_ERROR.getCode(), e.getCause() == null ?
+                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+                MTAProxy.getInstance().reportCosXmlClientException(ResponseXmlS3BodySerializer.class.getSimpleName(), reportMessage);
+                throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
             }
         }
-        MTAProxy.getInstance().reportCosXmlServerException(cosXmlServiceException.getRequestId());
+        MTAProxy.getInstance().reportCosXmlServerException(ResponseXmlS3BodySerializer.class.getSimpleName(),
+                String.format(Locale.ENGLISH, "%s %s",cosXmlServiceException.getErrorCode(), cosXmlServiceException.getErrorMessage()));
         throw cosXmlServiceException;
     }
 

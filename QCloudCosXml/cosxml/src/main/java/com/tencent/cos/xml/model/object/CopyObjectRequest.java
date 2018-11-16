@@ -7,6 +7,7 @@ import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.COSStorageClass;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.MetaDataDirective;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -61,7 +62,7 @@ public class CopyObjectRequest extends ObjectRequest {
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
         if(copySourceStruct == null){
-            throw new CosXmlClientException("copy source must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "copy source must not be null");
         }else {
             copySourceStruct.checkParameters();
         }
@@ -191,7 +192,7 @@ public class CopyObjectRequest extends ObjectRequest {
                 MessageDigest messageDigest = MessageDigest.getInstance("MD5");
                 base64ForKeyMd5 = Base64.encodeToString(messageDigest.digest(sourceKey.getBytes( Charset.forName("UTF-8"))), Base64.NO_WRAP);
             } catch (NoSuchAlgorithmException e) {
-                throw new CosXmlClientException(e);
+                throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), e);
             }
             addHeader("x-cos-copy-source-server-side-encryption-customer-key-MD5", base64ForKeyMd5);
         }
@@ -301,16 +302,16 @@ public class CopyObjectRequest extends ObjectRequest {
 
         public void checkParameters() throws CosXmlClientException {
             if(bucket == null){
-                throw new CosXmlClientException("copy source bucket must not be null");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "copy source bucket must not be null");
             }
             if(cosPath == null){
-                throw new CosXmlClientException("copy source cosPath must not be null");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "copy source cosPath must not be null");
             }
             if(appid == null){
-                throw new CosXmlClientException("copy source appid must not be null");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "copy source appid must not be null");
             }
             if(region == null){
-                throw new CosXmlClientException("copy source region must not be null");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "copy source region must not be null");
             }
             cosPath = URLEncodeUtils.cosPathEncode(cosPath);
         }

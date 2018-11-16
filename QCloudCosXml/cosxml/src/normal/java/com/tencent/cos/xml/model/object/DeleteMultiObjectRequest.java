@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.Delete;
@@ -58,9 +59,9 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         try {
             return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML, XmlBuilder.buildDelete(delete));
         } catch (XmlPullParserException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         }
     }
 
@@ -70,7 +71,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
             return;
         }
         if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "bucket must not be null");
         }
     }
 

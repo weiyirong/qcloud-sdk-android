@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.utils;
 
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.qcloud.core.auth.AuthConstants;
 
@@ -33,7 +34,7 @@ public class GenerateGetObjectURLUtils {
         StringBuilder urlBuilder = new StringBuilder();
         if(StringUtils.isEmpty(appid) || StringUtils.isEmpty(bucket) || StringUtils.isEmpty(region)
                 || StringUtils.isEmpty(cosPath)){
-            throw new CosXmlClientException("appid or bucket or or region or cosPath must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "appid or bucket or or region or cosPath must not be null");
         }
 
         if(isHttps){
@@ -103,17 +104,23 @@ public class GenerateGetObjectURLUtils {
                                               Map<String, String> queryParameters,
                                               String appid, String bucket, String region, String cosPath,
                                               long duration, QCloudAPI qCloudAPI) throws CosXmlClientException {
-        StringBuilder urlBuilder = new StringBuilder();
-        urlBuilder.append(getObjectUrl(isHttps, appid, bucket, region, cosPath));
-        urlBuilder.append("?");
-
-        String sign = getSign("get", headers, queryParameters, cosPath, duration, qCloudAPI);
-//        sign = URLEncodeUtils.cosPathEncode(sign);
-        urlBuilder.append(sign);
-
-        return urlBuilder.toString();
+        return getRequestUrlWithSign(isHttps, "GET", headers, queryParameters, appid,
+                bucket, region, cosPath, duration, qCloudAPI);
     }
 
+    /**
+     * 获取签名
+     * @param httpMethod 请求方法，如 put
+     * @param cosPath
+     * @param headers 签名中需要验证的header, 不验证填写 null
+     * @param queryParameters 签名中需要验证的url中的请求参数, 不验证填写 null
+     * @param signTime 签名有效期，格式 startTimeSecond; endTimeSecond
+     * @param keyTime key有效期
+     * @param secretId 密钥Id
+     * @param signKey 密钥Key经过hamc之后的结果
+     * @return
+     * @throws CosXmlClientException
+     */
     public static String getSign(String httpMethod,String cosPath,
                                  Map<String, String> headers, Map<String, String> queryParameters,
                                  String signTime, String keyTime,
@@ -188,65 +195,10 @@ public class GenerateGetObjectURLUtils {
         long expired = current + keyDuration;
         String keyTime = current + ";" + expired;
         String signKey = DigestUtils.getHmacSha1(keyTime, secretKey);
-
-//        // 添加method
-//        StringBuilder formatString = new StringBuilder(httpMethod.trim().toLowerCase());
-//        formatString.append("\n");
-//
-//        // 添加path
-//        if(!cosPath.startsWith("/")){
-//            cosPath = "/" + cosPath;
-//        }
-//        formatString.append(cosPath);
-//        formatString.append("\n");
-//
-//
-//        String[] sortQueryParameters = sort(queryParameters, false);
-//
-//        // 添加parameters
-//        if(sortQueryParameters != null){
-//            formatString.append(sortQueryParameters[1]);
-//        }
-//        formatString.append("\n");
-//
-//        String[] sortHeaders = sort(headers, true);
-//
-//        // 添加header，得到最终的formatString
-//        if(headers != null){
-//            formatString.append(sortHeaders[1]);
-//        }
-//        formatString.append("\n");
-//
-//        StringBuilder stringToSign = new StringBuilder();
-//        // 追加 q-sign-algorithm
-//        stringToSign.append("sha1");
-//        stringToSign.append("\n");
-
         // 追加q-sign-time
         long currentTime = System.currentTimeMillis() / 1000;
         long expiredTime = currentTime + signDuration;
         String signTime = currentTime + ";" + expiredTime;
-//        stringToSign.append(signTime);
-//        stringToSign.append("\n");
-
-//        // 追加 sha1Hash(formatString)
-//        String formatStringSha1 = DigestUtils.getSha1(formatString.toString());
-//        stringToSign.append(formatStringSha1);
-//        stringToSign.append("\n");
-//
-//        String signature = DigestUtils.getHmacSha1(stringToSign.toString(), signKey);
-//
-//        StringBuilder authorization = new StringBuilder();
-//        authorization.append(AuthConstants.Q_SIGN_ALGORITHM).append("=").append(AuthConstants.SHA1).append("&")
-//                .append(AuthConstants.Q_AK).append("=").append(secretId).append("&")
-//                .append(AuthConstants.Q_SIGN_TIME).append("=").append(signTime).append("&")
-//                .append(AuthConstants.Q_KEY_TIME).append("=").append(keyTime).append("&")
-//                .append(AuthConstants.Q_HEADER_LIST).append("=").append(sortHeaders != null ? sortHeaders[0] : "").append("&")
-//                .append(AuthConstants.Q_URL_PARAM_LIST).append("=").append(sortQueryParameters != null ? sortQueryParameters[0] : "").append("&")
-//                .append(AuthConstants.Q_SIGNATURE).append("=").append(signature);
-//
-//        return authorization.toString();
-//        return getSign(httpMethod, cosPath, headers, queryParameters, signTime, keyTime, secretId, signKey);
         String sign = getSign(httpMethod, cosPath, headers, queryParameters, signTime, keyTime, secretId, signKey);
         if(token != null){
             sign += "&x-cos-security-token=" + token;

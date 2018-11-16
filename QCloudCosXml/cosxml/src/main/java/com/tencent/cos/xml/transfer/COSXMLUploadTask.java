@@ -1,7 +1,10 @@
 package com.tencent.cos.xml.transfer;
 
 
+import android.util.Log;
+
 import com.tencent.cos.xml.CosXmlSimpleService;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -132,20 +135,9 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
 
 
     protected void upload(){
-//        if(this.onSignatureListener != null){
-//            executorService.submit(this);
-//        }else {
-//           run();
-//        }
-        executorService.submit(this);
-    }
-
-    @Override
-    protected void checkParameters(){
-       super.checkParameters();
-        if(srcPath == null){
-            throw new IllegalArgumentException("srcPath is null");
-        }
+//        checkParameters();
+//        executorService.submit(this);
+        run();
     }
 
     private void simpleUpload(CosXmlSimpleService cosXmlService){
@@ -182,22 +174,27 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 if(updateState(TransferState.COMPLETED)){
                     // complete -> success
-                    mResult = result;
+                    mResult = buildCOSXMLTaskResult(result);
                     if(cosXmlResultListener != null){
-                        cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(null), result);
+                        cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(null), mResult);
                     }
                 }
             }
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(updateState(TransferState.FAILED)){
-                   // failed -> error
-                    mException = exception == null ? serviceException : exception;
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), exception, serviceException);
+                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
+                    return;
+                }else {
+                    if(updateState(TransferState.FAILED)){
+                        // failed -> error
+//                           QCloudLogger.d(TAG, taskState.name());
+                        mException = exception == null ? serviceException : exception;
+                        if(cosXmlResultListener != null){
+                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+                        }
                     }
-               }
+                }
             }
         });
     }
@@ -462,7 +459,7 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     @Override
     public void cancel() {
         if(updateState(TransferState.CANCELED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException("cancelled by user");
+            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "cancelled by user");
             mException = cosXmlClientException;
             if(cosXmlResultListener != null){
                 cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
@@ -560,11 +557,16 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
 
     @Override
     public void run() {
-        checkParameters();
         updateState(TransferState.WAITING); // waiting
         File file = new File(srcPath);
         if(!file.exists() || file.isDirectory() || !file.canRead()){
-            throw new IllegalArgumentException(srcPath + " is invalid");
+            if(updateState(TransferState.FAILED)){
+                mException = new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), srcPath + " is invalid");
+                if(cosXmlResultListener != null){
+                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(putObjectRequest), (CosXmlClientException) mException, null);
+                }
+            }
+           return;
         }
         fileLength = file.length();
         if(fileLength < multiUploadSizeDivision){

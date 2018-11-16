@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.utils;
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 
 import java.io.UnsupportedEncodingException;
@@ -26,7 +27,7 @@ public class URLEncodeUtils {
             }
             return result.toString();
         }catch (UnsupportedEncodingException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), e);
         }
     }
 }

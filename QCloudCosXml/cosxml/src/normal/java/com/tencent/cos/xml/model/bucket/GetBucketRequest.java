@@ -99,11 +99,16 @@ final public class GetBucketRequest extends BucketRequest {
      * <p>
      * 定界符为一个符号，如果有 Prefix，则将 Prefix 到 delimiter 之间的相同路径归为一类，定义为 Common Prefix，然后列出所有 Common Prefix。如果没有 Prefix，则从路径起点开始。
      * </p>
-     *
+     * @see #setDelimiter(String)
      * @param delimiter
      */
+    @Deprecated
     public void setDelimiter(char delimiter) {
-        this.delimiter = String.valueOf(delimiter);
+        setDelimiter(String.valueOf(delimiter));
+    }
+
+    public void setDelimiter(String delimiter){
+        this.delimiter = delimiter;
     }
 
     /**

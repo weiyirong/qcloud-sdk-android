@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.model.object;
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
@@ -35,9 +36,9 @@ final public class InitMultipartUploadResult extends CosXmlResult {
         try {
             XmlSlimParser.parseInitiateMultipartUploadResult(response.byteStream(), initMultipartUpload);
         } catch (XmlPullParserException e) {
-           throw new CosXmlClientException(e);
+           throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         }
     }
 

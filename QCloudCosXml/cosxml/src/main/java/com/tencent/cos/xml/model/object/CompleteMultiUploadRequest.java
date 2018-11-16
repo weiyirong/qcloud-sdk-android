@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
@@ -129,9 +130,9 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
             return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
                     XmlSlimBuilder.buildCompleteMultipartUpload(completeMultipartUpload));
         } catch (IOException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         } catch (XmlPullParserException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         }
     }
 
@@ -145,7 +146,7 @@ final public class CompleteMultiUploadRequest extends ObjectRequest{
             return;
         }
         if(uploadId == null){
-            throw new CosXmlClientException("uploadID must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "uploadID must not be null");
         }
     }
 

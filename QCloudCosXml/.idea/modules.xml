@@ -5,7 +5,8 @@
       <module fileurl="file://$PROJECT_DIR$/QCloudCosXml.iml" filepath="$PROJECT_DIR$/QCloudCosXml.iml" />
       <module fileurl="file://$PROJECT_DIR$/cosxml/cosxml.iml" filepath="$PROJECT_DIR$/cosxml/cosxml.iml" />
       <module fileurl="file://$PROJECT_DIR$/../QCloudFoundation/foundation/foundation.iml" filepath="$PROJECT_DIR$/../QCloudFoundation/foundation/foundation.iml" />
-      <module fileurl="file://$PROJECT_DIR$/tce/tce.iml" filepath="$PROJECT_DIR$/tce/tce.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mtaUtils/mtaUtils.iml" filepath="$PROJECT_DIR$/mtaUtils/mtaUtils.iml" />
+      <module fileurl="file://E:\COS_SDK\COSXML\qcloud-sdk-android\QCloudCosXml\tce\tce.iml" filepath="E:\COS_SDK\COSXML\qcloud-sdk-android\QCloudCosXml\tce\tce.iml" />
     </modules>
   </component>
 </project>

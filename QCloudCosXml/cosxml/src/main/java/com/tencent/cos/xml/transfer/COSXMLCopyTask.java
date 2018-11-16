@@ -2,6 +2,7 @@ package com.tencent.cos.xml.transfer;
 
 
 import com.tencent.cos.xml.CosXmlSimpleService;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
@@ -118,7 +119,7 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
     }
 
     COSXMLCopyTask( CosXmlSimpleService cosXmlService, CopyObjectRequest copyObjectRequest){
-        this(cosXmlService, copyObjectRequest.getRegion(), copyObjectRequest.getHostPrefix(), copyObjectRequest.getPath(null),
+        this(cosXmlService, copyObjectRequest.getRegion(), copyObjectRequest.getHostPrefix(), copyObjectRequest.getPath(cosXmlService.getConfig()),
                 copyObjectRequest.getCopySource());
         this.queries = copyObjectRequest.getQueryString();
         this.headers = copyObjectRequest.getRequestHeaders();
@@ -127,11 +128,6 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
     }
 
     protected void copy(){
-//        if(this.onSignatureListener != null){
-//            executorService.submit(this);
-//        }else {
-//            run();
-//        }
         executorService.submit(this);
     }
 
@@ -170,11 +166,16 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(updateState(TransferState.FAILED)){
-                    // failed -> error
-                    mException = exception == null ? serviceException : exception;
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
+                    return;
+                }else {
+                    if(updateState(TransferState.FAILED)){
+                        // failed -> error
+//                           QCloudLogger.d(TAG, taskState.name());
+                        mException = exception == null ? serviceException : exception;
+                        if(cosXmlResultListener != null){
+                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+                        }
                     }
                 }
             }
@@ -492,7 +493,7 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
     @Override
     public void cancel() {
         if(updateState(TransferState.CANCELED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException("cancelled by user");
+            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "cancelled by user");
             mException = cosXmlClientException;
             if(cosXmlResultListener != null){
                 cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
@@ -552,7 +553,6 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
     @Override
     public void run() {
-        checkParameters();
         updateState(TransferState.WAITING); // waiting
         headObjectRequest = new HeadObjectRequest(copySourceStruct.bucket, copySourceStruct.cosPath);
         headObjectRequest.setRegion(copySourceStruct.region);
@@ -608,11 +608,16 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(updateState(TransferState.FAILED)){
-                    // failed -> error
-                    mException = exception == null ? serviceException : exception;
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), exception, serviceException);
+                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
+                    return;
+                }else {
+                    if(updateState(TransferState.FAILED)){
+                        // failed -> error
+//                           QCloudLogger.d(TAG, taskState.name());
+                        mException = exception == null ? serviceException : exception;
+                        if(cosXmlResultListener != null){
+                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+                        }
                     }
                 }
             }

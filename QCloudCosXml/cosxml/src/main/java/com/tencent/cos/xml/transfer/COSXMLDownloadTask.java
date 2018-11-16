@@ -4,9 +4,11 @@ package com.tencent.cos.xml.transfer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -18,6 +20,7 @@ import com.tencent.cos.xml.model.object.HeadObjectRequest;
 import com.tencent.cos.xml.utils.DigestUtils;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
 import com.tencent.qcloud.core.http.HttpTask;
+import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.io.File;
 import java.util.List;
@@ -31,6 +34,8 @@ import java.util.concurrent.Executors;
  */
 
 public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
+
+    private final static String TAG = COSXMLUploadTask.class.getSimpleName();
 
     private String localSaveDirPath;
     private String localSaveFileName;
@@ -82,12 +87,6 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
     }
 
     protected void download(){
-//        if(this.onSignatureListener != null){
-//            executorService.submit(this);
-//        }else {
-//            run();
-//        }
-
         executorService.submit(this);
     }
 
@@ -109,6 +108,7 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
             @Override
             public void onProgress(long complete, long target) {
                 if(cosXmlProgressListener != null){
+
                     cosXmlProgressListener.onProgress(hasWriteDataLen + complete, hasWriteDataLen + target);
                 }
             }
@@ -118,6 +118,7 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 if(updateState(TransferState.COMPLETED)){
                     // complete -> success
+                    QCloudLogger.d(TAG, taskState.name());
                     mResult = buildCOSXMLTaskResult(result);
                     if(cosXmlResultListener != null){
                         cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(request), mResult);
@@ -128,34 +129,28 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(updateState(TransferState.FAILED)){
-                    // failed -> error
-                    mException = exception == null ? serviceException : exception;
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+//                Log.e("STATE", exception != null ? exception.getMessage() : "null");
+                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
+                    return;
+                }else {
+                    if(updateState(TransferState.FAILED)){
+                        // failed -> error
+//                           QCloudLogger.d(TAG, taskState.name());
+                        mException = exception == null ? serviceException : exception;
+                        if(cosXmlResultListener != null){
+                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+                        }
                     }
-//                    clear();
                 }
             }
         });
     }
 
     @Override
-    protected void checkParameters() {
-        super.checkParameters();
-        if(localSaveDirPath == null){
-            throw new IllegalArgumentException("localSaveDirPath is null");
-        }
-    }
-
-    @Override
     public void pause() {
+        IS_CANCELED = true;
         if(updateState(TransferState.PAUSED)){
-//            CosXmlClientException cosXmlClientException = new CosXmlClientException("paused by user");
-//            mException = cosXmlClientException;
-//            if(cosXmlResultListener != null){
-//                cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
-//            }
+            QCloudLogger.d(TAG, taskState.name());
             cosXmlService.cancel(headObjectRequest);
             headObjectRequest = null;
             cosXmlService.cancel(getObjectRequest);
@@ -165,8 +160,10 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
     @Override
     public void cancel() {
+        IS_CANCELED = true;
         if(updateState(TransferState.CANCELED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException("cancelled by user");
+            QCloudLogger.d(TAG, taskState.name());
+            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "cancelled by user");
             mException = cosXmlClientException;
             clear();
             if(cosXmlResultListener != null){
@@ -182,6 +179,7 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
     @Override
     public void resume() {
         if(updateState(TransferState.RESUMED_WAITING)){
+            QCloudLogger.d(TAG, taskState.name());
             download();
         }
     }
@@ -273,8 +271,8 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
     @Override
     public void run() {
-        checkParameters();
         updateState(TransferState.WAITING); // waiting
+        QCloudLogger.d(TAG, taskState.name());
         headObjectRequest = new HeadObjectRequest(bucket, cosPath);
         headObjectRequest.setRegion(region);
 
@@ -289,6 +287,7 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
             public void onStateChanged(String taskId, int state) {
                 if(state == HttpTask.STATE_EXECUTING){
                     updateState(TransferState.IN_PROGRESS); // running
+                    QCloudLogger.d(TAG, taskState.name());
                 }
             }
         });
@@ -330,11 +329,17 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(updateState(TransferState.FAILED)){
-                    // failed -> error
-                    mException = exception == null ? serviceException : exception;
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+//                Log.e("STATE", exception != null ? exception.getMessage() : "null");
+                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
+                    return;
+                }else {
+                    if(updateState(TransferState.FAILED)){
+                        // failed -> error
+//                           QCloudLogger.d(TAG, taskState.name());
+                        mException = exception == null ? serviceException : exception;
+                        if(cosXmlResultListener != null){
+                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
+                        }
                     }
                 }
             }

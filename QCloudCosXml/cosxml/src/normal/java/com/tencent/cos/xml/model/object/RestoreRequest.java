@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.RestoreConfigure;
@@ -49,9 +50,9 @@ public class RestoreRequest extends ObjectRequest {
             return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
                     XmlBuilder.buildRestore(restoreConfigure));
         } catch (XmlPullParserException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         }
     }
 

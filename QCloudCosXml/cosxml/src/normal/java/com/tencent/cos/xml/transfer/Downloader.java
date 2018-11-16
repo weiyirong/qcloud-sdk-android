@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.tencent.cos.xml.CosXml;
 import com.tencent.cos.xml.SimpleCosXml;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -139,9 +140,9 @@ public class Downloader {
     }
 
     private void checkParameters() throws CosXmlClientException{
-        if(bucket == null) throw new CosXmlClientException("bucket must not be null ");
-        if(cosPath == null) throw new CosXmlClientException("cosPath must not be null ");
-        if(localPath == null) throw new CosXmlClientException("localPath must not be null ");
+        if(bucket == null) throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "bucket must not be null ");
+        if(cosPath == null) throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "cosPath must not be null ");
+        if(localPath == null) throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "localPath must not be null ");
     }
 
     private class ListenerHandler implements CosXmlProgressListener, CosXmlResultListener{

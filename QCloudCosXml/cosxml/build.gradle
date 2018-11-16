@@ -9,8 +9,8 @@ android {
         minSdkVersion 15
         targetSdkVersion 27
 
-        versionCode 50415
-        versionName "5.4.15"
+        versionCode 50417
+        versionName "5.4.17"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -38,21 +38,42 @@ android {
 
 
     defaultPublishConfig "normalRelease"
-}
 
+//    defaultPublishConfig "slimRelease"
+
+}
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation 'com.android.support:recyclerview-v7:27.1.1'
+
     compileOnly 'com.android.support:appcompat-v7:27.1.1'
     testCompileOnly 'junit:junit:4.12'
 
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     compile project(path: ':foundation')
-    compile "com.tencent.qcloud:mtaUtils:1.0"
+    compile 'com.tencent.qcloud:mtaUtils:5.4.16'
+    compile 'com.tencent.qcloud:logUtils:5.4.16'
+
+}
+
+if (android.defaultPublishConfig.contains("slim")){
+    project.extensions.add('artifactId', 'cosxml-lite')
+    project.extensions.add('packageName', 'QCloudCosXmlLite')
+    project.extensions.add('artifactProduct', 'slim')
+    project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
+}else {
+    project.extensions.add('artifactId', 'cosxml')
+    project.extensions.add('packageName', 'QCloudCosXml')
+    project.extensions.add('artifactProduct', 'normal')
+    project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
 }
 
 
-
+apply from: '../../publish.gradle'
+//task releaseJar(type: Copy, dependsOn: build) {
+//    delete 'build/libs/'
+//    from('build/intermediates/bundles/normalRelease/')
+//    into('build/libs/')
+//    rename ('classes.jar', "cos-android-sdk-${android.defaultConfig.versionName}.jar")
+//}

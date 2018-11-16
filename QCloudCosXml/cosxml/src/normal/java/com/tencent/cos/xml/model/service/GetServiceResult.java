@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.service;
 
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
@@ -26,9 +27,9 @@ final public class GetServiceResult extends CosXmlResult {
             listAllMyBuckets = new ListAllMyBuckets();
             XmlParser.parseListAllMyBucketsResult(response.byteStream(), listAllMyBuckets);
         } catch (XmlPullParserException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         }
     }
 

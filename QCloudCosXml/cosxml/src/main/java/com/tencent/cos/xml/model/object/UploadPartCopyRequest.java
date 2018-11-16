@@ -2,6 +2,7 @@ package com.tencent.cos.xml.model.object;
 
 
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
@@ -53,10 +54,10 @@ public class UploadPartCopyRequest extends CopyObjectRequest {
         super.checkParameters();
         if(requestURL != null)return;
         if(partNumber <= 0){
-            throw new CosXmlClientException("partNumber must be >= 1");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "partNumber must be >= 1");
         }
         if(uploadId == null){
-            throw new CosXmlClientException("uploadID must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "uploadID must not be null");
         }
     }
 

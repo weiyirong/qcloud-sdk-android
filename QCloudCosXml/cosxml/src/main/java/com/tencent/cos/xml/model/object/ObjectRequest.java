@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import com.tencent.cos.xml.CosXmlServiceConfig;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.utils.DigestUtils;
@@ -67,10 +68,10 @@ public abstract class ObjectRequest extends CosXmlRequest {
             return;
         }
         if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null ");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "bucket must not be null ");
         }
         if(cosPath == null){
-            throw new CosXmlClientException("cosPath must not be null ");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "cosPath must not be null ");
         }
     }
 
@@ -91,7 +92,7 @@ public abstract class ObjectRequest extends CosXmlRequest {
                 MessageDigest messageDigest = MessageDigest.getInstance("MD5");
                 base64ForKeyMd5 = Base64.encodeToString(messageDigest.digest(customerKey.getBytes( Charset.forName("UTF-8"))), Base64.NO_WRAP);
             } catch (NoSuchAlgorithmException e) {
-                throw new CosXmlClientException(e);
+                throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), e);
             }
             addHeader("x-cos-server-side-encryption-customer-key-MD5", base64ForKeyMd5);
         }

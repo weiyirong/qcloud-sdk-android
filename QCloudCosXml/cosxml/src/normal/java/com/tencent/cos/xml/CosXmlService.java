@@ -1079,14 +1079,10 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
 
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(appid, bucketName, region, objectName);
         CopyObjectRequest copyObjectRequest = null;
-        try {
-            copyObjectRequest = new CopyObjectRequest(bucketName, objectName, copySourceStruct);
-            copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);
-            for (String key : metaData.keySet()) {
-                copyObjectRequest.setXCOSMeta(key, metaData.get(key));
-            }
-        } catch (Exception e) {
-            booleanListener.onFail(new CosXmlClientException(e), null);
+        copyObjectRequest = new CopyObjectRequest(bucketName, objectName, copySourceStruct);
+        copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);
+        for (String key : metaData.keySet()) {
+            copyObjectRequest.setXCOSMeta(key, metaData.get(key));
         }
         copyObjectAsync(copyObjectRequest, new CosXmlResultListener() {
             @Override

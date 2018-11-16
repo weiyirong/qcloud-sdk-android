@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.model.object;
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
@@ -71,7 +72,7 @@ final public class AbortMultiUploadRequest extends ObjectRequest {
             return;
         }
         if(uploadId == null){
-            throw new CosXmlClientException("uploadID must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "uploadID must not be null");
         }
     }
 

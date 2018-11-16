@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
@@ -48,10 +49,10 @@ final public class OptionObjectRequest extends ObjectRequest {
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
         if(origin == null){
-            throw new CosXmlClientException("option request origin must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "option request origin must not be null");
         }
         if(accessControlMethod == null){
-            throw new CosXmlClientException("option request accessControlMethod must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "option request accessControlMethod must not be null");
         }
     }
 

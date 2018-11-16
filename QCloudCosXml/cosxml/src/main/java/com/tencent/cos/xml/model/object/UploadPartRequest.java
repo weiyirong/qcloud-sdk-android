@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.CosXmlSimpleService;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -145,19 +146,19 @@ final public class UploadPartRequest extends ObjectRequest {
         super.checkParameters();
         if(requestURL == null){
             if(partNumber <= 0){
-                throw new CosXmlClientException("partNumber must be >= 1");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "partNumber must be >= 1");
             }
             if(uploadId == null){
-                throw new CosXmlClientException("uploadID must not be null");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "uploadID must not be null");
             }
         }
         if(srcPath == null && data == null && inputStream == null){
-            throw new CosXmlClientException("Data Source must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "Data Source must not be null");
         }
         if(srcPath != null){
             File file = new File(srcPath);
             if(!file.exists()){
-                throw new CosXmlClientException("upload file does not exist");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "upload file does not exist");
             }
         }
     }

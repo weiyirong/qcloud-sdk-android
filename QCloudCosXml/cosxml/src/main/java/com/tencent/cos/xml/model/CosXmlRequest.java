@@ -56,7 +56,7 @@ public abstract class CosXmlRequest{
 
     public abstract String getMethod();
 
-    protected abstract String getHostPrefix();
+    public abstract String getHostPrefix();
 
     public abstract String getPath(CosXmlServiceConfig config);
 

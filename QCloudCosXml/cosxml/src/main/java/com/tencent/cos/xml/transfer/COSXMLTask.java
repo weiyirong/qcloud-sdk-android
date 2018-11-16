@@ -1,5 +1,7 @@
 package com.tencent.cos.xml.transfer;
 
+import android.util.Log;
+
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
@@ -17,6 +19,8 @@ import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,8 +57,11 @@ public abstract class COSXMLTask {
     /** cosxml task state during the whole lifecycle */
     protected TransferState taskState  = TransferState.WAITING;
 
+    protected volatile boolean IS_CANCELED = false;
+
     /** 直接提供签名串 */
     protected OnSignatureListener onSignatureListener;
+
 
     protected void setCosXmlService(CosXmlSimpleService cosXmlService){
         this.cosXmlService = cosXmlService;
@@ -112,15 +119,6 @@ public abstract class COSXMLTask {
     protected abstract CosXmlRequest buildCOSXMLTaskRequest(CosXmlRequest sourceRequest); // 构造COSXMLTask返回的Request
 
     protected abstract CosXmlResult buildCOSXMLTaskResult(CosXmlResult sourceResult); //构造COSXMLTask返回的Result
-
-    protected void checkParameters(){
-        if(bucket == null){
-            throw new IllegalArgumentException("bucket is null");
-        }
-        if(cosPath == null){
-            throw new IllegalArgumentException("cosPath is null");
-        }
-    }
 
     /**
      * waiting: 准备状态, 任何状态都可以转为它, task 准备执行.
@@ -207,9 +205,6 @@ public abstract class COSXMLTask {
         }
     }
 
-    /**
-     * @see
-     */
     @Deprecated
     public interface OnSignatureListener{
         /**

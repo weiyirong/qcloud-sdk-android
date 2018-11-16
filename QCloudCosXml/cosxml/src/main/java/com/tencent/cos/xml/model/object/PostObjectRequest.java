@@ -3,6 +3,7 @@ package com.tencent.cos.xml.model.object;
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSStorageClass;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -83,7 +84,7 @@ public class PostObjectRequest extends ObjectRequest {
                 }
                 return ExRequestBodySerializer.multipart(formStruct.getFormParameters(), tmpFile, formStruct.inputStream, offset, contentLength);
             } catch (IOException e) {
-                throw new CosXmlClientException(e);
+                throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
             }
         }
         return null;
@@ -94,7 +95,7 @@ public class PostObjectRequest extends ObjectRequest {
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
         if(formStruct.key == null){
-            throw new CosXmlClientException("cosPath must not be null ");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "cosPath must not be null ");
         }
         //formStruct.signature.checkParameters();
     }
@@ -280,7 +281,7 @@ public class PostObjectRequest extends ObjectRequest {
 
         public void checkParameters() throws CosXmlClientException {
             if(secretId == null || signKey== null){
-                throw new CosXmlClientException("secretId or secretKey must not be null");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_CREDENTIALS.getCode(), "secretId or secretKey must not be null");
             }
         }
 
@@ -313,7 +314,7 @@ public class PostObjectRequest extends ObjectRequest {
                 try {
                     jsonObject.put(key, value);
                 } catch (JSONException e) {
-                    throw new CosXmlClientException(e);
+                    throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
                 }
                 this.conditions.put(jsonObject);
             }
@@ -336,7 +337,7 @@ public class PostObjectRequest extends ObjectRequest {
                 jsonObject.put("conditions", conditions);
                 return jsonObject.toString();
             } catch (JSONException e) {
-                throw new CosXmlClientException(e);
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
             }
         }
     }

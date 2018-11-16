@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.MTAProxy;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
@@ -52,20 +53,21 @@ final public class CompleteMultiUploadResult extends CosXmlResult {
                         cosXmlServiceException.setServiceName(cosError.resource);
                         inputStream.close();
                     } catch (XmlPullParserException e) {
-                        MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
-                        throw new CosXmlClientException(e);
+                        MTAProxy.getInstance().reportCosXmlClientException(CompleteMultiUploadResult.class.getSimpleName(), e.getMessage());
+                        throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
                     } catch (IOException e) {
-                        MTAProxy.getInstance().reportCosXmlClientException(e.getMessage());
-                        throw new CosXmlClientException(e);
+                        MTAProxy.getInstance().reportCosXmlClientException(CompleteMultiUploadResult.class.getSimpleName(), e.getMessage());
+                        throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
                     }
                 }
-                MTAProxy.getInstance().reportCosXmlServerException(cosXmlServiceException.getRequestId());
+                MTAProxy.getInstance().reportCosXmlServerException(CompleteMultiUploadResult.class.getSimpleName(),
+                        cosXmlServiceException.getErrorCode() + " " + cosXmlServiceException.getErrorMessage());
                 throw cosXmlServiceException;
             }
         } catch (XmlPullParserException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         }
     }
 

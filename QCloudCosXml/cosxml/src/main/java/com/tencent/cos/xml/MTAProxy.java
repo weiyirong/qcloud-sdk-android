@@ -1,7 +1,6 @@
 package com.tencent.cos.xml;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
@@ -19,8 +18,7 @@ public class MTAProxy {
     private static final String TAG = "MTAProxy";
     private final String className = "com.tencent.qcloud.mtaUtils.MTAServer";
     private Object mtaServer;
-    private Method reportCosXmlClientException, reportCosXmlClientExceptionWithKey;
-    private Method reportCosXmlServerException, reportCosXmlServerExceptionWithKey;
+    private Method reportFailedEvent, reportSendEvent;
     private Context applicationContext;
     private static MTAProxy instance;
 
@@ -28,36 +26,28 @@ public class MTAProxy {
         this.applicationContext = applicationContext;
         try {
             Class cls = Class.forName(className);
-            Constructor constructor = cls.getConstructor(android.content.Context.class);
+            Constructor constructor = cls.getConstructor(android.content.Context.class, java.lang.String.class);
             if(constructor != null){
-                mtaServer = constructor.newInstance(this.applicationContext);
+                mtaServer = constructor.newInstance(this.applicationContext, BuildConfig.VERSION_NAME);
             }
-            reportCosXmlClientExceptionWithKey = cls.getDeclaredMethod("reportCosXmlClientException", java.lang.String.class, java.lang.String.class);
-            if(reportCosXmlClientExceptionWithKey != null){
-                reportCosXmlClientExceptionWithKey.setAccessible(true);
+            reportFailedEvent = cls.getDeclaredMethod("reportFailedEvent", java.lang.String.class, java.lang.String.class);
+            if(reportFailedEvent != null){
+                reportFailedEvent.setAccessible(true);
             }
-            reportCosXmlClientException = cls.getDeclaredMethod("reportCosXmlClientException", java.lang.String.class);
-            if(reportCosXmlClientException != null){
-                reportCosXmlClientException.setAccessible(true);
-            }
-            reportCosXmlServerExceptionWithKey = cls.getDeclaredMethod("reportCosXmlServerException", java.lang.String.class, java.lang.String.class);
-            if(reportCosXmlServerExceptionWithKey != null){
-                reportCosXmlServerExceptionWithKey.setAccessible(true);
-            }
-            reportCosXmlServerException = cls.getDeclaredMethod("reportCosXmlServerException", java.lang.String.class);
-            if(reportCosXmlServerException != null){
-                reportCosXmlServerException.setAccessible(true);
+            reportSendEvent = cls.getDeclaredMethod("reportSendEvent", java.lang.String.class);
+            if(reportSendEvent != null){
+                reportSendEvent.setAccessible(true);
             }
         } catch (ClassNotFoundException e) {
-            QCloudLogger.e(TAG, className + " : not found");
+            QCloudLogger.d(TAG, className + " : not found");
         } catch (NoSuchMethodException e) {
-            QCloudLogger.e(TAG, e.getMessage() + " : not found");
+            QCloudLogger.d(TAG, e.getMessage() + " : not found");
         } catch (InstantiationException e) {
-            QCloudLogger.e(TAG, e.getMessage() + " : not found");
+            QCloudLogger.d(TAG, e.getMessage() + " : not found");
         } catch (IllegalAccessException e) {
-            QCloudLogger.e(TAG, e.getMessage() + " : not found");
+            QCloudLogger.d(TAG, e.getMessage() + " : not found");
         } catch (InvocationTargetException e) {
-            QCloudLogger.e(TAG, e.getMessage() + " : not found");
+            QCloudLogger.d(TAG, e.getMessage() + " : not found");
         }
     }
 
@@ -73,11 +63,48 @@ public class MTAProxy {
         return instance;
     }
 
-    /** key - exception message*/
-    public void reportCosXmlClientException(String key, String exceptionMessage){
-        if(mtaServer != null && reportCosXmlClientExceptionWithKey != null){
+    /**
+     * key - exception message
+     * key: class name
+     * exceptionMessage: exception
+     **/
+    public void reportCosXmlClientException(String requestClassName, String exceptionMessage){
+        if(mtaServer != null && reportFailedEvent != null){
             try {
-                reportCosXmlClientExceptionWithKey.invoke(mtaServer, key, exceptionMessage);
+                reportFailedEvent.invoke(mtaServer, requestClassName, exceptionMessage);
+            } catch (IllegalAccessException e) {
+                QCloudLogger.d(TAG, e.getMessage());
+            } catch (InvocationTargetException e) {
+                QCloudLogger.d(TAG, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * key - exception message
+     * key: class name
+     * errorMsg: error code and error msg
+     **/
+    public void reportCosXmlServerException(String requestClassName, String errorMsg){
+        if(mtaServer != null && reportFailedEvent != null){
+            try {
+                reportFailedEvent.invoke(mtaServer, requestClassName, errorMsg);
+            } catch (IllegalAccessException e) {
+                QCloudLogger.d(TAG, e.getMessage());
+            } catch (InvocationTargetException e) {
+                QCloudLogger.d(TAG, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * report send action
+     * @param requestClassName class name
+     */
+    public void reportSendAction(String requestClassName){
+        if(mtaServer != null && reportSendEvent != null){
+            try {
+                reportSendEvent.invoke(mtaServer, requestClassName);
             } catch (IllegalAccessException e) {
                 QCloudLogger.e(TAG, e.getMessage());
             } catch (InvocationTargetException e) {
@@ -85,45 +112,5 @@ public class MTAProxy {
             }
         }
     }
-
-    /** time- exception message*/
-    public void reportCosXmlClientException(String exceptionMessage){
-        if(mtaServer != null && reportCosXmlClientException != null){
-            try {
-                reportCosXmlClientException.invoke(mtaServer, exceptionMessage);
-            } catch (IllegalAccessException e) {
-                QCloudLogger.e(TAG, e.getMessage());
-            } catch (InvocationTargetException e) {
-                QCloudLogger.e(TAG, e.getMessage());
-            }
-        }
-    }
-
-    /** key - requestId*/
-    public void reportCosXmlServerException(String key, String requestId){
-        if(mtaServer != null && reportCosXmlServerExceptionWithKey != null){
-            try {
-                reportCosXmlServerExceptionWithKey.invoke(mtaServer, key, requestId);
-            } catch (IllegalAccessException e) {
-                QCloudLogger.e(TAG, e.getMessage());
-            } catch (InvocationTargetException e) {
-                QCloudLogger.e(TAG, e.getMessage());
-            }
-        }
-    }
-
-    /** key - requestId*/
-    public void reportCosXmlServerException(String requestId){
-        if(mtaServer != null && reportCosXmlServerException != null){
-            try {
-                reportCosXmlServerException.invoke(mtaServer,requestId);
-            } catch (IllegalAccessException e) {
-                QCloudLogger.e(TAG, e.getMessage());
-            } catch (InvocationTargetException e) {
-                QCloudLogger.e(TAG, e.getMessage());
-            }
-        }
-    }
-
 
 }

@@ -5,6 +5,7 @@ import android.util.Log;
 
 
 import com.tencent.cos.xml.CosXmlSimpleService;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 
 import java.io.File;
@@ -38,7 +39,7 @@ public class FileUtils {
             fileOutputStream.flush();
             return tempPath;
         }catch (IOException e){
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         }finally {
             CloseUtil.closeQuietly(fileOutputStream);
             CloseUtil.closeQuietly(inputStream);

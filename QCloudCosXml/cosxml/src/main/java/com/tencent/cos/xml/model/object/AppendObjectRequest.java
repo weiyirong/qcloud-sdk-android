@@ -3,6 +3,7 @@ package com.tencent.cos.xml.model.object;
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -95,12 +96,12 @@ final public class AppendObjectRequest extends ObjectRequest {
     public void checkParameters() throws CosXmlClientException {
         super.checkParameters();
         if(srcPath == null && data == null && inputStream == null){
-            throw new CosXmlClientException("Data Source must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "Data Source must not be null");
         }
         if(srcPath != null){
             File file = new File(srcPath);
             if(!file.exists()){
-                throw new CosXmlClientException("upload file does not exist");
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "upload file does not exist");
             }
         }
     }

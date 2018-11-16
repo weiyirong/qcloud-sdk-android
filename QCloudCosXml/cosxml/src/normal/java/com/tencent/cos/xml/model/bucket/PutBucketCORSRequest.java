@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.bucket;
 
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
@@ -57,9 +58,9 @@ final public class PutBucketCORSRequest extends BucketRequest {
             return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
                     XmlBuilder.buildCORSConfigurationXML(corsConfiguration));
         } catch (XmlPullParserException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         }
     }
 

@@ -1,8 +1,22 @@
+## V5.4.17
+
+1. CosClientException中增加了errorcode,用于区分CosClientException类型
+2. 修复了使用TransferManager上传、下载、复制遇到不能抛出异常错误的bug问题
+3. 为了满足Android 版本兼容性，更改了日志显示控件，使用ListView替代RecycleView
+4. 更改了mta依赖问题，使用gradle方式替代jar包形式
+
+## V5.4.14 ~ V5.4.16
+
+1. 修复了遇到的bug
+2. 增加了查询日志显示功能
+
 ## V5.4.13
+
 1. 添加COSXMLUploadTask 代替 UploadServer
 2. 添加COSDownloadTask 代替 Downloader
 3. 添加COSXMLCopyTask 代替 CopyServer
 4. 引入腾讯 mta检测
+
 ## V5.4.13 
 
 1. 修复 bug。

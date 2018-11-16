@@ -3,6 +3,7 @@ package com.tencent.cos.xml;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
@@ -37,6 +38,7 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.transfer.ResponseFileBodySerializer;
 import com.tencent.cos.xml.transfer.ResponseXmlS3BodySerializer;
+import com.tencent.cos.xml.utils.GenerateGetObjectURLUtils;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudLifecycleCredentials;
@@ -57,10 +59,12 @@ import com.tencent.qcloud.core.logger.FileLogAdapter;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.RetryStrategy;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -87,7 +91,9 @@ public class CosXmlSimpleService implements SimpleCosXml {
      * @param qCloudCredentialProvider cos android SDK 签名提供者 {@link QCloudCredentialProvider}
      */
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration, QCloudCredentialProvider qCloudCredentialProvider){
-        QCloudLogger.addAdapter(new FileLogAdapter(context, "QLog"));
+        FileLogAdapter fileLogAdapter = new FileLogAdapter(context, "QLog");
+        LogServerProxy.init(context, fileLogAdapter);
+        QCloudLogger.addAdapter(fileLogAdapter);
         MTAProxy.init(context.getApplicationContext());
 //        appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
         appCachePath = context.getApplicationContext().getFilesDir().getPath();
@@ -117,7 +123,9 @@ public class CosXmlSimpleService implements SimpleCosXml {
      * @param configuration cos android SDK 服务配置{@link CosXmlServiceConfig}
      */
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration){
-        QCloudLogger.addAdapter(new FileLogAdapter(context, "QLog"));
+        FileLogAdapter fileLogAdapter = new FileLogAdapter(context, "QLog");
+        LogServerProxy.init(context, fileLogAdapter);
+        QCloudLogger.addAdapter(fileLogAdapter);
         MTAProxy.init(context.getApplicationContext());
 //        appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
         appCachePath = context.getApplicationContext().getFilesDir().getPath();
@@ -141,7 +149,9 @@ public class CosXmlSimpleService implements SimpleCosXml {
     }
 
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration, QCloudSigner qCloudSigner){
-        QCloudLogger.addAdapter(new FileLogAdapter(context, "QLog"));
+        FileLogAdapter fileLogAdapter = new FileLogAdapter(context, "QLog");
+        LogServerProxy.init(context, fileLogAdapter);
+        QCloudLogger.addAdapter(fileLogAdapter);
         //appCachePath = context.getApplicationContext().getExternalCacheDir().getPath();
         appCachePath = context.getApplicationContext().getFilesDir().getPath();
         RetryStrategy retryStrategy = configuration.getRetryStrategy();
@@ -163,14 +173,14 @@ public class CosXmlSimpleService implements SimpleCosXml {
         ip = configuration.getIp();
         credentialProvider = new StaticCredentialProvider(null);
         signerType = "UserCosXmlSigner";
-        SignerFactory.registerSigner(signerType, qCloudSigner.getClass());
+        SignerFactory.registerSigner(signerType, qCloudSigner);
     }
 
     public void addCustomerDNS(String domainName, String[] ipList) throws CosXmlClientException {
         try {
             client.addDnsRecord(domainName, ipList);
         } catch (UnknownHostException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.POOR_NETWORK.getCode(), e);
         }
     }
 
@@ -194,7 +204,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
             try {
                 httpRequestBuilder.url(new URL(requestURL));
             } catch (MalformedURLException e) {
-                throw new CosXmlClientException(e);
+                throw new CosXmlClientException(ClientErrorCode.BAD_REQUEST.getCode(), e);
             }
         }else {
             String host = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate());
@@ -216,10 +226,10 @@ public class CosXmlSimpleService implements SimpleCosXml {
                 if (TextUtils.isEmpty(qCloudLifecycleCredentials.getSecretId())
                         || TextUtils.isEmpty(qCloudLifecycleCredentials.getSignKey())
                         || TextUtils.isEmpty(qCloudLifecycleCredentials.getKeyTime())) {
-                    throw new CosXmlClientException("invalid credential provider");
+                    throw new CosXmlClientException(ClientErrorCode.INVALID_CREDENTIALS.getCode(), "invalid credential provider");
                 }
             } catch (QCloudClientException e) {
-               throw new CosXmlClientException(e);
+               throw new CosXmlClientException(ClientErrorCode.INVALID_CREDENTIALS.getCode(), e);
             }
             ((PostObjectRequest) cosXmlRequest).setSecretIdAndKey(qCloudLifecycleCredentials.getSecretId(),
                     qCloudLifecycleCredentials.getSignKey(), qCloudLifecycleCredentials.getKeyTime());
@@ -245,13 +255,10 @@ public class CosXmlSimpleService implements SimpleCosXml {
             String absolutePath = ((GetObjectRequest) cosXmlRequest).getDownloadPath();
             httpRequestBuilder.converter(new ResponseFileBodySerializer<T2>((GetObjectResult) cosXmlResult, absolutePath, ((GetObjectRequest) cosXmlRequest).getFileOffset()));
         }else if (cosXmlRequest instanceof GetObjectBytesRequest) {
-
             httpRequestBuilder.converter(new ResponseBytesConverter<T2>((GetObjectBytesResult) cosXmlResult));
-
         } else {
             httpRequestBuilder.converter(new ResponseXmlS3BodySerializer<T2>(cosXmlResult));
         }
-
         QCloudHttpRequest httpRequest = httpRequestBuilder.build();
         return httpRequest;
     }
@@ -284,11 +291,22 @@ public class CosXmlSimpleService implements SimpleCosXml {
             }
 
             HttpResult<T2> httpResult = httpTask.executeNow();
+            MTAProxy.getInstance().reportSendAction(cosXmlRequest.getClass().getSimpleName());
             return httpResult != null ? httpResult.content() : null;
         } catch (QCloudServiceException e) {
             throw (CosXmlServiceException) e;
         } catch (QCloudClientException e) {
-           throw new CosXmlClientException(e);
+            if(e instanceof CosXmlClientException){
+                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ((CosXmlClientException) e).errorCode, e.getCause() == null ?
+                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+                MTAProxy.getInstance().reportCosXmlClientException(cosXmlRequest.getClass().getSimpleName(), reportMessage);
+                throw (CosXmlClientException) e;
+            }else {
+                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.INTERNAL_ERROR.getCode(), e.getCause() == null ?
+                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+                MTAProxy.getInstance().reportCosXmlClientException(cosXmlRequest.getClass().getSimpleName(), reportMessage);
+                throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), e);
+            }
         }
     }
 
@@ -305,7 +323,12 @@ public class CosXmlSimpleService implements SimpleCosXml {
             @Override
             public void onFailure(QCloudClientException clientException, QCloudServiceException serviceException) {
                 if(clientException != null){
-                    cosXmlResultListener.onFail(cosXmlRequest, new CosXmlClientException(clientException), null);
+                    if(clientException instanceof CosXmlClientException){
+                        cosXmlResultListener.onFail(cosXmlRequest, (CosXmlClientException) clientException, null);
+                    }else {
+                        cosXmlResultListener.onFail(cosXmlRequest, new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), clientException),
+                                null);
+                    }
                 }else {
                     cosXmlResultListener.onFail(cosXmlRequest,null, (CosXmlServiceException)serviceException);
                 }
@@ -339,9 +362,21 @@ public class CosXmlSimpleService implements SimpleCosXml {
             }
 
             httpTask.schedule().addResultListener(qCloudResultListener);
+            MTAProxy.getInstance().reportSendAction(cosXmlRequest.getClass().getSimpleName());
         }catch (QCloudClientException e) {
-            cosXmlResultListener.onFail(cosXmlRequest, new CosXmlClientException(e),
+            if(e instanceof  CosXmlClientException){
+                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ((CosXmlClientException) e).errorCode, e.getCause() == null ?
+                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+                MTAProxy.getInstance().reportCosXmlClientException(cosXmlRequest.getClass().getSimpleName(), reportMessage);
+                cosXmlResultListener.onFail(cosXmlRequest, (CosXmlClientException) e,
                     null);
+            }else {
+                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.INTERNAL_ERROR.getCode(), e.getCause() == null ?
+                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+                MTAProxy.getInstance().reportCosXmlClientException(cosXmlRequest.getClass().getSimpleName(), reportMessage);
+                cosXmlResultListener.onFail(cosXmlRequest, new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), e),
+                    null);
+            }
         }
     }
 
@@ -366,9 +401,46 @@ public class CosXmlSimpleService implements SimpleCosXml {
         try {
             path = URLEncodeUtils.cosPathEncode(cosXmlRequest.getPath(config));
         } catch (CosXmlClientException e) {
-
+            String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.INVALID_ARGUMENT.getCode(), e.getCause() == null ?
+                    e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+            MTAProxy.getInstance().reportCosXmlClientException(cosXmlRequest.getClass().getSimpleName(), reportMessage);
         }
         return host + path;
+    }
+
+    /**
+     * 获取请求的访问地址附带下载签名
+     * @param cosXmlRequest
+     * @return String
+     * @throws CosXmlClientException cos client exception
+     */
+    public String getAccessUrlWithSign(CosXmlRequest cosXmlRequest) throws CosXmlClientException {
+        try {
+            //step1: obtain sign, contain token if it exist.
+            QCloudLifecycleCredentials qCloudLifecycleCredentials = (QCloudLifecycleCredentials) credentialProvider.getCredentials();
+            String secretId = qCloudLifecycleCredentials.getSecretId();
+            String signKey = qCloudLifecycleCredentials.getSignKey();
+            String keyTime = qCloudLifecycleCredentials.getKeyTime();
+            long currentTimeSec = System.currentTimeMillis() / 1000;
+            long expireTimeSec = currentTimeSec + 600;
+            String signTime = currentTimeSec + ";" + expireTimeSec;
+            String sign = GenerateGetObjectURLUtils.getSign("GET", cosXmlRequest.getPath(config), null, null,
+                    signTime, keyTime, secretId, signKey);
+            if(credentialProvider instanceof SessionQCloudCredentials){
+                sign = sign + "&x-cos-security-token=" + ((SessionQCloudCredentials) credentialProvider).getToken();
+            }
+
+            // step2: obtain host and path
+            String url = getAccessUrl(cosXmlRequest);
+
+            //step3: return url + ? + sign
+            return url + "?" + sign;
+        } catch (QCloudClientException e) {
+            String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.INVALID_CREDENTIALS.getCode(), e.getCause() == null ?
+                    e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+            MTAProxy.getInstance().reportCosXmlClientException(cosXmlRequest.getClass().getSimpleName(), reportMessage);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_CREDENTIALS.getCode(), e);
+        }
     }
 
     /**
@@ -681,5 +753,15 @@ public class CosXmlSimpleService implements SimpleCosXml {
     /**
      * 添加 日志信息
      */
+    public File[] getLogFiles(int limit){
+        LogServerProxy logServerProxy = LogServerProxy.getInstance();
+        if(logServerProxy != null){
+            FileLogAdapter fileLogAdapter = logServerProxy.getFileLogAdapter();
+            if(fileLogAdapter != null){
+                return fileLogAdapter.getLogFilesDesc(limit);
+            }
+        }
+        return null;
+    }
 
 }

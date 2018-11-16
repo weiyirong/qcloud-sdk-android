@@ -4,6 +4,7 @@ package com.tencent.cos.xml.model.bucket;
 import android.text.TextUtils;
 
 import com.tencent.cos.xml.CosXmlServiceConfig;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.CosXmlRequest;
 
@@ -49,7 +50,7 @@ public abstract class BucketRequest extends CosXmlRequest {
             return;
         }
         if(bucket == null){
-            throw new CosXmlClientException("bucket must not be null");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "bucket must not be null");
         }
     }
 }

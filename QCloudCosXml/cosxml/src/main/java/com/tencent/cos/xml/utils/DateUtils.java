@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.utils;
 
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 
 import java.text.ParseException;
@@ -20,7 +21,7 @@ public class DateUtils {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(GMT_TIME_FORMAT, Locale.ENGLISH);
             return simpleDateFormat.parse(gmt);
         }catch (ParseException e) {
-            throw new CosXmlClientException(e);
+            throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), e);
         }
     }
 
