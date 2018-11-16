@@ -30,7 +30,7 @@ public class DownloaderTest {
     public void download() throws Exception{
 //        Context appContext = InstrumentationRegistry.getContext();
 //        QServer.init(appContext);
-//        String bucket = QServer.bucketForObject;
+//        String bucket = QServer.bucketForObjectAPITest;
 //        String cosPath = "guides/Messaging/show_custom_notification.png";
 //        String localPath = appContext.getExternalCacheDir().getPath();
 //        String localFileName = "downloader.txt";
@@ -53,7 +53,7 @@ public class DownloaderTest {
     public void download2() throws Exception{
 //        Context appContext = InstrumentationRegistry.getContext();
 //        QServer.init(appContext);
-//        String bucket = QServer.bucketForObject;
+//        String bucket = QServer.bucketForObjectAPITest;
 //        String cosPath = "guides/Messaging/show_custom_notification.png";
 //        String localPath = appContext.getExternalCacheDir().getPath();
 //        String localFileName = "downloader.txt";

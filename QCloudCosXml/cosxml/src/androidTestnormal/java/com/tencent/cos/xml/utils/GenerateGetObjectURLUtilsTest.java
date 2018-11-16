@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 public class GenerateGetObjectURLUtilsTest {
     @Test
     public void getObjectUrl() throws Exception {
-        String url = GenerateGetObjectURLUtils.getObjectUrl(true, "appid", "bucket", "region", "cospath");
-        assertEquals("https://bucket-appid.cos.region.myqcloud.com/cospath",url);
+        String url = GenerateGetObjectURLUtils.getObjectUrl(false, "appid", "bucket", "region", "cospath");
+        assertEquals("http://bucket-appid.cos.region.myqcloud.com/cospath",url);
         url = GenerateGetObjectURLUtils.getObjectUrl(true, "appid", "bucket-appid", "region", "cospath");
         assertEquals("https://bucket-appid.cos.region.myqcloud.com/cospath", url);
     }

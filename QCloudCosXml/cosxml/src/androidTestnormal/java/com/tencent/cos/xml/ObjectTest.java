@@ -90,8 +90,8 @@ public class ObjectTest {
     }
 
     public void optionObject() throws CosXmlServiceException, CosXmlClientException {
-        String origin = "cloud.tencent.com";
-        String method = "GET";
+        String origin = " http://cloud.tencent.com";
+        String method = "PUT";
         OptionObjectRequest optionObjectRequest = new OptionObjectRequest(bucket, cosPath,origin, method);
         optionObjectRequest.setSign(600);
         optionObjectRequest.setAccessControlHeaders("Authorization");
@@ -117,16 +117,15 @@ public class ObjectTest {
     }
 
     public void copyObject() throws CosXmlClientException, CosXmlServiceException {
-       // String destCosPath = "copy_" + cosPath;
-        String destCosPath = cosPath;
+        String destCosPath = "copy_" + cosPath;
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-              QServer.appid, "123123123", Region.AP_Beijing_1.getRegion(), "1.png");
+              QServer.appid, QServer.bucketForObjectAPITest, QServer.region, cosPath);
         CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucket, destCosPath, copySourceStruct);
-        copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);
+        copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.COPY);
         copyObjectRequest.setRequestHeaders("x-cos-xml", "cos");
         CopyObjectResult copyObjectResult = QServer.cosXml.copyObject(copyObjectRequest);
         Log.d(TAG, copyObjectResult.printResult());
-       // QServer.deleteCOSObject(appContext, bucket, destCosPath);
+        QServer.deleteCOSObject(appContext, bucket, destCosPath);
     }
 
     public void partCopyObject() throws CosXmlServiceException, CosXmlClientException {
@@ -150,6 +149,9 @@ public class ObjectTest {
     }
 
     public void getObject() throws CosXmlServiceException, CosXmlClientException {
+
+
+
         String savePath = appContext.getExternalCacheDir().getPath();
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, cosPath, savePath);
         getObjectRequest.setProgressListener(new CosXmlProgressListener() {
@@ -247,23 +249,23 @@ public class ObjectTest {
     @org.junit.Test
     public void testObject() throws Exception{
         appContext = InstrumentationRegistry.getContext();
-        bucket = QServer.guangZhouBucket;
+        bucket = QServer.bucketForObjectAPITest;
         cosPath = "ip.txt";
         srcPath = QServer.createFile(appContext, 1024 * 1024);
         QServer.init(appContext);
         putObject();
-//        headObject();
-//       // optionObject();
-//        // putObjectACL();
-//        getObjectACL();
-//        copyObject();
-//        partCopyObject();
-//        getObject();
-//        deleteObject();
-//        deleteMultiObject();
-//        sliceUploadObject();
-//        abortSliceUploadObject();
-//        deleteAllObjectsOfBucket();
+        headObject();
+        //optionObject();
+//         putObjectACL();
+        getObjectACL();
+        copyObject();
+        partCopyObject();
+        getObject();
+        deleteObject();
+        deleteMultiObject();
+        sliceUploadObject();
+        abortSliceUploadObject();
+        deleteAllObjectsOfBucket();
         QServer.deleteLocalFile(srcPath);
     }
 

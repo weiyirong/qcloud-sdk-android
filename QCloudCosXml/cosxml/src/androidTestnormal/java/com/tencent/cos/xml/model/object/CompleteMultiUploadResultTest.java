@@ -73,10 +73,12 @@ public class CompleteMultiUploadResultTest {
                 constructor.setAccessible(true);
                 httpResponse = constructor.newInstance(httpRequest, response);
                 completeMultiUploadResult.parseResponseBody((HttpResponse) httpResponse);
+
             }
-        }catch (CosXmlServiceException e){
-            Log.d(QServer.TAG, e.getMessage());
+        }catch (CosXmlServiceException serverEx){
+            Log.d(QServer.TAG, serverEx.getMessage());
         }
+
     }
 
     @Test
@@ -105,15 +107,11 @@ public class CompleteMultiUploadResultTest {
         CompleteMultiUploadResult completeMultiUploadResult = new CompleteMultiUploadResult();
         Class cls = Class.forName("com.tencent.qcloud.core.http.HttpResponse");
         Constructor constructor = cls.getDeclaredConstructor(com.tencent.qcloud.core.http.HttpRequest.class, okhttp3.Response.class);
-        try {
-            if (constructor != null) {
-                constructor.setAccessible(true);
-                httpResponse = constructor.newInstance(httpRequest, response);
-                completeMultiUploadResult.parseResponseBody((HttpResponse) httpResponse);
-                Log.d(QServer.TAG, completeMultiUploadResult.printResult());
-            }
-        }catch (CosXmlServiceException e){
-            Log.d(QServer.TAG, e.getMessage());
+        if (constructor != null) {
+            constructor.setAccessible(true);
+            httpResponse = constructor.newInstance(httpRequest, response);
+            completeMultiUploadResult.parseResponseBody((HttpResponse) httpResponse);
+            Log.d(QServer.TAG, completeMultiUploadResult.printResult());
         }
     }
 }

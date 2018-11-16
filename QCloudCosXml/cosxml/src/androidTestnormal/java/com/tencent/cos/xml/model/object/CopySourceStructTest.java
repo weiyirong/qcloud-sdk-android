@@ -3,6 +3,7 @@ package com.tencent.cos.xml.model.object;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -18,7 +19,7 @@ public class CopySourceStructTest {
     public void test() throws Exception{
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
                 "appid", "bucket", "region", "cosPath", "versionId");
-        Log.d("XIAO", copySourceStruct.getSource());
+        Assert.assertEquals("bucket-appid.cos.region.myqcloud.com/cosPath?versionId=versionId", copySourceStruct.getSource());
     }
 
 }

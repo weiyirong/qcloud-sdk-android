@@ -16,10 +16,7 @@ import com.tencent.cos.xml.model.CosXmlResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-
 import static com.tencent.cos.xml.QServer.TAG;
-import static org.junit.Assert.*;
 
 /**
  * Created by bradyxiao on 2018/9/14.
@@ -36,7 +33,7 @@ public class COSXMLUploadTaskTest {
         transferManager = new TransferManager((CosXmlSimpleService) QServer.cosXml, new TransferConfig.Builder().build());
         String cosPath = "uploadTask_pause" + System.currentTimeMillis();
         final String srcPath = QServer.createFile(InstrumentationRegistry.getContext(), 1024 * 1024);
-        final COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObject, cosPath, srcPath, null);
+        final COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObjectAPITest, cosPath, srcPath, null);
         cosxmlUploadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -77,7 +74,7 @@ public class COSXMLUploadTaskTest {
         transferManager = new TransferManager((CosXmlSimpleService) QServer.cosXml, new TransferConfig.Builder().build());
         String cosPath = "uploadTask_cancel" + System.currentTimeMillis();
         final String srcPath = QServer.createFile(InstrumentationRegistry.getContext(), 1024 * 1024);
-        final COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObject, cosPath, srcPath, null);
+        final COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObjectAPITest, cosPath, srcPath, null);
         cosxmlUploadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -122,7 +119,7 @@ public class COSXMLUploadTaskTest {
                 .setDivisionForUpload(1024 * 1024).build());
         String cosPath = "uploadTask_resume" + System.currentTimeMillis();
         final String srcPath = QServer.createFile(InstrumentationRegistry.getContext(), 2 * 1024 * 1024);
-        final COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObject, cosPath, srcPath, null);
+        final COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObjectAPITest, cosPath, srcPath, null);
         cosxmlUploadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {

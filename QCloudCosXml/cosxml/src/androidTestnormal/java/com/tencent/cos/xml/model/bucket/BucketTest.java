@@ -32,18 +32,12 @@ public class BucketTest {
         QServer.init(appContext);
     }
 
-    @Test public void doesBucketExistTest() {
-
-        try {
-            Assert.assertTrue(QServer.cosXml.doesBucketExist("android-demo-ap-guangzhou"));
-            Assert.assertFalse(QServer.cosXml.doesBucketExist("android-demo-ap-guangzhou-not-exist"));
-        } catch (CosXmlClientException e) {
-            e.printStackTrace();
-        } catch (CosXmlServiceException e) {
-            e.printStackTrace();
-        }
+    @Test public void doesBucketExistTest() throws  Exception{
+        Assert.assertTrue(QServer.cosXml.doesBucketExist("android-demo-ap-guangzhou"));
+        Assert.assertFalse(QServer.cosXml.doesBucketExist("android-demo-ap-guangzhou-not-exist"));
     }
 
+    @Test
     public void doesBucketExistAsyncTest() {
 
         final CountDownLatch countDownLatch = new CountDownLatch(2);

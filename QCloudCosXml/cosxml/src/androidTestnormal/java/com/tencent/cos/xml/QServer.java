@@ -22,49 +22,21 @@ public class QServer {
 
     public final static String TAG = "UnitTest";
 
-
-    public final static String ownUin = "2832742109";
-
+    public final static String ownUin = "腾讯云账号";
     /** 腾讯云 cos 服务的 appid */
-
-    public final static String appid = "1253653367";
-    public static final String secretId = "AKIDPiqmW3qcgXVSKN8jngPzRhvxzYyDL5qP";
-    public static final String secretKey = "EH8oHoLgpmJmBQUM1Uoywjmv7EFzd5OJ";
-
-
-
-    public static final String guangZhouBucket = "android-demo-ap-guangzhou";
-
+    public final static String appid = "腾讯云appid";
+    public static final String secretId = "cos 服务密钥Id";
+    public static final String secretKey = "cos 服务密钥key";
+    public static final String bucketForBucketAPITest = "android-demo-ap-guangzhou";
     /** bucketForObjectAPITest 所处在的地域 */
-    public final static String region = Region.AP_Guangzhou.getRegion() ;// Region.AP_Guangzhou.getRegion();
-
-    public static String bucketForObject = "xmlandroidtest";
-
-//    public final static String appid = "1253960454";
-//
-//    /** appid 对应的 秘钥 */
-//    private final String secretId = "AKID4ygEetn1tZ6UingT44tU5smniXNEthIo";
-//
-//    /** appid 对应的 秘钥 */
-//    private final String secretKey = "gHnDWp7NuLlBVmxAoRyPl0PoLrQqBMQK";
-//
-//
-//    /** bucketForObjectAPITest 所处在的地域 */
-//    public final static String region = Region.AP_Guangzhou.getRegion();
-//
-//
-//    public static String bucketForObject = "tacimg";
-
-
+    public final static String region = Region.AP_Guangzhou.getRegion() ;
+    public static String bucketForObjectAPITest = "xmlandroidtest";
     public static CosXml cosXml;
-
-
 
     private QServer(Context context){
         CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
                 .isHttps(false)
                 .setAppidAndRegion(appid, region)
-                //.setHost("14.119.113.161")
                 .setDebuggable(true)
                 .builder();
         cosXml = new CosXmlService(context, cosXmlServiceConfig,

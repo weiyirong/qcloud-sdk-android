@@ -1,11 +1,9 @@
 package com.tencent.cos.xml.transfer;
 
-import android.os.Environment;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
-import com.tencent.cos.xml.CosXmlService;
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.QServer;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -20,7 +18,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tencent.cos.xml.QServer.TAG;
-import static org.junit.Assert.*;
 
 /**
  * Created by bradyxiao on 2018/9/14.
@@ -42,7 +39,7 @@ public class COSXMLDownloadTaskTest {
         String cosPath = "ip.txt";
         final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
         final String localFileName = cosPath;
-        final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.bucketForObject, cosPath, localDir, localFileName);
+        final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.bucketForObjectAPITest, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -80,7 +77,7 @@ public class COSXMLDownloadTaskTest {
         String cosPath = "objecttest.txt";
         final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
         final String localFileName = cosPath;
-        final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.bucketForObject, cosPath, localDir, localFileName);
+        final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.bucketForObjectAPITest, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -119,7 +116,7 @@ public class COSXMLDownloadTaskTest {
         String cosPath = "ip.txt";
         final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
         final String localFileName = cosPath;
-        final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.bucketForObject, cosPath, localDir, localFileName);
+        final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.bucketForObjectAPITest, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -159,4 +156,42 @@ public class COSXMLDownloadTaskTest {
         }
     }
 
+
+    @Test
+    public void failed() throws Exception{
+        String cosPath = "objecttest2xxx.txt";
+        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localFileName = cosPath;
+        final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.bucketForObjectAPITest, cosPath, localDir, localFileName);
+        cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
+            @Override
+            public void onProgress(long complete, long target) {
+                float progress = 1.0f * complete / target * 100;
+                Log.d(TAG,  String.format("progress = %d%%", (int)progress));
+//                if((int)progress > 50){
+//                    cosxmlDownloadTask.cancel();
+//                }
+            }
+        });
+        cosxmlDownloadTask.setCosXmlResultListener(new CosXmlResultListener() {
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                Log.d(TAG,  result.printResult());
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                Log.d(TAG,  exception == null ? serviceException.getMessage() : exception.toString());
+            }
+        });
+        cosxmlDownloadTask.setTransferStateListener(new TransferStateListener() {
+            @Override
+            public void onStateChanged(TransferState state) {
+                Log.d(TAG,  state.name());
+            }
+        });
+        while (cosxmlDownloadTask.getTaskState() != TransferState.CANCELED){
+            Thread.sleep(100);
+        }
+    }
 }

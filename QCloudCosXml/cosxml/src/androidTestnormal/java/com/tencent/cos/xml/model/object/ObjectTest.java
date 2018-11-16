@@ -19,7 +19,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -38,7 +37,7 @@ public class ObjectTest {
 
     @Test public void doesObjectExistTest() throws Exception {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
 
         try {
             Assert.assertFalse(QServer.cosXml.doesObjectExist(bucketName, "/10Mfile.txt"));
@@ -55,7 +54,7 @@ public class ObjectTest {
 
      public void doesObjectExistAsyncTest() {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
 
         final CountDownLatch countDownLatch = new CountDownLatch(2);
 
@@ -104,7 +103,7 @@ public class ObjectTest {
 
     @Test public void uploadStringObjectTest() throws Exception {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
         String objectName = "/putobject.txt";
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new StringBuilder("this is a test"));
@@ -150,7 +149,7 @@ public class ObjectTest {
 
     @Test public void downloadObjectTest() {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
         String objectName = "/putobject.txt";
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new StringBuilder("this is a test"));
@@ -183,7 +182,7 @@ public class ObjectTest {
 
     @Test public void deleteObjectTest() throws Exception {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
         String objectName = "/putobject.txt";
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new StringBuilder("this is a test"));
@@ -207,7 +206,7 @@ public class ObjectTest {
     @Test public void deleteObjectAsyncTest() throws Exception {
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
         String objectName = "/putobject.txt";
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new StringBuilder("this is a test"));
@@ -246,7 +245,7 @@ public class ObjectTest {
 
     @Test public void updateObjectMetaTest() {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
         String objectName = "/do_not_remove.png";
 
 
@@ -274,7 +273,7 @@ public class ObjectTest {
 
     @Test public void updateObjectMetaAsyncTest() {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
         String objectName = "/do_not_remove.png";
 
 
@@ -313,7 +312,7 @@ public class ObjectTest {
 
     @Test public void copyObjectTest() {
 
-        String bucketName = QServer.guangZhouBucket;
+        String bucketName = QServer.bucketForBucketAPITest;
         String srcObjectName = "/do_not_remove.png";
         String dstObjectName = "/do_not_remove.png";
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(

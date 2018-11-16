@@ -22,11 +22,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
 import static com.tencent.cos.xml.QServer.TAG;
 import static com.tencent.cos.xml.QServer.appid;
-import static com.tencent.cos.xml.QServer.bucketForObject;
 import static com.tencent.cos.xml.QServer.region;
-import static org.junit.Assert.*;
 
 /**
  * Created by bradyxiao on 2018/9/14.
@@ -45,7 +45,7 @@ public class TransferManagerTest {
     public void upload() throws Exception {
         String cosPath = "uploadTask_" + System.currentTimeMillis();
         final String srcPath = QServer.createFile(InstrumentationRegistry.getContext(), 1024 * 1024);
-        COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObject, cosPath, srcPath, null);
+        COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObjectAPITest, cosPath, srcPath, null);
         cosxmlUploadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -72,6 +72,10 @@ public class TransferManagerTest {
                 Log.d(TAG,  state.name());
             }
         });
+        while (cosxmlUploadTask.getTaskState() != TransferState.COMPLETED
+                && cosxmlUploadTask.getTaskState() != TransferState.FAILED){
+            Thread.sleep(5);
+        }
     }
 
     @Test
@@ -79,7 +83,7 @@ public class TransferManagerTest {
 
         String cosPath = "uploadTask_" + System.currentTimeMillis();
         final String srcPath = QServer.createFile(InstrumentationRegistry.getContext(), 20 * 1024 * 1024);
-        COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObject, cosPath, srcPath, null);
+        COSXMLUploadTask cosxmlUploadTask = transferManager.upload(QServer.bucketForObjectAPITest, cosPath, srcPath, null);
         cosxmlUploadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -106,13 +110,18 @@ public class TransferManagerTest {
                 Log.d(TAG,  state.name());
             }
         });
+
+        while (cosxmlUploadTask.getTaskState() != TransferState.COMPLETED
+                && cosxmlUploadTask.getTaskState() != TransferState.FAILED){
+            Thread.sleep(5);
+        }
     }
 
     @Test
     public void uploadTask() throws Exception {
         String cosPath = "uploadTask_" + System.currentTimeMillis();
         final String srcPath = QServer.createFile(InstrumentationRegistry.getContext(), 20 * 1024 * 1024);
-        PutObjectRequest putObjectRequest = new PutObjectRequest(QServer.bucketForObject, cosPath, srcPath);
+        PutObjectRequest putObjectRequest = new PutObjectRequest(QServer.bucketForObjectAPITest, cosPath, srcPath);
         putObjectRequest.setSign(700);
         putObjectRequest.setRequestHeaders("cos-xml-metate", "meta");
         COSXMLUploadTask cosxmlUploadTask = transferManager.upload(putObjectRequest, null);
@@ -142,14 +151,19 @@ public class TransferManagerTest {
                 Log.d(TAG,  state.name());
             }
         });
+
+        while (cosxmlUploadTask.getTaskState() != TransferState.COMPLETED
+                && cosxmlUploadTask.getTaskState() != TransferState.FAILED){
+            Thread.sleep(5);
+        }
     }
 
     @Test
     public void download() throws Exception {
-        String cosPath = "transfer_" + 1;
-        final String localDir = Environment.getExternalStorageDirectory().getPath();
-        final String localFileName = "download.pdf";
-        COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(),  QServer.bucketForObject, cosPath, localDir, localFileName);
+        String cosPath = "jpeg.zip";
+        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localFileName = "jpeg.zip";
+        COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(),  QServer.bucketForObjectAPITest, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -161,13 +175,7 @@ public class TransferManagerTest {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 Log.d(TAG,  result.printResult());
-                try {
-                    String srcMd5 = DigestUtils.getMD5(Environment.getExternalStorageDirectory().getPath() + "/Java nio.pdf");
-                    String destMd5 = DigestUtils.getMD5(localDir + "/" + localFileName);
-                    Log.d(TAG, String.format("src = %s | dst = %s | %s", srcMd5, destMd5, String.valueOf(srcMd5.equals(destMd5))));
-                } catch (CosXmlClientException e) {
-                    e.printStackTrace();
-                }
+                QServer.deleteLocalFile(localDir + File.separator + localFileName);
             }
 
             @Override
@@ -181,14 +189,19 @@ public class TransferManagerTest {
                 Log.d(TAG,  state.name());
             }
         });
+
+        while (cosxmlDownloadTask.getTaskState() != TransferState.COMPLETED
+                && cosxmlDownloadTask.getTaskState() != TransferState.FAILED){
+            Thread.sleep(5);
+        }
     }
 
     @Test
     public void download1() throws Exception {
-        String cosPath = "transfer_" + 1;
-        final String localDir = Environment.getExternalStorageDirectory().getPath();
-        final String localFileName = "download.pdf";
-        GetObjectRequest getObjectRequest = new GetObjectRequest(QServer.bucketForObject, cosPath, localDir, localFileName);
+        String cosPath = "jpeg.zip";
+        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localFileName = "jpeg2.zip";
+        GetObjectRequest getObjectRequest = new GetObjectRequest(QServer.bucketForObjectAPITest, cosPath, localDir, localFileName);
         COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), getObjectRequest);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
             @Override
@@ -201,13 +214,7 @@ public class TransferManagerTest {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 Log.d(TAG,  result.printResult());
-                try {
-                    String srcMd5 = DigestUtils.getMD5(Environment.getExternalStorageDirectory().getPath() + "/Java nio.pdf");
-                    String destMd5 = DigestUtils.getMD5(localDir + "/" + localFileName);
-                    Log.d(TAG, String.format("src = %s | dst = %s | %s", srcMd5, destMd5, String.valueOf(srcMd5.equals(destMd5))));
-                } catch (CosXmlClientException e) {
-                    e.printStackTrace();
-                }
+                QServer.deleteLocalFile(localDir + File.separator + localFileName);
             }
 
             @Override
@@ -221,16 +228,20 @@ public class TransferManagerTest {
                 Log.d(TAG,  state.name());
             }
         });
+        while (cosxmlDownloadTask.getTaskState() != TransferState.COMPLETED
+                && cosxmlDownloadTask.getTaskState() != TransferState.FAILED){
+            Thread.sleep(5);
+        }
     }
 
 
     @Test
     public void copy() throws Exception{
-        String cosPath = "copyTask.png";
-        String sourceCosPath = "52B7B13D-8030-42BD-A299-BDE65B97E951.png";
+        String cosPath = "jpeg.zip_copy";
+        String sourceCosPath = "jpeg.zip";
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-                appid, QServer.bucketForObject, region, sourceCosPath);
-        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObject, cosPath, copySourceStruct);
+                appid, QServer.bucketForObjectAPITest, region, sourceCosPath);
+        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObjectAPITest, cosPath, copySourceStruct);
         cosxmlCopyTask.setTransferStateListener(new TransferStateListener() {
             @Override
             public void onStateChanged(TransferState state) {
@@ -248,16 +259,20 @@ public class TransferManagerTest {
                 Log.d(TAG,  exception == null ? serviceException.getMessage() : exception.toString());
             }
         });
+        while (cosxmlCopyTask.getTaskState() != TransferState.COMPLETED
+                && cosxmlCopyTask.getTaskState() != TransferState.FAILED){
+            Thread.sleep(5);
+        }
 
     }
 
     @Test
     public void copy1()throws Exception{
-        String cosPath = "copyTask.png";
-        String sourceCosPath = "52B7B13D-8030-42BD-A299-BDE65B97E951.png";
+        String cosPath = "jpeg.zip_copy2";
+        String sourceCosPath = "jpeg.zip";
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-                appid, QServer.bucketForObject, region, sourceCosPath);
-        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(QServer.bucketForObject, cosPath, copySourceStruct);
+                appid, QServer.bucketForObjectAPITest, region, sourceCosPath);
+        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(QServer.bucketForObjectAPITest, cosPath, copySourceStruct);
         COSXMLCopyTask cosxmlCopyTask = transferManager.copy(copyObjectRequest);
         cosxmlCopyTask.setTransferStateListener(new TransferStateListener() {
             @Override
@@ -276,5 +291,9 @@ public class TransferManagerTest {
                 Log.d(TAG,  exception == null ? serviceException.getMessage() : exception.toString());
             }
         });
+        while (cosxmlCopyTask.getTaskState() != TransferState.COMPLETED
+                && cosxmlCopyTask.getTaskState() != TransferState.FAILED){
+            Thread.sleep(5);
+        }
     }
 }

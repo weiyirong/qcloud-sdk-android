@@ -7,7 +7,6 @@ import android.util.Log;
 
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSStorageClass;
-import com.tencent.cos.xml.common.Region;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSRequest;
@@ -47,23 +46,14 @@ import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
 import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
 import com.tencent.cos.xml.model.tag.ListMultipartUploads;
-import com.tencent.qcloud.core.auth.ShortTimeCredentialProvider;
 
-import org.junit.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
-import java.util.SimpleTimeZone;
 
-import static com.tencent.cos.xml.QServer.cosXml;
 import static org.junit.Assert.assertEquals;
 import static com.tencent.cos.xml.QServer.TAG;
 
@@ -237,23 +227,22 @@ public class BucketTest {
     public void testBucket() throws Exception{
         appContext = InstrumentationRegistry.getContext();
         QServer.init(appContext);
-        bucketName = QServer.bucketForObject;
+        bucketName = QServer.bucketForBucketAPITest;
+        putBucket();
         getBucket();
-//        bucketName = "xy3";
-//        putBucket();
-//        getBucketLocation();
-//        headBucket();
-//        putBucketCORS();
-//        getBucketCORS();
-//        deleteBucketCORS();
-//        putBucketACL();
-//        getBucketACL();
-//        putBucketLifecycle();
-//        getBucketLifecycle();
-//        deleteBucketLifecycle();
-//        listMultiUploads();
-//        deleteAllUploadIdOfBucket();
-//        deleteBucket();
-//        deleteAllBucketsOfAppid();
+        getBucketLocation();
+        headBucket();
+        putBucketCORS();
+        getBucketCORS();
+        deleteBucketCORS();
+        putBucketACL();
+        getBucketACL();
+        putBucketLifecycle();
+        getBucketLifecycle();
+        deleteBucketLifecycle();
+        listMultiUploads();
+        deleteAllUploadIdOfBucket();
+        deleteBucket();
+        deleteAllBucketsOfAppid();
     }
 }

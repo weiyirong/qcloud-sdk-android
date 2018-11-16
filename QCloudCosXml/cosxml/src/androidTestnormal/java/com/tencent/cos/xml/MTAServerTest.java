@@ -3,6 +3,7 @@ package com.tencent.cos.xml;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 
@@ -26,8 +27,7 @@ public class MTAServerTest {
 
     @Test
     public void testReportClientException() throws Exception{
-        MTAProxy.getInstance().reportCosXmlClientException(new Date().toString(), new CosXmlClientException("client exception 1").getMessage());
-        Thread.sleep(15000);
+        MTAProxy.getInstance().reportCosXmlClientException(new Date().toString(), new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "client exception 1").getMessage());
     }
 
     @Test
@@ -35,20 +35,17 @@ public class MTAServerTest {
         CosXmlServiceException cosXmlServiceException = new CosXmlServiceException("server exception 1");
         cosXmlServiceException.setRequestId("requestId");
         MTAProxy.getInstance().reportCosXmlServerException(new Date().toString(), cosXmlServiceException.getRequestId());
-        Thread.sleep(15000);
     }
 
     @Test
     public void testReportClientException2() throws Exception{
-        MTAProxy.getInstance().reportCosXmlClientException(new CosXmlClientException("client exception 2").getMessage());
-        Thread.sleep(15000);
+        MTAProxy.getInstance().reportCosXmlClientException("test",new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(),"client exception 2").getMessage());
     }
 
     @Test
     public void testReportServerException2() throws Exception{
         CosXmlServiceException cosXmlServiceException = new CosXmlServiceException("server exception 2");
         cosXmlServiceException.setRequestId("requestId");
-        MTAProxy.getInstance().reportCosXmlServerException(cosXmlServiceException.getRequestId());
-        Thread.sleep(15000);
+        MTAProxy.getInstance().reportCosXmlServerException("test", cosXmlServiceException.getRequestId());
     }
 }

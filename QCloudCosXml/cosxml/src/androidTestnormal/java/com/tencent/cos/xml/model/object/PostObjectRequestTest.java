@@ -6,8 +6,6 @@ import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import com.tencent.cos.xml.QServer;
-import com.tencent.cos.xml.common.COSACL;
-import com.tencent.cos.xml.common.COSStorageClass;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
 import com.tencent.cos.xml.utils.DateUtils;
@@ -88,7 +86,7 @@ public class PostObjectRequestTest {
     @Test
     public void testPostObject() throws Exception{
         Context context = InstrumentationRegistry.getContext();
-        String bucket = QServer.guangZhouBucket;
+        String bucket = QServer.bucketForBucketAPITest;
         String cosPath = "postobject2.txt";
         String srcPath = QServer.createFile(context, 1024 * 1024);
         byte[] data = "this is post object test".getBytes("utf-8");
@@ -125,7 +123,7 @@ public class PostObjectRequestTest {
                 .build();
 
         byte[] data = "this is post object test".getBytes("utf-8");
-        PostObjectRequest postObjectRequest = new PostObjectRequest(QServer.bucketForObject, "postobject.txt", data);
+        PostObjectRequest postObjectRequest = new PostObjectRequest(QServer.bucketForObjectAPITest, "postobject.txt", data);
         String keyTime = System.currentTimeMillis() / 1000 + ";" +(System.currentTimeMillis() / 1000 + 600);
         String signKey = DigestUtils.getHmacSha1(keyTime, QServer.secretKey);
         postObjectRequest.setSecretIdAndKey(QServer.secretId, signKey, keyTime);
@@ -136,9 +134,9 @@ public class PostObjectRequestTest {
 //        postObjectRequest.setSuccessActionStatus(204);
         PostObjectRequest.Policy policy = new PostObjectRequest.Policy();
         policy.setExpiration(System.currentTimeMillis() + 60000);
-        policy.addConditions("bucket", QServer.bucketForObject, false);
+        policy.addConditions("bucket", QServer.bucketForObjectAPITest, false);
         postObjectRequest.setPolicy(policy);
-        String serverIP = QServer.bucketForObject + "-" + QServer.appid + ".cos." +
+        String serverIP = QServer.bucketForObjectAPITest + "-" + QServer.appid + ".cos." +
                 QServer.region + ".myqcloud.com";
         String url = "http://" + serverIP + "/";
         String method = "post";

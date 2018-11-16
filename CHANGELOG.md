@@ -9,6 +9,7 @@
 
 1. 修复了遇到的bug
 2. 增加了查询日志显示功能
+3. CosXmlService 支持 QCloudSigner 方式鉴权。
 
 ## V5.4.13
 

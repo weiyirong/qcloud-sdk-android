@@ -17,11 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.tencent.cos.xml.QServer.TAG;
-import static org.junit.Assert.*;
 
 /**
  * Created by bradyxiao on 2018/9/26.
@@ -43,8 +39,8 @@ public class COSXMLCopyTaskTest {
         String cosPath = "upload_rn.copy";
         String sourceCosPath = "upload_rn";
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-                QServer.appid, QServer.bucketForObject, QServer.region, sourceCosPath);
-        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObject, cosPath, copySourceStruct);
+                QServer.appid, QServer.bucketForObjectAPITest, QServer.region, sourceCosPath);
+        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObjectAPITest, cosPath, copySourceStruct);
         cosxmlCopyTask.setCosXmlProgressListener(null);
         cosxmlCopyTask.setTransferStateListener(new TransferStateListener() {
             @Override
@@ -80,8 +76,8 @@ public class COSXMLCopyTaskTest {
         String cosPath = "upload_rn.copy";
         String sourceCosPath = "upload_rn";
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-                QServer.appid, QServer.bucketForObject, QServer.region, sourceCosPath);
-        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObject, cosPath, copySourceStruct);
+                QServer.appid, QServer.bucketForObjectAPITest, QServer.region, sourceCosPath);
+        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObjectAPITest, cosPath, copySourceStruct);
         cosxmlCopyTask.setCosXmlProgressListener(null);
         cosxmlCopyTask.setTransferStateListener(new TransferStateListener() {
             @Override
@@ -118,8 +114,8 @@ public class COSXMLCopyTaskTest {
         String cosPath = "upload_rn.copy";
         String sourceCosPath = "upload_rn";
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-                QServer.appid, QServer.bucketForObject, QServer.region, sourceCosPath);
-        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObject, cosPath, copySourceStruct);
+                QServer.appid, QServer.bucketForObjectAPITest, QServer.region, sourceCosPath);
+        COSXMLCopyTask cosxmlCopyTask = transferManager.copy(QServer.bucketForObjectAPITest, cosPath, copySourceStruct);
         cosxmlCopyTask.setCosXmlProgressListener(null);
         cosxmlCopyTask.setTransferStateListener(new TransferStateListener() {
             @Override
