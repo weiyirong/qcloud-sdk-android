@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.http;
 
+import android.util.Log;
+
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.logger.QCloudLogger;

@@ -70,6 +70,18 @@ public final class QCloudLogger {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends LogAdapter> T getAdapter(Class<T> adapterClass) {
+        synchronized (LogAdapter.class) {
+            for (LogAdapter logAdapter : logAdapters) {
+                if (logAdapter.getClass().equals(adapterClass)) {
+                    return (T) logAdapter;
+                }
+            }
+            return null;
+        }
+    }
+
     /**
      * Send a {@link #VERBOSE} log message.
      * @param tag Used to identify the source of a log message.  It usually identifies

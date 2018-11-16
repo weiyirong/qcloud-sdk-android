@@ -8,24 +8,23 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 /**
  * File Log Printer.
- *
+ * <p>
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
- *
+ * <p>
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 public class FileLogAdapter implements LogAdapter {
@@ -35,30 +34,17 @@ public class FileLogAdapter implements LogAdapter {
 
     private static final String LOG_DIR = "QCloudLogs";
 
-    private static final int MAX_FILE_SIZE =  32* 1024; // Log文件大小
-    private static final int MAX_FILE_COUNT = 30; // Log分片文件数量
+    private static final int MAX_FILE_SIZE = 3 * 1024 * 1024; // Log文件大小
     private static final long LOG_FLUSH_DURATION = 10 * 1000; // Log Buffer的flush周期
     private static final long BUFFER_SIZE = 32 * 1024; // Log内存缓冲大小
+    private static final int MAX_FILE_COUNT = 30; // 最多日志文件
 
     //log根目录
-    private String logRootDir;
+    private File logRootDir;
+    private File latestLogFile;
 
-    //文件过滤器
-    private FileFilter fileFilter = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            String filename = pathname.getName();
-            boolean result = filename.endsWith("." + alias + ".log");
-            if(!result){
-                return  false;
-            }
-            result = getIndexFromFile(pathname)!=-1;
-            return result;
-        }
-    };
     private static final int MSG_FLUSH_ALL = 0;
     private static final int MSG_FLUSH_CONTENT = 1;
-    private static final int MSG_DELETE_FILE = 2;
     // 处理log者
     private Handler handler;
     //buffer
@@ -71,38 +57,36 @@ public class FileLogAdapter implements LogAdapter {
      * 实例化一个文件日志记录器。默认写入 {@link QCloudLogger#INFO} 级别以上的日志。
      *
      * @param context 上下文
-     * @param alias logger 文件别名
+     * @param alias   logger 文件别名
      */
-    public FileLogAdapter(Context context, String alias){
+    public FileLogAdapter(Context context, String alias) {
         this(context, alias, QCloudLogger.INFO);
     }
 
     /**
      * 实例化一个文件日志记录器
      *
-     * @param context 上下文
-     * @param alias logger 文件别名
+     * @param context     上下文
+     * @param alias       logger 文件别名
      * @param minPriority 最小的日志级别，低于这个级别的日志将不会被保存。
      */
-    public FileLogAdapter(Context context, String alias, int minPriority){
+    public FileLogAdapter(Context context, String alias, int minPriority) {
         this.alias = alias;
         this.minPriority = minPriority;
-        this.logRootDir = context.getExternalCacheDir() + File.separator + LOG_DIR;
+        this.logRootDir = new File(context.getExternalCacheDir() + File.separator + LOG_DIR);
 
         HandlerThread handlerThread = new HandlerThread("log_handlerThread", Thread.MIN_PRIORITY);
         handlerThread.start();
-        handler = new Handler(handlerThread.getLooper()){
+        handler = new Handler(handlerThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
-                switch (msg.what){
+                switch (msg.what) {
                     case MSG_FLUSH_ALL:
                         flush();
-                        sendEmptyMessageDelayed(MSG_FLUSH_ALL,LOG_FLUSH_DURATION);
+                        sendEmptyMessageDelayed(MSG_FLUSH_ALL, LOG_FLUSH_DURATION);
                         break;
                     case MSG_FLUSH_CONTENT:
                         input();
-                        break;
-                    case MSG_DELETE_FILE:
                         break;
                 }
             }
@@ -127,86 +111,100 @@ public class FileLogAdapter implements LogAdapter {
         handler.sendEmptyMessageDelayed(MSG_FLUSH_CONTENT, 500);
     }
 
-    //获取时间格式
-    private String getTodayDate(){
-        String simple_date_formate = "yyyy-MM-dd";
-        Date date = new Date();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(simple_date_formate, Locale.getDefault());
-        return simpleDateFormat.format(date);
-    }
-
-    private String getLongDate(long times){
-        String simple_date_formate = "yyyy-MM-dd";
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(simple_date_formate,Locale.getDefault());
+    private String formatDateString(long times) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd.HH-mm-ss", Locale.getDefault());
         return simpleDateFormat.format(times);
     }
 
-    //log 文件(最新的）
-    private File getLogFile(long times){
+    private boolean isSameDay(String timesString, long dateTime) {
+        SimpleDateFormat fmt1 = new SimpleDateFormat("yyyy-MM-dd.HH-mm-ss", Locale.getDefault());
+        SimpleDateFormat fmt2 = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        try {
+            String string1 = fmt2.format(fmt1.parse(timesString));
+            String string2 = fmt2.format(dateTime);
+            return string1.equals(string2);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
-        String dirName =logRootDir + File.separator + getLongDate(times);
-        //log文件夹是否存在
-        File file = new File(dirName);
-        if(!file.exists()){
-            //noinspection ResultOfMethodCallIgnored
-            file.mkdirs();
-            return new File(dirName,"1" + "." + this.alias + ".log");
-        }else{
-            File[] fileslist = file.listFiles(fileFilter);
-            if(fileslist == null || fileslist.length == 0){
-                return new File(dirName,"1" + "." + this.alias + ".log");
-            }
-            //得到最新的文件分片
-            Arrays.sort(fileslist, new Comparator< File>() {
+        return false;
+    }
+
+    public File[] getLogFilesDesc(int limit) {
+        if (logRootDir.listFiles() != null && logRootDir.listFiles().length > 0) {
+            File[] logFiles = logRootDir.listFiles();
+            Arrays.sort(logFiles, new Comparator<File>() {
                 @Override
                 public int compare(File lhs, File rhs) {
-                    return getIndexFromFile(lhs)-getIndexFromFile(rhs);
+                    return (int) (rhs.lastModified() - lhs.lastModified());
                 }
             });
-            File last = fileslist[fileslist.length -1];
-            if(last.length() > FileLogAdapter.MAX_FILE_SIZE ){
-                int newIndex = getIndexFromFile(last) + 1;
-                last = new File(dirName,""+ newIndex + "." + this.alias + ".log");
+            File[] required = new File[Math.min(limit, logFiles.length)];
+            System.arraycopy(logFiles, 0, required, 0, required.length);
+            return required;
+        }
+        return null;
+    }
+
+    //log 文件(最新的）
+    private File getLogFile(long times) {
+        File[] logFiles = logRootDir.listFiles();
+        if (latestLogFile == null) {
+            if (!logRootDir.exists() && !logRootDir.mkdirs()) {
+                return null;
             }
-            int filecounts = fileslist.length + 1;
-            for(int i = 0; i< filecounts - MAX_FILE_COUNT; i++){
-                //noinspection ResultOfMethodCallIgnored
-                fileslist[i].delete();
+            if (logFiles != null && logFiles.length > 0) {
+                Arrays.sort(logFiles, new Comparator<File>() {
+                    @Override
+                    public int compare(File lhs, File rhs) {
+                        return (int) (rhs.lastModified() - lhs.lastModified());
+                    }
+                });
+                latestLogFile = logFiles[0];
             }
-            return last;
+        }
+        // 如果是同一天且文件没有超过最大大小，返回最新日志文件
+        if (latestLogFile != null && latestLogFile.length() < MAX_FILE_SIZE) {
+            String fileLogDate = latestLogFile.getName().replace(".log", "");
+            if (isSameDay(fileLogDate, times)) {
+                return latestLogFile;
+            }
+        }
+
+        // 创建一个新文件
+        latestLogFile = new File(logRootDir + File.separator + formatDateString(times) + ".log");
+        // 清除过时文件
+        cleanFilesIfNecessary(logFiles);
+        return latestLogFile;
+    }
+
+    private void cleanFilesIfNecessary(File[] logFiles) {
+        if (logFiles != null && logFiles.length >= MAX_FILE_COUNT) {
+            logFiles[logFiles.length - 1].delete();
         }
     }
-    //获取文件分片的索引
-    private int getIndexFromFile(File file){
-        try{
-            String filename = file.getName();
-            int point = filename.indexOf('.');
-            filename = filename.substring(0,point);
-            return Integer.valueOf(filename);
-        }catch (Exception e){
-            e.printStackTrace();
-            return  -1;
-        }
-    }
+
     //写入日志(同步)
-    private void write(List<FileLogItem> listInfo){
-        synchronized (object){
-            if(listInfo == null) return;
+    private void write(List<FileLogItem> listInfo) {
+        synchronized (object) {
+            if (listInfo == null) return;
             FileOutputStream fos = null;
             //noinspection TryWithIdenticalCatches
             try {
                 File file = getLogFile(System.currentTimeMillis());
-                fos = new FileOutputStream(file,true);
-                for(int i = 0; i< listInfo.size(); i++){
-                    fos.write(listInfo.get(i).toString().getBytes("UTF-8"));
+                if (file != null) {
+                    fos = new FileOutputStream(file, true);
+                    for (int i = 0; i < listInfo.size(); i++) {
+                        fos.write(listInfo.get(i).toString().getBytes("UTF-8"));
+                    }
+                    fos.flush();
                 }
-                fos.flush();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            }finally {
-                if(fos != null){
+            } finally {
+                if (fos != null) {
                     try {
                         fos.close();
                     } catch (IOException e) {
@@ -217,15 +215,15 @@ public class FileLogAdapter implements LogAdapter {
         }
     }
 
-    private synchronized void flush(){
-        if(mBufferSize <= 0)return;
+    private synchronized void flush() {
+        if (mBufferSize <= 0) return;
         write(bufferRecord);
         bufferRecord.clear();
         mBufferSize = 0;
     }
 
-    private synchronized void input(){
-        if(mBufferSize > BUFFER_SIZE ){
+    private synchronized void input() {
+        if (mBufferSize > BUFFER_SIZE) {
             flush();
         }
     }

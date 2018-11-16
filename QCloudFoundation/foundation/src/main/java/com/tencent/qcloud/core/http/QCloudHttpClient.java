@@ -38,7 +38,7 @@ public final class QCloudHttpClient {
 
     private final OkHttpClient okHttpClient;
     private final TaskManager taskManager;
-    private final HttpLoggingInterceptor logInterceptor;
+    private final HttpLogger httpLogger;
 
     private final Set<String> verifiedHost;
     private final Map<String, List<InetAddress>> dnsMap;
@@ -99,23 +99,18 @@ public final class QCloudHttpClient {
     }
 
     public void setDebuggable(boolean debuggable) {
-        logInterceptor.setLevel(debuggable || QCloudLogger.isLoggableOnLogcat(QCloudLogger.DEBUG, HTTP_LOG_TAG) ?
-                HttpLoggingInterceptor.Level.BODY :
-                HttpLoggingInterceptor.Level.NONE);
+        httpLogger.setDebug(debuggable || QCloudLogger.isLoggableOnLogcat(QCloudLogger.DEBUG, HTTP_LOG_TAG));
     }
 
     private QCloudHttpClient(Builder b) {
         this.verifiedHost = new HashSet<>(5);
         this.dnsMap = new HashMap<>(3);
         this.taskManager = TaskManager.getInstance();
-
-        logInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-            @Override
-            public void log(String message) {
-                QCloudLogger.i(HTTP_LOG_TAG, message);
-            }
-        });
+        httpLogger = new HttpLogger(false);
         setDebuggable(false);
+
+        HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor(httpLogger);
+        logInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
         okHttpClient = b.mBuilder
                 .followRedirects(true)
