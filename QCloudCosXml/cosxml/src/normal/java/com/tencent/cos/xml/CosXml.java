@@ -2786,7 +2786,7 @@ public interface CosXml extends SimpleCosXml {
 
     /**
      * <p>
-     * 判断指定的对象是否存在，注意这里只能判断 {@link CosXmlService#region} 地域下是否存在。
+     * 判断指定的对象是否存在，注意这里只能判断 {@link com.tencent.cos.xml.common.Region} 地域下是否存在。
      * </p>
      *
      * @param bucketName bucket 名称

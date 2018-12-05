@@ -1,7 +1,5 @@
 package com.tencent.cos.xml.model.object;
 
-import android.text.TextUtils;
-
 import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.ClientErrorCode;
@@ -78,21 +76,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
 
     @Override
     public String getPath(CosXmlServiceConfig config) {
-
-        StringBuilder path = new StringBuilder();
-        String appid = config.getAppid();
-        String fullBucketName = bucket;
-
-        if (config.isBucketInPath()) {
-
-            if(!fullBucketName.endsWith("-" + appid) && !TextUtils.isEmpty(appid)){
-                fullBucketName = fullBucketName + "-" + appid;
-            }
-            path.append("/");
-            path.append(fullBucketName);
-        }
-
-        return  path.append("/").toString();
+        return config.getUrlPath(bucket, "/");
     }
 
     /**

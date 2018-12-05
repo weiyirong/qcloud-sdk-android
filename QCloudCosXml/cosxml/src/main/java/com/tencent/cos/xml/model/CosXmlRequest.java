@@ -10,6 +10,7 @@ import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
 import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpTask;
+import com.tencent.qcloud.core.http.HttpTaskMetrics;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.util.ArrayList;
@@ -36,13 +37,14 @@ public abstract class CosXmlRequest{
 
     protected Map<String, String> queryParameters = new LinkedHashMap<>();
     protected Map<String, List<String>> requestHeaders = new LinkedHashMap<>();
-    private QCloudSignSourceProvider signSourceProvider;
+    protected QCloudSignSourceProvider signSourceProvider;
     private HttpTask httpTask;
+    private HttpTaskMetrics metrics;
     private boolean isNeedMD5 = false;
     private boolean isSupportAccelerate = false;
-    private String region;
-    protected String domainSuffix;
+    protected String bucket;
     protected String requestURL;
+    protected String region;
 
     protected QCloudTaskStateListener qCloudTaskStateListener;
 
@@ -56,9 +58,11 @@ public abstract class CosXmlRequest{
 
     public abstract String getMethod();
 
-    public abstract String getHostPrefix();
-
     public abstract String getPath(CosXmlServiceConfig config);
+
+    public String getBucket() {
+        return bucket;
+    }
 
     public void setQueryParameters(java.util.Map<String, String> queryParameters) {
         this.queryParameters = queryParameters;
@@ -98,8 +102,17 @@ public abstract class CosXmlRequest{
         this.qCloudTaskStateListener = qCloudTaskStateListener;
     }
 
-    public  QCloudTaskStateListener getTaskStateListener(){
-        return qCloudTaskStateListener;
+    public HttpTaskMetrics getMetrics() {
+        return metrics;
+    }
+
+    /**
+     * 设置请求性能参数捕获器
+     *
+     * @param metrics
+     */
+    public void attachMetrics(HttpTaskMetrics metrics) {
+        this.metrics = metrics;
     }
 
     /**
@@ -142,59 +155,11 @@ public abstract class CosXmlRequest{
         requestHeaders.put(key, values);
     }
 
-    /**
-     * 获取实际的 host
-     *
-     * 默认域名：
-     *
-     * bucket-appid.cos.region.myqcloud.com
-     *
-     * 加速域名：
-     *
-     * bucket-appid.cos-accelerate.myqcloud.com
-     *
-     * CSP 域名：共四种
-     *
-     *   cos.region.domainSuffix/bucket-appid
-     *   bucket-appid.cos.region.domainSuffix
-     *
-     *   cos.domainSuffix/bucket-appid
-     *   bucket-appid.cos.domainSuffix
-     *
-     * @return host
-     */
-    private String getHost(String appid, String region, String domainSuffix, boolean isBucketInPath, boolean isSupportAccelerate) throws CosXmlClientException {
-
-        this.domainSuffix = domainSuffix;
-        String bucket = getHostPrefix();
-        String realRegion = getRegion() == null ? region : getRegion();
-
-        if(!bucket.endsWith("-" + appid) && !TextUtils.isEmpty(appid)){
-            bucket = bucket + "-" + appid;
-        }
-
-        StringBuilder host = new StringBuilder();
-        if (!isBucketInPath) {
-            host.append(bucket);
-            host.append(".");
-        }
-
-        if (isSupportAccelerate) {
-            host.append("cos-accelerate");
-        } else {
-            host.append("cos");
-            if (!TextUtils.isEmpty(realRegion)) {
-                host.append(".");
-                host.append(realRegion);
-            }
-        }
-        host.append(".").append(domainSuffix);
-
-        return host.toString();
-    }
-
     public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
-        return getHost(config.getAppid(), config.getRegion(), config.getDomainSuffix(), config.isBucketInPath(), isSupportAccelerate);
+        if (TextUtils.isEmpty(bucket)) {
+            throw new IllegalArgumentException("bucket is null");
+        }
+        return config.getHost(bucket, region, isSupportAccelerate);
     }
 
     public void isSupportAccelerate(boolean isSupportAccelerate){
@@ -209,39 +174,76 @@ public abstract class CosXmlRequest{
         addHeader(HttpConstants.Header.AUTHORIZATION, sign);
     }
 
-    public void setSign(long signDuration){
-        signSourceProvider = new COSXmlSignSourceProvider().setDuration(signDuration);
-    }
-
-    public void setSign(long startTime, long endTime){
-        signSourceProvider = new COSXmlSignSourceProvider().setSignBeginTime(startTime)
-                .setSignExpiredTime(endTime);
-    }
-
     public QCloudSignSourceProvider getSignSourceProvider() {
         if(signSourceProvider == null){
-            signSourceProvider = new COSXmlSignSourceProvider().setDuration(600);
+            signSourceProvider = new COSXmlSignSourceProvider();
         }
         return signSourceProvider;
     }
 
-    public void setSign(long signDuration, Set<String> parameters, Set<String> headers){
-        COSXmlSignSourceProvider cosXmlSignSourceProvider = new COSXmlSignSourceProvider().setDuration(signDuration);
-        cosXmlSignSourceProvider.parameters(parameters);
-        cosXmlSignSourceProvider.headers(headers);
-        signSourceProvider = cosXmlSignSourceProvider;
-    }
-
-    public void setSign(long startTime, long endTime, Set<String> parameters, Set<String> headers){
-        COSXmlSignSourceProvider cosXmlSignSourceProvider = new COSXmlSignSourceProvider().setSignBeginTime(startTime)
-                .setSignExpiredTime(endTime);
-        cosXmlSignSourceProvider.parameters(parameters);
-        cosXmlSignSourceProvider.headers(headers);
-        signSourceProvider = cosXmlSignSourceProvider;
-    }
-
     public void setSignSourceProvider(QCloudSignSourceProvider cosXmlSignSourceProvider){
         this.signSourceProvider = cosXmlSignSourceProvider;
+    }
+
+    /**
+     * @deprecated 签名有效时间跟随密钥有效时间，无需设置，如果需要设置签名的参数字段和头部字段，
+     * 请调用 {@link #setSignParamsAndHeaders(Set, Set)} 方法。
+     *
+     * @param signDuration
+     */
+    @Deprecated
+    public void setSign(long signDuration){
+    }
+
+    /**
+     * @deprecated 签名有效时间跟随密钥有效时间，无需设置，如果需要设置签名的参数字段和头部字段，
+     * 请调用 {@link #setSignParamsAndHeaders(Set, Set)} 方法。
+     *
+     * @param startTime
+     * @param endTime
+     */
+    @Deprecated
+    public void setSign(long startTime, long endTime){
+    }
+
+    /**
+     * @deprecated 签名有效时间跟随密钥有效时间，无需设置，如果需要设置签名的参数字段和头部字段，
+     * 请调用 {@link #setSignParamsAndHeaders(Set, Set)} 方法代替。
+     *
+     * @param signDuration
+     * @param parameters
+     * @param headers
+     */
+    @Deprecated
+    public void setSign(long signDuration, Set<String> parameters, Set<String> headers){
+        setSignParamsAndHeaders(parameters, headers);
+    }
+
+    /**
+     * @deprecated 签名有效时间跟随密钥有效时间，无需设置，如果需要设置签名的参数字段和头部字段，
+     * 请调用 {@link #setSignParamsAndHeaders(Set, Set)} 方法代替。
+     *
+     * @param startTime
+     * @param endTime
+     * @param parameters
+     * @param headers
+     */
+    @Deprecated
+    public void setSign(long startTime, long endTime, Set<String> parameters, Set<String> headers){
+        setSignParamsAndHeaders(parameters, headers);
+    }
+
+    /**
+     * 设置参与签名的参数字段和头部字段
+     *
+     * @param parameters 参与签名的参数字段
+     * @param headers 参与签名的头部字段
+     */
+    public void setSignParamsAndHeaders(Set<String> parameters, Set<String> headers) {
+        COSXmlSignSourceProvider cosXmlSignSourceProvider = new COSXmlSignSourceProvider();
+        cosXmlSignSourceProvider.parameters(parameters);
+        cosXmlSignSourceProvider.headers(headers);
+        signSourceProvider = cosXmlSignSourceProvider;
     }
 
     public void setRegion(String region){
@@ -256,6 +258,8 @@ public abstract class CosXmlRequest{
 
     public void setTask(HttpTask httpTask){
         this.httpTask = httpTask;
+        httpTask.addStateListener(qCloudTaskStateListener);
+        httpTask.attachMetric(metrics);
     }
 
     public HttpTask getHttpTask(){

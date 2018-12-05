@@ -49,7 +49,7 @@ public abstract class COSXMLTask {
     /** 设置 QCloudSignSourceProvider */
     protected QCloudSignSourceProvider cosXmlSignSourceProvider;
     /** 是否需要计算 MD5 */
-    protected boolean isNeedMd5 = false;
+    protected boolean isNeedMd5 = true;
     /** register some callback */
     protected CosXmlProgressListener cosXmlProgressListener;
     protected CosXmlResultListener cosXmlResultListener;
@@ -57,11 +57,10 @@ public abstract class COSXMLTask {
     /** cosxml task state during the whole lifecycle */
     protected TransferState taskState  = TransferState.WAITING;
 
-    protected volatile boolean IS_CANCELED = false;
+//    protected volatile boolean IS_CANCELED = false;
 
     /** 直接提供签名串 */
     protected OnSignatureListener onSignatureListener;
-
 
     protected void setCosXmlService(CosXmlSimpleService cosXmlService){
         this.cosXmlService = cosXmlService;
@@ -206,8 +205,10 @@ public abstract class COSXMLTask {
     }
 
     @Deprecated
-    public interface OnSignatureListener{
+    public interface OnSignatureListener {
         /**
+         * @param cosXmlRequest request
+         * @return String
          * @see com.tencent.cos.xml.model.object.HeadObjectRequest
          * @see PutObjectRequest
          * @see InitMultipartUploadRequest
@@ -215,8 +216,6 @@ public abstract class COSXMLTask {
          * @see UploadPartRequest
          * @see CompleteMultiUploadRequest
          * @see AbortMultiUploadRequest
-         * @param cosXmlRequest request
-         * @return String
          */
         String onGetSign(CosXmlRequest cosXmlRequest);
     }

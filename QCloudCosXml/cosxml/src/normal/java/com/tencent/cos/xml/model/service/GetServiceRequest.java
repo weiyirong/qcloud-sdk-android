@@ -1,8 +1,6 @@
 package com.tencent.cos.xml.model.service;
 
 
-import android.text.TextUtils;
-
 import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -23,11 +21,6 @@ final public class GetServiceRequest extends CosXmlRequest {
     }
 
     @Override
-    public String getHostPrefix() {
-        return "service";
-    }
-
-    @Override
     public String getPath(CosXmlServiceConfig config) {
         return  "/";
     }
@@ -43,12 +36,13 @@ final public class GetServiceRequest extends CosXmlRequest {
 
     @Override
     public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate){
+        String endpointSuffix = config.getEndpointSuffix(region, isSupportAccelerate);
 
-        domainSuffix = config.getDomainSuffix();
-        String suffix = domainSuffix.equalsIgnoreCase("myqcloud.com")
-                || TextUtils.isEmpty(config.getRegion()) ? domainSuffix : config.getRegion() + "." + domainSuffix;
-
-        return getHostPrefix() + ".cos." + suffix;
+        if (endpointSuffix.endsWith("myqcloud.com")) {
+            return "service.cos.myqcloud.com";
+        } else {
+            return "service." + endpointSuffix;
+        }
     }
 
 }

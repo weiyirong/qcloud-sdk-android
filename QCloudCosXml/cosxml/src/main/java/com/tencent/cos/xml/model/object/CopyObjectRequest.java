@@ -1,6 +1,5 @@
 package com.tencent.cos.xml.model.object;
 
-import android.text.TextUtils;
 import android.util.Base64;
 
 import com.tencent.cos.xml.CosXmlServiceConfig;
@@ -19,8 +18,6 @@ import com.tencent.qcloud.core.http.RequestBodySerializer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -85,17 +82,17 @@ public class CopyObjectRequest extends ObjectRequest {
      * You can specify the history version with the versionid sub-resource
      * @param copySource
      */
-    public void setCopySource(CopySourceStruct copySource) throws CosXmlClientException {
+    private void setCopySource(CopySourceStruct copySource, CosXmlServiceConfig config) throws CosXmlClientException {
         this.copySourceStruct = copySource;
         if(copySourceStruct != null){
-            addHeader(COSRequestHeaderKey.X_COS_COPY_SOURCE, copySourceStruct.getSource(domainSuffix));
+            addHeader(COSRequestHeaderKey.X_COS_COPY_SOURCE, copySourceStruct.getSource(config));
         }
     }
 
     @Override
     public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
         String host =  super.getHost(config, isSupportAccelerate);
-        setCopySource(copySourceStruct);
+        setCopySource(copySourceStruct, config);
         return host;
     }
 
@@ -316,38 +313,18 @@ public class CopyObjectRequest extends ObjectRequest {
             cosPath = URLEncodeUtils.cosPathEncode(cosPath);
         }
 
-        public String getSource() throws CosXmlClientException {
-            return getSource("myqcloud.com");
-        }
-
-        public String getSource(String domainSuffix) throws CosXmlClientException {
-
+        public String getSource(CosXmlServiceConfig config) throws CosXmlClientException {
             if(cosPath != null){
                 if(!cosPath.startsWith("/")){
                     cosPath = "/" + cosPath;
                 }
             }
-            cosPath = URLEncodeUtils.cosPathEncode(cosPath);
-            StringBuilder copySource = new StringBuilder();
-
-            copySource.append(bucket);
-            if (!TextUtils.isEmpty(appid) && !bucket.endsWith("-" + appid)) {
-                copySource.append("-")
-                        .append(appid);
-            }
-            copySource.append(".");
-
-            copySource.append("cos").append(".");
-            if (!TextUtils.isEmpty(region)) {
-                copySource.append(region).append(".");
-            }
-
-            copySource.append(domainSuffix)
-                    .append(cosPath);
+            String host = config.getHost(bucket, region, appid, false);
+            String url = host + cosPath;
             if(versionId != null){
-                copySource.append("?versionId=").append(versionId);
+                url += "?versionId=" + versionId;
             }
-            return copySource.toString();
+            return url;
         }
     }
 }

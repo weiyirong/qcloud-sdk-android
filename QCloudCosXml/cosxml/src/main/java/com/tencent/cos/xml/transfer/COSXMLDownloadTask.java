@@ -65,7 +65,7 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
     COSXMLDownloadTask(Context context, CosXmlSimpleService cosXmlService, GetObjectRequest getObjectRequest){
 
-        this(context, cosXmlService, getObjectRequest.getRegion(), getObjectRequest.getHostPrefix(),
+        this(context, cosXmlService, getObjectRequest.getRegion(), getObjectRequest.getBucket(),
                 getObjectRequest.getPath(cosXmlService.getConfig()), getObjectRequest.getSavePath(), getObjectRequest.getSaveFileName());
         this.queries = getObjectRequest.getQueryString();
         this.headers = getObjectRequest.getRequestHeaders();
@@ -93,7 +93,9 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
     private void realDownload(long rangeStart, long rangeEnd, final long fileOffset){
         getObjectRequest = new GetObjectRequest(bucket, cosPath, localSaveDirPath, localSaveFileName);
         getObjectRequest.setRegion(region);
-        getObjectRequest.setRange(rangeStart, rangeEnd);
+        if(rangeEnd > 0 || rangeStart > 0){
+            getObjectRequest.setRange(rangeStart, rangeEnd);
+        }
         getObjectRequest.setFileOffset(fileOffset);
         getObjectRequest.setQueryParameters(queries);
         getObjectRequest.setRequestHeaders(headers);
@@ -148,7 +150,6 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
     @Override
     public void pause() {
-        IS_CANCELED = true;
         if(updateState(TransferState.PAUSED)){
             QCloudLogger.d(TAG, taskState.name());
             cosXmlService.cancel(headObjectRequest);
@@ -159,11 +160,10 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
     }
 
     @Override
-    public void cancel() {
-        IS_CANCELED = true;
+    public void cancel(){
         if(updateState(TransferState.CANCELED)){
             QCloudLogger.d(TAG, taskState.name());
-            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "cancelled by user");
+            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user");
             mException = cosXmlClientException;
             clear();
             if(cosXmlResultListener != null){
@@ -315,16 +315,17 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
                                 }
                             }
                             clear();
+                            return;
                         }else {
                             hasWriteDataLen = fileLength - fileOffset;
                             realDownload(rangeStart + hasWriteDataLen, rangeEnd, fileOffset + hasWriteDataLen);
+                            return;
                         }
                     }
-                }else {
-                    save(getDownloadPath());
-                    hasWriteDataLen = 0L;
-                    realDownload(rangeStart, rangeEnd, fileOffset);
                 }
+                save(getDownloadPath());
+                hasWriteDataLen = 0L;
+                realDownload(rangeStart, rangeEnd, fileOffset);
             }
 
             @Override

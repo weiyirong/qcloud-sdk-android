@@ -324,7 +324,7 @@ public class GetObjectRequest extends ObjectRequest {
             queryParameters.put("versionId",versionId);
         }
         if(rspContentType != null){
-            queryParameters.put("response-content-type=",rspContentType);
+            queryParameters.put("response-content-type",rspContentType);
         }
         if(rspContentLanguage != null){
             queryParameters.put("response-content-language",rspContentLanguage);

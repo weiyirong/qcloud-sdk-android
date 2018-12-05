@@ -1,7 +1,6 @@
 package com.tencent.cos.xml;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.tencent.cos.xml.common.Constants;
 import com.tencent.cos.xml.common.MetaDataDirective;
@@ -52,37 +51,23 @@ import com.tencent.cos.xml.model.bucket.PutBucketResult;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
 import com.tencent.cos.xml.model.object.CopyObjectRequest;
-import com.tencent.cos.xml.model.object.CopyObjectResult;
 import com.tencent.cos.xml.model.object.DeleteMultiObjectRequest;
 import com.tencent.cos.xml.model.object.DeleteMultiObjectResult;
 import com.tencent.cos.xml.model.object.DeleteObjectRequest;
 import com.tencent.cos.xml.model.object.GetObjectACLRequest;
 import com.tencent.cos.xml.model.object.GetObjectACLResult;
-import com.tencent.cos.xml.model.object.GetObjectRequest;
-import com.tencent.cos.xml.model.object.GetObjectResult;
 import com.tencent.cos.xml.model.object.HeadObjectRequest;
-import com.tencent.cos.xml.model.object.HeadObjectResult;
 import com.tencent.cos.xml.model.object.OptionObjectRequest;
 import com.tencent.cos.xml.model.object.OptionObjectResult;
 import com.tencent.cos.xml.model.object.PutObjectACLRequest;
 import com.tencent.cos.xml.model.object.PutObjectACLResult;
 import com.tencent.cos.xml.model.object.RestoreRequest;
 import com.tencent.cos.xml.model.object.RestoreResult;
-import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
-import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.model.service.GetServiceResult;
 import com.tencent.cos.xml.model.tag.COSMetaData;
-import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudSigner;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by bradyxiao on 2017/11/30.
@@ -940,33 +925,6 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
         });
     }
 
-
-    @Deprecated
-    private boolean doesBucketExistByGetService(GetServiceResult getServiceResult, String bucketName) {
-
-        if (getServiceResult == null || getServiceResult.listAllMyBuckets == null) {
-
-            return false;
-        }
-
-        ListAllMyBuckets listAllMyBuckets = getServiceResult.listAllMyBuckets;
-        List<ListAllMyBuckets.Bucket> buckets = listAllMyBuckets.buckets;
-        Log.d("tag", "buckets number is " + buckets.size());
-        if (buckets == null) {
-            return false;
-        }
-
-        for (ListAllMyBuckets.Bucket bucket : buckets) {
-
-            Log.d("tag", "bucket name is " + bucket.name);
-            if (bucket.name.equals(bucketName + "-" + appid)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /**
      * <p>
      * 通过封装 HeadObjectRequest 请求来判断对象是否存在。
@@ -1058,7 +1016,8 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     @Override
     public boolean updateObjectMeta(String bucketName, String objectName, COSMetaData metaData) throws CosXmlClientException, CosXmlServiceException{
 
-        CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(appid, bucketName, region, objectName);
+        CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(config.getAppid(),
+                bucketName, config.getRegion(), objectName);
         CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucketName, objectName, copySourceStruct);
         copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);
         for (String key : metaData.keySet()) {
@@ -1077,7 +1036,8 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     @Override
     public void updateObjectMetaAsync(String bucketName, String objectName, COSMetaData metaData, final CosXmlBooleanListener booleanListener) {
 
-        CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(appid, bucketName, region, objectName);
+        CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(config.getAppid(),
+                bucketName, config.getRegion(), objectName);
         CopyObjectRequest copyObjectRequest = null;
         copyObjectRequest = new CopyObjectRequest(bucketName, objectName, copySourceStruct);
         copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.REPLACED);

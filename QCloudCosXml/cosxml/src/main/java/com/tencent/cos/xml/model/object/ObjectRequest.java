@@ -1,7 +1,6 @@
 package com.tencent.cos.xml.model.object;
 
 
-import android.text.TextUtils;
 import android.util.Base64;
 
 import com.tencent.cos.xml.CosXmlServiceConfig;
@@ -20,7 +19,6 @@ import java.security.NoSuchAlgorithmException;
 
 public abstract class ObjectRequest extends CosXmlRequest {
 
-    protected String bucket;
     protected String cosPath;
 
     public ObjectRequest(String bucket, String cosPath){
@@ -28,9 +26,8 @@ public abstract class ObjectRequest extends CosXmlRequest {
         this.cosPath = cosPath;
     }
 
-    @Override
-    public String getHostPrefix() {
-        return bucket;
+    public void setCosPath(String cosPath){
+        this.cosPath = cosPath;
     }
 
     /**
@@ -41,25 +38,7 @@ public abstract class ObjectRequest extends CosXmlRequest {
      */
     @Override
     public String getPath(CosXmlServiceConfig config) {
-
-        StringBuilder path = new StringBuilder();
-        String appid = config.getAppid();
-        String fullBucketName = bucket;
-
-        if (config.isBucketInPath()) {
-
-            if(!fullBucketName.endsWith("-" + appid) && !TextUtils.isEmpty(appid)){
-                fullBucketName = fullBucketName + "-" + appid;
-            }
-            path.append("/");
-            path.append(fullBucketName);
-        }
-
-        if(cosPath != null && !cosPath.startsWith("/")){
-            return  path + "/" + cosPath;
-        }else {
-            return path + cosPath;
-        }
+        return config.getUrlPath(bucket, cosPath);
     }
 
     @Override

@@ -125,7 +125,7 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     }
 
     COSXMLUploadTask(CosXmlSimpleService cosXmlService, PutObjectRequest putObjectRequest, String uploadId){
-        this(cosXmlService, putObjectRequest.getRegion(), putObjectRequest.getHostPrefix(), putObjectRequest.getPath(cosXmlService.getConfig()),
+        this(cosXmlService, putObjectRequest.getRegion(), putObjectRequest.getBucket(), putObjectRequest.getPath(cosXmlService.getConfig()),
                 putObjectRequest.getSrcPath(), uploadId);
         this.queries = putObjectRequest.getQueryString();
         this.headers = putObjectRequest.getRequestHeaders();
@@ -143,9 +143,9 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     private void simpleUpload(CosXmlSimpleService cosXmlService){
         putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
         putObjectRequest.setRegion(region);
-
         putObjectRequest.setNeedMD5(isNeedMd5);
         putObjectRequest.setRequestHeaders(headers);
+
         if(onSignatureListener != null){
             putObjectRequest.setSign(onSignatureListener.onGetSign(putObjectRequest));
         }else {
@@ -459,7 +459,7 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     @Override
     public void cancel() {
         if(updateState(TransferState.CANCELED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "cancelled by user");
+            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user");
             mException = cosXmlClientException;
             if(cosXmlResultListener != null){
                 cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);

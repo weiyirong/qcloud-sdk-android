@@ -119,7 +119,7 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
     }
 
     COSXMLCopyTask( CosXmlSimpleService cosXmlService, CopyObjectRequest copyObjectRequest){
-        this(cosXmlService, copyObjectRequest.getRegion(), copyObjectRequest.getHostPrefix(), copyObjectRequest.getPath(cosXmlService.getConfig()),
+        this(cosXmlService, copyObjectRequest.getRegion(), copyObjectRequest.getBucket(), copyObjectRequest.getPath(cosXmlService.getConfig()),
                 copyObjectRequest.getCopySource());
         this.queries = copyObjectRequest.getQueryString();
         this.headers = copyObjectRequest.getRequestHeaders();
@@ -493,7 +493,7 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
     @Override
     public void cancel() {
         if(updateState(TransferState.CANCELED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "cancelled by user");
+            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user");
             mException = cosXmlClientException;
             if(cosXmlResultListener != null){
                 cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
