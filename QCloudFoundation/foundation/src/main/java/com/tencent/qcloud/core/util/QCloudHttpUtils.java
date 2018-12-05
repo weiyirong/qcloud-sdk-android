@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,6 +58,34 @@ public class QCloudHttpUtils {
         return query_pairs;
     }
 
+    public static Map<String, List<String>> getQueryPair(URL url) {
+        final Map<String, List<String>> query_pairs = new LinkedHashMap<String, List<String>>();
+        if (url.getQuery() != null) {
+            final String[] pairs = url.getQuery().split("&");
+            for (String pair : pairs) {
+                final int idx = pair.indexOf("=");
+                final String key = idx > 0 ? pair.substring(0, idx) : pair;
+                if (!query_pairs.containsKey(key)) {
+                    query_pairs.put(key, new LinkedList<String>());
+                }
+                final String value = idx > 0 && pair.length() > idx + 1 ? pair.substring(idx + 1) : null;
+                query_pairs.get(key).add(value);
+            }
+        }
+        return query_pairs;
+    }
+
+    public static Map<String, List<String>> transformToMultiMap(Map<String, String> map) {
+        final Map<String, List<String>> multiMap = new HashMap<>();
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            List<String> valueList = new ArrayList<>(1);
+            valueList.add(entry.getValue());
+            multiMap.put(entry.getKey(), valueList);
+        }
+
+        return multiMap;
+    }
+
     public static long[] parseContentRange(String contentRange) {
         if (QCloudStringUtils.isEmpty(contentRange)) {
             return null;
@@ -76,7 +106,9 @@ public class QCloudHttpUtils {
 
     public static String urlEncodeString(String source) {
         try {
-            return URLEncoder.encode(source, "UTF-8");
+            String encoded = URLEncoder.encode(source, "UTF-8");
+            // cos 后台需要对 * 做转义，而标准的 Java encode 不需要
+            return encoded.replaceAll("\\*", "%2A");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

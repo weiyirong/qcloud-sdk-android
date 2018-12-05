@@ -12,4 +12,7 @@ import com.tencent.qcloud.core.http.HttpRequest;
 public interface QCloudSignSourceProvider {
 
     <T> String source(HttpRequest<T> request) throws QCloudClientException;
+
+    <T> void onSignRequestSuccess(HttpRequest<T> request, QCloudCredentials credentials,
+                                  String authorization) throws QCloudClientException;
 }

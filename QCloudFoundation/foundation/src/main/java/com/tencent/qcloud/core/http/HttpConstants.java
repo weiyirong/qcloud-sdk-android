@@ -36,17 +36,21 @@ public final class HttpConstants {
 
         public final static String CONTENT_LENGTH = "Content-Length";
 
+        public final static String CONTENT_DISPOSITION = "Content-Disposition";
+
+        public final static String CONTENT_ENCODING = "Content-Encoding";
+
         public final static String TRANSFER_ENCODING = "Transfer-Encoding";
 
         public final static String CONTENT_TYPE = "Content-Type";
 
-        public final static String CONNECTION = "Connection";
+        public final static String CONTENT_MD5 = "Content-MD5";
 
         public final static String CONTENT_RANGE = "Content-Range";
 
-        public final static String RANGE = "Range";
+        public final static String CONNECTION = "Connection";
 
-        public final static String MD5 = "Content-MD5";
+        public final static String RANGE = "Range";
 
         public final static String DATE = "Date";
 

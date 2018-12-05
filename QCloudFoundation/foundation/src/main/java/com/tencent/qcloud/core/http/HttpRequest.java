@@ -89,7 +89,7 @@ public class HttpRequest<T> {
     }
 
     boolean shouldCalculateContentMD5() {
-        return calculateContentMD5 && QCloudStringUtils.isEmpty(header(HttpConstants.Header.MD5));
+        return calculateContentMD5 && QCloudStringUtils.isEmpty(header(HttpConstants.Header.CONTENT_MD5));
     }
 
     public String method() {
@@ -117,7 +117,7 @@ public class HttpRequest<T> {
         return responseBodyConverter;
     }
 
-    RequestBody getRequestBody() {
+    public RequestBody getRequestBody() {
         return requestBody;
     }
 

@@ -18,6 +18,7 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.internal.Util;
 import okio.BufferedSink;
+import okio.BufferedSource;
 import okio.Okio;
 import okio.Source;
 
@@ -30,28 +31,28 @@ import okio.Source;
 
 public class StreamingRequestBody extends RequestBody implements ProgressBody {
 
-    private File file;
-    private byte[] bytes;
-    private InputStream stream;
-    private URL url;
-    private Uri uri;
-    private ContentResolver contentResolver;
+    protected File file;
+    protected byte[] bytes;
+    protected InputStream stream;
+    protected URL url;
+    protected Uri uri;
+    protected ContentResolver contentResolver;
 
-    private long offset = 0;
-    private long requiredLength = -1;
-    private long contentRawLength = -1;
+    protected long offset = 0;
+    protected long requiredLength = -1;
+    protected long contentRawLength = -1;
 
-    private String contentType;
+    protected String contentType;
 
-    private QCloudProgressListener progressListener;
+    protected QCloudProgressListener progressListener;
 
-    private CountingSink countingSink;
+    protected CountingSink countingSink;
 
     public void setProgressListener(QCloudProgressListener progressListener) {
         this.progressListener = progressListener;
     }
 
-    private StreamingRequestBody() {
+    protected StreamingRequestBody() {
     }
 
     @Override
@@ -141,7 +142,7 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         }
     }
 
-    private long getContentRawLength() throws IOException {
+    protected long getContentRawLength() throws IOException {
         if (contentRawLength < 0) {
             if (stream != null) {
                 contentRawLength = stream.available();
@@ -157,7 +158,7 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         return contentRawLength;
     }
 
-    private InputStream getStream() throws IOException {
+    protected InputStream getStream() throws IOException {
         if (bytes != null) {
             return new ByteArrayInputStream(bytes);
         } else if (stream != null) {
@@ -180,7 +181,7 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         return null;
     }
 
-    private void saveInputStreamToTmpFile(InputStream stream, File file) throws IOException {
+    protected void saveInputStreamToTmpFile(InputStream stream, File file) throws IOException {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(file);
@@ -207,15 +208,14 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
     @Override
     public void writeTo(BufferedSink sink) throws IOException {
         InputStream inputStream = null;
-        Source source = null;
+        BufferedSource source = null;
         try {
             inputStream = getStream();
             if (inputStream != null) {
                 if (offset > 0) {
                     long skip = inputStream.skip(offset);
                 }
-                source = Okio.source(inputStream);
-
+                source = Okio.buffer(Okio.source(inputStream));
                 long contentLength = contentLength();
                 countingSink = new CountingSink(sink, contentLength, progressListener);
                 BufferedSink bufferedSink = Okio.buffer(countingSink);

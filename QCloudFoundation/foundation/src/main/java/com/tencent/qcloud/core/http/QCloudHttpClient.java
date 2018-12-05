@@ -70,6 +70,13 @@ public final class QCloudHttpClient {
         }
     };
 
+    private okhttp3.EventListener.Factory mEventListenerFactory = new okhttp3.EventListener.Factory() {
+        @Override
+        public okhttp3.EventListener create(Call call) {
+            return new CallMetricsListener(call);
+        }
+    };
+
     public static QCloudHttpClient getDefault() {
         if (gDefault == null) {
             synchronized (QCloudHttpClient.class) {
@@ -120,6 +127,7 @@ public final class QCloudHttpClient {
                 .connectTimeout(b.connectionTimeout, TimeUnit.MILLISECONDS)
                 .readTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
                 .writeTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
+                .eventListenerFactory(mEventListenerFactory)
                 .addInterceptor(logInterceptor)
                 .addInterceptor(new RetryAndTrafficControlInterceptor(b.retryStrategy))
                 .build();

@@ -1,7 +1,11 @@
 package com.tencent.qcloud.core.auth;
 
+import android.text.TextUtils;
+
 import com.tencent.qcloud.core.common.QCloudClientException;
+import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpRequest;
+import com.tencent.qcloud.core.http.QCloudHttpRequest;
 import com.tencent.qcloud.core.util.QCloudHttpUtils;
 import com.tencent.qcloud.core.util.QCloudStringUtils;
 
@@ -34,94 +38,59 @@ import static com.tencent.qcloud.core.http.HttpConstants.Header.TRANSFER_ENCODIN
 
 public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
 
-    private Set<String> paras;
+    private Set<String> parametersRequiredToSign;
+    private Set<String> parametersSigned;
 
-    /**
-     * 真正用来签名的参数
-     */
-    private Set<String> realSignParas;
-
-    /**
-     * 真正用来签名的头部
-     */
-    private Set<String> realSignHeader;
-
-    private Set<String> headers;
-
-    private long duration;
-    private long beginTime;
-    private long expiredTime;
+    private Set<String> headerKeysRequiredToSign;
+    private Set<String> headerKeysSigned;
+    private Map<String, List<String>> headerPairs;
 
     private String signTime;
 
     public COSXmlSignSourceProvider() {
-        headers = new HashSet<String>();
-        paras = new HashSet<String>();
-        realSignHeader = new HashSet<String>();
-        realSignParas = new HashSet<String>();
+        headerKeysRequiredToSign = new HashSet<>();
+        parametersRequiredToSign = new HashSet<>();
+        headerKeysSigned = new HashSet<>();
+        parametersSigned = new HashSet<>();
     }
 
-    /**
-     * 设置请求签名开始时间
-     *
-     * @param beginTime 单位是秒
-     * @return COSXmlSignSourceProvider
-     */
-    public COSXmlSignSourceProvider setSignBeginTime(long beginTime) {
-        this.beginTime = Utils.handleTimeAccuracy(beginTime);
-        return this;
-    }
-
-    /**
-     * 设置请求签名过期时间
-     *
-     * @param expiredTime 单位是秒
-     * @return COSXmlSignSourceProvider
-     */
-    public COSXmlSignSourceProvider setSignExpiredTime(long expiredTime) {
-        this.expiredTime = Utils.handleTimeAccuracy(expiredTime);
-        return this;
-    }
-
-    /**
-     * 设置签名有效时长
-     * @param duration 单位是秒
-     * @return COSXmlSignSourceProvider
-     */
-    public COSXmlSignSourceProvider setDuration(long duration) {
-        this.duration = duration;
-        return this;
-    }
-
-    /**
-     * 需要加密的parameter
-     *
-     * @param key
-     */
     public void parameter(String key) {
-        paras.add(key);
+        parametersRequiredToSign.add(key);
     }
 
     public void parameters(Set<String> keys) {
         if(keys != null){
-            paras.addAll(keys);
+            parametersRequiredToSign.addAll(keys);
         }
     }
 
-    /**
-     * 需要加密的header
-     *
-     * @param key
-     */
     public void header(String key) {
-
-        headers.add(key);
+        headerKeysRequiredToSign.add(key);
     }
 
     public void headers(Set<String> keys) {
         if(keys != null){
-            headers.addAll(keys);
+            headerKeysRequiredToSign.addAll(keys);
         }
+    }
+
+    /**
+     * 设置签名使用的 headers 参数，默认读取的是 {@link QCloudHttpRequest#headers()}
+     *
+     * @param headerPairs 键值对，签名使用的 headers 参数
+     */
+    public void setHeaderPairsForSign(Map<String, List<String>> headerPairs) {
+        this.headerPairs = headerPairs;
+    }
+
+    void setSignTime(String signTime) {
+        this.signTime = signTime;
+    }
+
+    @Override
+    public <T> void onSignRequestSuccess(HttpRequest<T> request, QCloudCredentials credentials,
+                                         String authorization) {
+
     }
 
     /**
@@ -131,7 +100,7 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
      *
      * 2、q-ak ：
      *</P>
-     * @return T
+     * @return 签名 formatString
      */
     @Override
     public <T> String source(HttpRequest<T> request) throws QCloudClientException {
@@ -139,13 +108,30 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
             return null;
         }
 
-        if (headers.size() > 0) {
+        // 默认头部字段参与计算
+        if (headerKeysRequiredToSign.size() < 1) {
+            for (String headerKey : request.headers().keySet()) {
+                if (HttpConstants.Header.CONTENT_MD5.equalsIgnoreCase(headerKey) ||
+                        HttpConstants.Header.CONTENT_DISPOSITION.equalsIgnoreCase(headerKey) ||
+                        HttpConstants.Header.CONTENT_ENCODING.equalsIgnoreCase(headerKey) ||
+                        headerKey.startsWith("x-cos-")) {
+                    headerKeysRequiredToSign.add(headerKey);
+                }
+            }
+        }
 
-            Set<String> lowerCaseHeaders = toLowerCase(headers);
+        // 默认URL参数字段参与计算
+        if (parametersRequiredToSign.size() < 1) {
+            Map<String, List<String>> queryNameValues = QCloudHttpUtils.getQueryPair(request.url());
+            parametersRequiredToSign.addAll(queryNameValues.keySet());
+        }
+
+        // 填充必要的头部信息
+        if (headerKeysRequiredToSign.size() > 0) {
+            Set<String> lowerCaseHeaders = toLowerCase(headerKeysRequiredToSign);
 
             // 1、是否存在Content-Type
             if (lowerCaseHeaders != null && lowerCaseHeaders.contains(CONTENT_TYPE.toLowerCase())) {
-
                 String contentType = request.contentType();
                 if (contentType != null) {
                     request.addHeader(CONTENT_TYPE, contentType);
@@ -154,7 +140,6 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
 
             // 2、是否存在Content-Length
             if (lowerCaseHeaders != null && lowerCaseHeaders.contains(CONTENT_LENGTH.toLowerCase())) {
-
                 long contentLength;
                 try {
                     contentLength = request.contentLength();
@@ -173,20 +158,16 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
 
             // 3、是否存在Date
             if (lowerCaseHeaders != null && lowerCaseHeaders.contains(DATE.toLowerCase())) {
-
                 Date d = new Date();
                 DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
                 format.setTimeZone(TimeZone.getTimeZone("GMT"));
                 request.addHeader(DATE, format.format(d));
             }
-
         }
-
 
         // 添加method
         StringBuilder formatString = new StringBuilder(request.method().toLowerCase());
         formatString.append("\n");
-
 
         // 添加path
         String path = QCloudHttpUtils.urlDecodeString(request.url().getPath());
@@ -194,22 +175,19 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
         formatString.append("\n");
 
         // 添加parameters
-        String paraString = queryStringForKeys(request.url(), paras, realSignParas);
+        String paraString = queryStringForKeys(request.url(), parametersRequiredToSign, parametersSigned);
 
-        if (paraString == null) {
-            paraString = "";
-        }
         formatString.append(paraString);
         formatString.append("\n");
 
         // 添加header，得到最终的formatString
         String headerString = "";
-        if (request.headers() != null) {
-            headerString = headersStringForKeys(request.headers(), headers, realSignHeader);
+        headerPairs = headerPairs != null ? headerPairs : request.headers();
+        if (headerPairs != null) {
+            headerString = headersStringForKeys(headerPairs, headerKeysRequiredToSign, headerKeysSigned);
         }
         formatString.append(headerString);
         formatString.append("\n");
-
 
         StringBuilder stringToSign = new StringBuilder();
 
@@ -218,13 +196,6 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
         stringToSign.append("\n");
 
         // 追加q-sign-time
-        if (beginTime == 0) {
-            beginTime = System.currentTimeMillis() / 1000;
-        }
-        if (expiredTime == 0) {
-            expiredTime = beginTime + duration;
-        }
-        signTime = beginTime + ";" + expiredTime;
         stringToSign.append(signTime);
         stringToSign.append("\n");
 
@@ -237,15 +208,11 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
     }
 
     String getRealHeaderList() {
-        return sortAndJoinSemicolon(realSignHeader);
+        return sortAndJoinSemicolon(headerKeysSigned);
     }
 
     String getRealParameterList() {
-        return sortAndJoinSemicolon(realSignParas);
-    }
-
-    String getSignTime() {
-        return signTime;
+        return sortAndJoinSemicolon(parametersSigned);
     }
 
     private String sortAndJoinSemicolon(Set<String> values) {
@@ -306,9 +273,6 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
         // 2、获得query所有的name，并进行小写映射
         Map<String, List<String>> queryNameValues = QCloudHttpUtils.getDecodedQueryPair(httpUrl);
         Set<String> queryNames = queryNameValues.keySet();
-        if (queryNames == null) {
-            return "";
-        }
         Map<String, String> maps = new HashMap<>();
         for (String name : queryNames) {
             maps.put(name.toLowerCase(), name);
@@ -324,10 +288,9 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
                     }
                     isFirst = false;
                     realKeys.add(key.toLowerCase());
-                    out.append(key.toLowerCase());
-                    if (value != null) {
-                        out.append('=');
-                        out.append(value.toLowerCase());
+                    out.append(key.toLowerCase()).append('=');
+                    if (!TextUtils.isEmpty(value)) {
+                        out.append(QCloudHttpUtils.urlEncodeString(value));
                     }
                 }
             }
@@ -353,9 +316,6 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
 
         // 2、获得headers所有的name，并进行小写映射
         Set<String> headerNames = headers.keySet();
-        if (headerNames == null) {
-            return "";
-        }
         Map<String, String> maps = new HashMap<>();
         for (String name : headerNames) {
             maps.put(name.toLowerCase(), name);
@@ -370,10 +330,9 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
                         out.append('&');
                     }
                     isFirst = false;
-                    out.append(key.toLowerCase());
-                    realKeys.add(key);
-                    if (value != null) {
-                        out.append('=');
+                    realKeys.add(key.toLowerCase());
+                    out.append(key.toLowerCase()).append('=');
+                    if (!TextUtils.isEmpty(value)) {
                         out.append(QCloudHttpUtils.urlEncodeString(value));
                     }
                 }

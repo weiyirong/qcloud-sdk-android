@@ -33,13 +33,15 @@ public class COSXmlSigner implements QCloudSigner {
 
         QCloudLifecycleCredentials lifecycleCredentials = (QCloudLifecycleCredentials) credentials;
 
+        String keyTime = lifecycleCredentials.getKeyTime();
+        sourceProvider.setSignTime(keyTime);
         String signature = signature(sourceProvider.source(request), lifecycleCredentials.getSignKey());
 
         authorization.append(AuthConstants.Q_SIGN_ALGORITHM).append("=").append(AuthConstants.SHA1).append("&")
                 .append(AuthConstants.Q_AK).append("=")
                 .append(credentials.getSecretId()).append("&")
                 .append(AuthConstants.Q_SIGN_TIME).append("=")
-                .append(sourceProvider.getSignTime()).append("&")
+                .append(keyTime).append("&")
                 .append(AuthConstants.Q_KEY_TIME).append("=")
                 .append(lifecycleCredentials.getKeyTime()).append("&")
                 .append(AuthConstants.Q_HEADER_LIST).append("=")
@@ -47,14 +49,16 @@ public class COSXmlSigner implements QCloudSigner {
                 .append(AuthConstants.Q_URL_PARAM_LIST).append("=")
                 .append(sourceProvider.getRealParameterList().toLowerCase()).append("&")
                 .append(AuthConstants.Q_SIGNATURE).append("=").append(signature);
+        String auth = authorization.toString();
 
-
-        request.addHeader(HttpConstants.Header.AUTHORIZATION, authorization.toString());
+        request.addHeader(HttpConstants.Header.AUTHORIZATION, auth);
 
         if (credentials instanceof SessionQCloudCredentials) {
             SessionQCloudCredentials sessionCredentials = (SessionQCloudCredentials) credentials;
             request.addHeader(COS_SESSION_TOKEN, sessionCredentials.getToken());
         }
+
+        sourceProvider.onSignRequestSuccess(request, credentials, auth);
     }
 
     private String signature(String source, String signKey) throws QCloudClientException {
