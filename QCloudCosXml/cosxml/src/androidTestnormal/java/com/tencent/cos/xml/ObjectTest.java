@@ -149,9 +149,6 @@ public class ObjectTest {
     }
 
     public void getObject() throws CosXmlServiceException, CosXmlClientException {
-
-
-
         String savePath = appContext.getExternalCacheDir().getPath();
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, cosPath, savePath);
         getObjectRequest.setProgressListener(new CosXmlProgressListener() {

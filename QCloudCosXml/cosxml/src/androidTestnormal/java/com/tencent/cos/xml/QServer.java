@@ -22,15 +22,15 @@ public class QServer {
 
     public final static String TAG = "UnitTest";
 
-    public final static String ownUin = "腾讯云账号";
+    public final static String ownUin = BuildConfig.OwnUin ;//"腾讯云账号";
     /** 腾讯云 cos 服务的 appid */
-    public final static String appid = "腾讯云appid";
-    public static final String secretId = "cos 服务密钥Id";
-    public static final String secretKey = "cos 服务密钥key";
-    public static final String bucketForBucketAPITest = "android-demo-ap-guangzhou";
+    public final static String appid = BuildConfig.APPID; //"腾讯云appid";
+    public static final String secretId = BuildConfig.SecretID; //"cos 服务密钥Id";
+    public static final String secretKey = BuildConfig.SecretKey; //"cos 服务密钥key";
+    public static final String bucketForBucketAPITest = BuildConfig.BucketForBucketTest; //"android-demo-ap-guangzhou";
     /** bucketForObjectAPITest 所处在的地域 */
-    public final static String region = Region.AP_Guangzhou.getRegion() ;
-    public static String bucketForObjectAPITest = "xmlandroidtest";
+    public final static String region = BuildConfig.Region; //Region.AP_Guangzhou.getRegion() ;
+    public static String bucketForObjectAPITest = BuildConfig.BucketForObjectTest; //"xmlandroidtest";
     public static CosXml cosXml;
 
     private QServer(Context context){

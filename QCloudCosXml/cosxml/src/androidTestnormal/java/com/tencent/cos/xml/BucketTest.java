@@ -63,7 +63,6 @@ import static com.tencent.cos.xml.QServer.TAG;
 
 @RunWith(AndroidJUnit4.class)
 public class BucketTest {
-
     private Context appContext;
     private String bucketName;
 
@@ -192,7 +191,6 @@ public class BucketTest {
         }
     }
 
-
     public void deleteBucket() throws CosXmlServiceException, CosXmlClientException {
         DeleteBucketRequest deleteBucketRequest = new DeleteBucketRequest(bucketName);
         DeleteBucketResult deleteBucketResult = QServer.cosXml.deleteBucket(deleteBucketRequest);
@@ -233,6 +231,7 @@ public class BucketTest {
         getBucketLocation();
         headBucket();
         putBucketCORS();
+        Thread.sleep(100);
         getBucketCORS();
         deleteBucketCORS();
         putBucketACL();
