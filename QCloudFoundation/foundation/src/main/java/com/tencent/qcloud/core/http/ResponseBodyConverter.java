@@ -19,6 +19,7 @@ public abstract class ResponseBodyConverter<T> {
      * @param response  需要解析的ResponseBody
      *
      * @throws QCloudClientException
+     * @throws QCloudServiceException
      */
     protected abstract T convert(HttpResponse<T> response) throws QCloudClientException, QCloudServiceException;
 

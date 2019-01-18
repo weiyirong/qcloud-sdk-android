@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.auth;
 
+import com.tencent.qcloud.core.http.HttpConfiguration;
+
 import static com.tencent.qcloud.core.auth.Utils.handleTimeAccuracy;
 
 /**
@@ -59,6 +61,13 @@ public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
         this.secretId = secretId;
         this.signKey = signKey;
         this.keyTime = keyTime;
+    }
+
+    @Override
+    public boolean isValid() {
+        long current = HttpConfiguration.getDeviceTimeWithOffset();
+        long[] times = Utils.parseKeyTimes(keyTime);
+        return current > times[0] && current < times[1] - AuthConstants.EXPIRE_TIME_RESERVE_IN_SECONDS;
     }
 
     @Override

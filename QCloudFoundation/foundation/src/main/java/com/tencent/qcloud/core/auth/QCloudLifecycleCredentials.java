@@ -12,16 +12,23 @@ package com.tencent.qcloud.core.auth;
 public interface QCloudLifecycleCredentials extends QCloudCredentials {
 
     /**
-     * 返回临时签名
+     * 返回临时密钥
      *
      * @return signKey
      */
     String getSignKey();
 
     /**
-     * 返回临时签名有效期
+     * 返回临时密钥有效期
      *
      * @return keyTime
      */
     String getKeyTime();
+
+    /**
+     * 返回密钥是否有效
+     *
+     * @return true 表示有效，false 表示无效
+     */
+    boolean isValid();
 }

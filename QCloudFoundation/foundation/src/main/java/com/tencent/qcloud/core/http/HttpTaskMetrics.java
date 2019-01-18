@@ -45,7 +45,7 @@ public class HttpTaskMetrics {
     }
 
     void onCalculateMD5End() {
-        calculateMD5STookTime = System.nanoTime() - calculateMD5StartTime;
+        calculateMD5STookTime += System.nanoTime() - calculateMD5StartTime;
     }
 
     void onSignRequestStart() {
@@ -53,7 +53,7 @@ public class HttpTaskMetrics {
     }
 
     void onSignRequestEnd() {
-        signRequestTookTime = System.nanoTime() - signRequestStartTime;
+        signRequestTookTime += System.nanoTime() - signRequestStartTime;
     }
 
     /**

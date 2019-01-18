@@ -1,7 +1,5 @@
 package com.tencent.qcloud.core.http;
 
-import android.util.Log;
-
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.logger.QCloudLogger;
@@ -13,10 +11,14 @@ import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
+import java.util.Date;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -25,6 +27,9 @@ import okhttp3.Interceptor;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.Buffer;
+import okio.BufferedSource;
 
 import static com.tencent.qcloud.core.http.QCloudHttpClient.HTTP_LOG_TAG;
 
@@ -38,6 +43,8 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
     private TrafficStrategy downloadTrafficStrategy = new AggressiveTrafficStrategy("DownloadStrategy-", 3);
 
     private RetryStrategy retryStrategy;
+
+    private static final int MIN_CLOCK_SKEWED_OFFSET = 600;
 
     private static class ResizableSemaphore extends Semaphore {
 
@@ -200,24 +207,26 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
 
     Response processRequest(Chain chain, Request request, HttpTask task) throws IOException {
         Response response = null;
-        IOException e = null;
+        IOException e;
 
         if (task == null || task.isCanceled()) {
             throw new IOException("CANCELED");
         }
 
         int attempts = 0;
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         TrafficStrategy strategy = getSuitableStrategy(task);
 
-        while (attempts < 1 || retryStrategy.shouldRetry(attempts, System.currentTimeMillis() - startTime)) {
+        while (true) {
             long waitTook = 0;
+            // wait for traffic control if necessary
             if (strategy != null) {
                 long before = System.currentTimeMillis();
                 strategy.waitForPermit();
                 waitTook = System.currentTimeMillis() - before;
             }
 
+            // wait for retry
             if (attempts > 0) {
                 long delay = retryStrategy.getNextDelay(attempts);
                 try {
@@ -230,11 +239,13 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
             QCloudLogger.i(HTTP_LOG_TAG, "%s start to execute, attempts is %d", request, attempts);
 
             attempts++;
-
             long startNs = System.nanoTime();
             int statusCode = -1;
             try {
                 response = executeTaskOnce(chain, request, task);
+                statusCode = response.code();
+                // because we want to calculate the whole task duration, including downloading procedure,
+                // we put download operation here
                 if (task.isDownloadTask()) {
                     task.convertResponse(response);
                 }
@@ -245,17 +256,38 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 e = e1.getCause() instanceof IOException ? (IOException) e1.getCause() : new IOException(e1);
             } catch (QCloudServiceException e2) {
                 e = e2.getCause() instanceof IOException ? (IOException) e2.getCause() : new IOException(e2);
-                statusCode = e2.getStatusCode();
             }
             long networkMillsTook = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+            // server date header
+            String serverDate = response != null ? response.header(HttpConstants.Header.DATE) : null;
 
-            if (e == null) {
+            if ((e == null && response.isSuccessful())) {
                 if (strategy != null) {
                     strategy.reportSpeed(request, task.getAverageStreamingSpeed(networkMillsTook));
                 }
+                if (serverDate != null) {
+                    HttpConfiguration.calculateGlobalTimeOffset(serverDate, new Date(), MIN_CLOCK_SKEWED_OFFSET);
+                }
                 break;
-            } else if (!isUserCancelled(e) && isRecoverable(e) && isRecoverable(statusCode)) {
-                QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s", request, e);
+            }
+
+            try {
+                String clockSkewError = getClockSkewError(response, statusCode);
+                if (clockSkewError != null) {
+                    QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s", request, clockSkewError);
+                    if (serverDate != null) {
+                        HttpConfiguration.calculateGlobalTimeOffset(serverDate, new Date());
+                    }
+                    // stop here, re sign request and try again
+                    e = new IOException(new QCloudServiceException("client clock skewed").setErrorCode(clockSkewError));
+                    break;
+                } else if (shouldRetry(request, response, attempts, startTime, e, statusCode)) {
+                    QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s, code is %d", request, e, statusCode);
+                } else {
+                    QCloudLogger.i(HTTP_LOG_TAG, "%s ends for %s, code is %d", request, e, statusCode);
+                    break;
+                }
+            } finally {
                 if (strategy != null) {
                     if (e instanceof SocketTimeoutException) {
                         strategy.reportTimeOut(request);
@@ -263,17 +295,10 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                         strategy.reportException(request, e);
                     }
                 }
-            } else {
-                QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s, and is not recoverable", request, e);
-                if (strategy != null) {
-                    strategy.reportException(request, e);
-                }
-                break;
             }
         }
 
         if (e != null) {
-            QCloudLogger.i(HTTP_LOG_TAG, "%s ends with error, %s", request, e);
             throw e;
         }
         return response;
@@ -312,17 +337,66 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
     }
 
     private boolean isUserCancelled(IOException exception) {
-        return exception.getMessage() != null && exception.getMessage().toLowerCase()
-                .equals("canceled");
+        return exception != null && exception.getMessage() != null &&
+                exception.getMessage().toLowerCase().equals("canceled");
     }
 
     Response processSingleRequest(Chain chain, Request request) throws IOException {
         return chain.proceed(request);
     }
 
-    private boolean isRecoverable(int statusCode) {
-        return statusCode != java.net.HttpURLConnection.HTTP_UNAUTHORIZED &&
-                statusCode != HttpURLConnection.HTTP_NOT_FOUND;
+    String getClockSkewError(Response response, int statusCode) {
+        if (response != null && statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
+            ResponseBody body = response.body();
+            if (body != null) {
+                try {
+                    BufferedSource source = body.source();
+                    source.request(Long.MAX_VALUE);
+                    Buffer buffer = source.buffer();
+                    String bodyString = buffer.clone().readString(Charset.forName("UTF-8"));
+                    Pattern patternCode = Pattern.compile("<Code>(RequestTimeTooSkewed|AccessDenied)</Code>");
+                    Pattern patternMessage = Pattern.compile("<Message>Request has expired</Message>");
+                    Matcher matcherCode = patternCode.matcher(bodyString);
+                    Matcher matcherMessage = patternMessage.matcher(bodyString);
+                    if (matcherCode.find()) {
+                        String code = matcherCode.group(1);
+                        if ("RequestTimeTooSkewed".equals(code)) {
+                            return QCloudServiceException.ERR0R_REQUEST_TIME_TOO_SKEWED;
+                        } else if ("AccessDenied".equals(code) && matcherMessage.find()) {
+                            return QCloudServiceException.ERR0R_REQUEST_IS_EXPIRED;
+                        }
+                    }
+                } catch (IOException e) {
+                    //ignore
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean shouldRetry(Request request, Response response, int attempts, long startTime, IOException e, int statusCode) {
+        if (isUserCancelled(e)) {
+            return false;
+        }
+
+        if (!retryStrategy.shouldRetry(attempts, System.nanoTime() - startTime)) {
+            return false;
+        }
+
+        QCloudHttpRetryHandler qCloudHttpRetryHandler = retryStrategy.getQCloudHttpRetryHandler();
+        if(!qCloudHttpRetryHandler.shouldRetry(request, response, e)){
+            return false;
+        }
+
+        if (e != null && isRecoverable(e)) {
+            return true;
+        }
+
+        return statusCode == HttpURLConnection.HTTP_SERVER_ERROR ||
+                statusCode == HttpURLConnection.HTTP_BAD_GATEWAY ||
+                statusCode == HttpURLConnection.HTTP_UNAVAILABLE ||
+                statusCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT;
     }
 
     private boolean isRecoverable(IOException e) {

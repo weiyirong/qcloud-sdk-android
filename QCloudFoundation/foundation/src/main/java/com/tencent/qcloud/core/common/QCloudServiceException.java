@@ -9,6 +9,9 @@ public class QCloudServiceException extends Exception {
     /** Default serial version UID. */
     private static final long serialVersionUID = 1L;
 
+    public static final String ERR0R_REQUEST_TIME_TOO_SKEWED = "RequestTimeTooSkewed";
+    public static final String ERR0R_REQUEST_IS_EXPIRED = "RequestIsExpired";
+
     /**
      * The unique qcloud identifier for the service request the caller made. The
      * qcloud request ID can uniquely identify the qcloud request, and is used for
@@ -103,8 +106,9 @@ public class QCloudServiceException extends Exception {
      *
      * @param errorCode The qcloud error code represented by this exception.
      */
-    public void setErrorCode(final String errorCode) {
+    public QCloudServiceException setErrorCode(final String errorCode) {
         this.errorCode = errorCode;
+        return this;
     }
 
     /**

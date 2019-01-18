@@ -1,13 +1,12 @@
 package com.tencent.qcloud.core.auth;
 
-import android.text.TextUtils;
-
 import com.tencent.qcloud.core.common.QCloudClientException;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * 带生命周期的密钥提供者，提供者会缓存上次请求得到的密钥，如果还在有效期内会直接被重用，过期了再次请求
  *
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  *
@@ -16,20 +15,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class BasicLifecycleCredentialProvider implements QCloudCredentialProvider {
 
-    private QCloudLifecycleCredentials credentials;
+    private volatile QCloudLifecycleCredentials credentials;
 
     private ReentrantLock lock = new ReentrantLock();
 
     @Override
-    public final QCloudCredentials getCredentials()  throws QCloudClientException {
-        if (needUpdateSignaturePair()) {
+    public QCloudCredentials getCredentials()  throws QCloudClientException {
+        QCloudLifecycleCredentials cred = safeGetCredentials();
+        if (cred == null || !cred.isValid()) {
             refresh();
+            return safeGetCredentials();
         }
-        return credentials;
+        return cred;
     }
 
     @Override
-    public final void refresh() throws QCloudClientException {
+    public void refresh() throws QCloudClientException {
         boolean locked = false;
         try {
             locked = lock.tryLock(20, TimeUnit.SECONDS);
@@ -38,8 +39,12 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
                 throw new QCloudClientException("lock timeout, no credential for sign");
             }
 
-            credentials = fetchNewCredentials();
-
+            QCloudLifecycleCredentials cred = safeGetCredentials();
+            if (cred == null || !cred.isValid()) {
+                safeSetCredentials(null);
+                QCloudLifecycleCredentials newCredentials = fetchNewCredentials();
+                safeSetCredentials(newCredentials);
+            }
         } catch (InterruptedException e) {
             throw new QCloudClientException("interrupt when try to get credential", e);
         } finally {
@@ -49,31 +54,19 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
         }
     }
 
-    public final void invalidate() {
-        credentials = null;
+    private synchronized void safeSetCredentials(QCloudLifecycleCredentials credentials) {
+        this.credentials = credentials;
     }
 
+    private synchronized QCloudLifecycleCredentials safeGetCredentials() {
+        return credentials;
+    }
+
+    /**
+     * 请求一个新的临时密钥
+     *
+     * @return 一个有效的临时密钥
+     * @throws QCloudClientException 如果请求超时或者失败，会抛出异常
+     */
     protected abstract QCloudLifecycleCredentials fetchNewCredentials() throws QCloudClientException;
-
-    private boolean needUpdateSignaturePair() {
-        if (credentials == null) {
-            return true;
-        }
-
-        String keyTime = credentials.getKeyTime(); // timestamp:expireTime;
-        if (TextUtils.isEmpty(keyTime)) {
-            return true;
-        }
-        String[] times = keyTime.split(";");
-        if (times.length != 2) {
-            return true;
-        }
-        String expire = times[1];
-        long expireTime = Long.valueOf(expire);
-        long currentTime = System.currentTimeMillis() / 1000;
-        if (currentTime > expireTime - 60) {
-            return true;
-        }
-        return false;
-    }
 }

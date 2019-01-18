@@ -4,6 +4,7 @@ package com.tencent.qcloud.core.http;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudCredentials;
 import com.tencent.qcloud.core.auth.QCloudSigner;
+import com.tencent.qcloud.core.auth.ScopeLimitCredentialProvider;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
@@ -12,6 +13,7 @@ import com.tencent.qcloud.core.task.TaskExecutors;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import bolts.CancellationTokenSource;
@@ -37,6 +39,8 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     private HttpResult<T> httpResult;
     private HttpTaskMetrics metrics;
 
+    private Field eventListenerFiled;
+
     private QCloudProgressListener mProgressListener = new QCloudProgressListener() {
         @Override
         public void onProgress(long complete, long target) {
@@ -50,6 +54,11 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         this.httpRequest = httpRequest;
         this.httpClient = httpClient;
         this.credentialProvider = credentialProvider;
+    }
+
+    public HttpTask<T> scheduleOn(Executor executor) {
+        scheduleOn(executor, new CancellationTokenSource());
+        return this;
     }
 
     public HttpTask<T> schedule() {
@@ -103,6 +112,14 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     }
 
     @Override
+    public void cancel() {
+        if (httpCall != null) {
+            httpCall.cancel();
+        }
+        super.cancel();
+    }
+
+    @Override
     protected HttpResult<T> execute() throws QCloudClientException, QCloudServiceException {
         if (metrics == null) {
             metrics = new HttpTaskMetrics();
@@ -118,13 +135,35 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         QCloudSigner signer = httpRequest.getQCloudSigner();
         if (signer != null) {
             metrics.onSignRequestStart();
-            signRequest(signer, httpRequest);
+            signRequest(signer, (QCloudHttpRequest) httpRequest);
             metrics.onSignRequestEnd();
         }
         if (httpRequest.getRequestBody() instanceof ProgressBody) {
             ((ProgressBody) httpRequest.getRequestBody()).setProgressListener(mProgressListener);
         }
 
+        try {
+            return executeHttpRequest(httpRequest);
+        } catch (QCloudServiceException serviceException) {
+            if (isClockSkewedError(serviceException)) {
+                // re sign request
+                if (signer != null) {
+                    metrics.onSignRequestStart();
+                    signRequest(signer, (QCloudHttpRequest) httpRequest);
+                    metrics.onSignRequestEnd();
+                }
+                // try again
+                return executeHttpRequest(httpRequest);
+            } else {
+                throw serviceException;
+            }
+        } finally {
+            metrics.onTaskEnd();
+        }
+    }
+
+    private HttpResult<T> executeHttpRequest(HttpRequest<T> httpRequest) throws QCloudClientException,
+            QCloudServiceException {
         QCloudClientException clientException = null;
         QCloudServiceException serviceException = null;
         Response response = null;
@@ -134,12 +173,14 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
             httpRequest.setOkHttpRequestTag(getIdentifier());
             Request okHttpRequest = httpRequest.buildRealRequest();
             httpCall = httpClient.getOkHttpCall(okHttpRequest);
-            try {
-                Field eventListenerFiled = httpCall.getClass().getDeclaredField("eventListener");
-                eventListenerFiled.setAccessible(true);
-                eventListener = (CallMetricsListener) eventListenerFiled.get(httpCall);
-            } catch (NoSuchFieldException ignore) {
-            } catch (IllegalAccessException ignore) {
+            if (eventListenerFiled == null) {
+                try {
+                    eventListenerFiled = httpCall.getClass().getDeclaredField("eventListener");
+                    eventListenerFiled.setAccessible(true);
+                    eventListener = (CallMetricsListener) eventListenerFiled.get(httpCall);
+                } catch (NoSuchFieldException ignore) {
+                } catch (IllegalAccessException ignore) {
+                }
             }
 
             response = httpCall.execute();
@@ -167,7 +208,6 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         if (eventListener != null) {
             eventListener.dumpMetrics(metrics);
         }
-        metrics.onTaskEnd();
 
         if (clientException != null) {
             throw clientException;
@@ -178,21 +218,25 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         }
     }
 
-    @Override
-    public void cancel() {
-        if (httpCall != null) {
-            httpCall.cancel();
-        }
-        super.cancel();
+    private boolean isClockSkewedError(QCloudServiceException serviceException) {
+        return QCloudServiceException.ERR0R_REQUEST_IS_EXPIRED.equals(serviceException.getErrorCode()) ||
+                QCloudServiceException.ERR0R_REQUEST_TIME_TOO_SKEWED.equals(serviceException.getErrorCode());
     }
 
-    private void signRequest(QCloudSigner signer, HttpRequest request) throws QCloudClientException {
+    private void signRequest(QCloudSigner signer, QCloudHttpRequest request) throws QCloudClientException {
         if (credentialProvider == null) {
             throw new QCloudClientException("no credentials provider");
         }
 
-        QCloudCredentials credentials = credentialProvider.getCredentials();
-        signer.sign((QCloudHttpRequest) request, credentials);
+        QCloudCredentials credentials;
+        // 根据 provider 类型判断是否需要传入 credential scope
+        if (credentialProvider instanceof ScopeLimitCredentialProvider) {
+            credentials = ((ScopeLimitCredentialProvider) credentialProvider).getCredentials(
+                    request.getCredentialScope());
+        } else {
+            credentials = credentialProvider.getCredentials();
+        }
+        signer.sign(request, credentials);
     }
 
     private void calculateContentMD5() throws QCloudClientException {

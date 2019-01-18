@@ -12,7 +12,7 @@ import com.tencent.qcloud.core.http.QCloudHttpRequest;
 
 public class COSXmlSigner implements QCloudSigner {
 
-    private final static String COS_SESSION_TOKEN = "x-cos-security-token";
+    final static String COS_SESSION_TOKEN = "x-cos-security-token";
 
     /**
      * 计算签名
@@ -51,17 +51,19 @@ public class COSXmlSigner implements QCloudSigner {
                 .append(AuthConstants.Q_SIGNATURE).append("=").append(signature);
         String auth = authorization.toString();
 
+        request.removeHeader(HttpConstants.Header.AUTHORIZATION);
         request.addHeader(HttpConstants.Header.AUTHORIZATION, auth);
 
         if (credentials instanceof SessionQCloudCredentials) {
             SessionQCloudCredentials sessionCredentials = (SessionQCloudCredentials) credentials;
+            request.removeHeader(COS_SESSION_TOKEN);
             request.addHeader(COS_SESSION_TOKEN, sessionCredentials.getToken());
         }
 
         sourceProvider.onSignRequestSuccess(request, credentials, auth);
     }
 
-    private String signature(String source, String signKey) throws QCloudClientException {
+    private String signature(String source, String signKey) {
         byte[] sha1Bytes = Utils.hmacSha1(source, signKey);
         String signature = "";
         if (sha1Bytes != null) {

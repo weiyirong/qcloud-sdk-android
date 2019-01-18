@@ -1,18 +1,13 @@
 package com.tencent.qcloud.core.auth;
 
-import android.util.Base64;
-
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.http.HttpRequest;
+import com.tencent.qcloud.core.http.HttpResult;
 import com.tencent.qcloud.core.http.QCloudHttpClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
 
 /**
  * Created by wjielai on 2017/8/31.
@@ -20,67 +15,80 @@ import java.util.TreeMap;
  * Copyright (c) 2010-2017 Tencent Cloud. All rights reserved.
  */
 
-public class SessionCredentialProvider extends ShortTimeCredentialProvider {
+public class SessionCredentialProvider extends BasicLifecycleCredentialProvider {
 
-    private String secretId;
-    private String secretKey;
-    private String appid;
-    private String userAgent;
-    private String region;
-    private String policy;
+    private HttpRequest<String> httpRequest;
+    private HttpRequest.Builder<String> requestBuilder;
 
-    private static final String DEFAULT_POLICY = "{\"statement\": [{\"action\": [\"name/cos:*\"],\"effect\": \"allow\"," +
-            "\"resource\":[\"qcs::cos:%s:uid/%s:prefix//%s/*\"]}],\"version\": \"2.0\"}";
+    public SessionCredentialProvider() {
 
-    @Deprecated
-    public SessionCredentialProvider(String secretId, String secretKey, String appid, String region,
-                                     String userAgent) {
-        super(secretId, secretKey, 0);
-        this.secretId = secretId;
-        this.secretKey = secretKey;
-        this.appid = appid;
-        this.userAgent = userAgent;
-        this.region = region;
     }
 
     public SessionCredentialProvider(HttpRequest<String> httpRequest) {
-        super(httpRequest);
+        this.httpRequest = httpRequest;
     }
 
-    /**
-     * 设置请求策略
-     *
-     * @param policy 策略
-     */
-    public void setPolicy(String policy) {
-        this.policy = policy;
+    public SessionCredentialProvider(HttpRequest.Builder<String> requestBuilder) {
+        this.requestBuilder = requestBuilder;
     }
 
     @Override
-    QCloudLifecycleCredentials onGetCredentialFromLocal(String secretId, String secretKey) throws QCloudClientException {
-        // 使用本地永久秘钥，通过 CAM 获取临时秘钥
-        try {
-            httpRequest = getRequestByKey();
-            String json = QCloudHttpClient.getDefault().resolveRequest(httpRequest).executeNow().content();
-            return parseCAMResponse(json);
-        } catch (QCloudServiceException e) {
-            throw new QCloudClientException("get session json fails", e);
+    protected QCloudLifecycleCredentials fetchNewCredentials() throws QCloudClientException {
+        HttpRequest<String> fetchSTSRequest = null;
+        if (httpRequest != null) {
+            fetchSTSRequest = buildRequest(httpRequest);
+        } else if (requestBuilder != null) {
+            fetchSTSRequest = buildRequest(requestBuilder);
+        }
+
+        if (fetchSTSRequest != null) {
+            try {
+                HttpResult<String> result = QCloudHttpClient.getDefault()
+                        .resolveRequest(fetchSTSRequest)
+                        .executeNow();
+                if (result.isSuccessful()) {
+                    return parseServerResponse(result.content());
+                } else {
+                    throw new QCloudClientException("fetch new credentials error ", result.asException());
+                }
+            } catch (QCloudServiceException e) {
+                throw new QCloudClientException("fetch new credentials error ", e);
+            }
+        } else {
+            throw new QCloudClientException("please pass http request object for fetching");
         }
     }
 
     /**
-     * 默认行为是解析 CAM 的标准返回格式
+     * 构建请求 Request，默认直接返回 {@link SessionCredentialProvider#SessionCredentialProvider(HttpRequest)} 中的参数
+     *
+     * @return 请求 Request
+     */
+    protected HttpRequest<String> buildRequest(HttpRequest<String> httpRequest) {
+        return httpRequest;
+    }
+
+    /**
+     * 构建请求 Request，默认直接返回 {@link SessionCredentialProvider#SessionCredentialProvider(HttpRequest.Builder)} 中的参数
+     *
+     * @return 请求 Request
+     */
+    protected HttpRequest<String> buildRequest(HttpRequest.Builder<String> requestBuilder) {
+        return requestBuilder.build();
+    }
+
+    /**
+     * 解析服务器返回的 json 数据，默认行为是解析 CAM 的标准返回格式
      *
      * @param jsonContent 返回json数据
      * @return 临时签名
      * @throws QCloudClientException 获取签名出错的异常
      */
-    @Override
-    protected QCloudLifecycleCredentials onRemoteCredentialReceived(String jsonContent) throws QCloudClientException {
-        return parseCAMResponse(jsonContent);
+    protected SessionQCloudCredentials parseServerResponse(String jsonContent) throws QCloudClientException {
+        return parseStandardSTSJsonResponse(jsonContent);
     }
 
-    private QCloudLifecycleCredentials parseCAMResponse(String jsonContent) throws QCloudClientException {
+    static SessionQCloudCredentials parseStandardSTSJsonResponse(String jsonContent) throws QCloudClientException {
         if (jsonContent != null) {
             try {
                 JSONObject jsonObject = new JSONObject(jsonContent);
@@ -89,12 +97,20 @@ public class SessionCredentialProvider extends ShortTimeCredentialProvider {
                     data = jsonObject;
                 }
                 JSONObject credentials = data.optJSONObject("credentials");
-                long expiredTime = data.optLong("expiredTime");
+                int code = data.optInt("code", -1);
                 if (credentials != null) {
+                    long expiredTime = data.optLong("expiredTime");
+                    long startTime = data.optLong("startTime");
                     String sessionToken = credentials.optString("sessionToken");
                     String tmpSecretId = credentials.optString("tmpSecretId");
                     String tmpSecretKey = credentials.optString("tmpSecretKey");
-                    return new SessionQCloudCredentials(tmpSecretId, tmpSecretKey, sessionToken, expiredTime);
+                    if (startTime > 0) {
+                        return new SessionQCloudCredentials(tmpSecretId, tmpSecretKey, sessionToken, startTime, expiredTime);
+                    } else {
+                        return new SessionQCloudCredentials(tmpSecretId, tmpSecretKey, sessionToken, expiredTime);
+                    }
+                } else if (code > 0) {
+                    throw new QCloudClientException("get credentials error : " + data.toString());
                 }
             } catch (JSONException e) {
                 throw new QCloudClientException("parse session json fails", e);
@@ -102,65 +118,5 @@ public class SessionCredentialProvider extends ShortTimeCredentialProvider {
         }
 
         return null;
-    }
-
-    private HttpRequest<String> getRequestByKey() {
-        String requestHost = "sts.api.qcloud.com";
-        String requestPath = "/v2/index.php";
-        String requestMethod = "GET";
-
-        Map<String, String> params = new TreeMap<>();
-
-        if (policy == null) {
-            policy = String.format(DEFAULT_POLICY, region, appid, appid);
-        }
-        params.put("policy", policy);
-        params.put("name", userAgent);
-        params.put("Action", "GetFederationToken");
-        params.put("SecretId", secretId);
-        params.put("Nonce", "" + new Random().nextInt(Integer.MAX_VALUE));
-        params.put("Timestamp", "" + System.currentTimeMillis() / 1000);
-        params.put("RequestClient", userAgent);
-
-        String plainText = makeSignPlainText(params, requestMethod,
-                requestHost, requestPath);
-
-        byte[] hmacSha1 = Utils.hmacSha1(plainText, secretKey);
-        if (hmacSha1 != null) {
-            params.put("Signature", Base64.encodeToString(hmacSha1, Base64.DEFAULT));
-        }
-
-        return new HttpRequest.Builder<String>()
-                .scheme("https")
-                .host(requestHost)
-                .path(requestPath)
-                .method(requestMethod)
-                .query(params)
-                .build();
-    }
-
-    private String makeSignPlainText(Map<String, String> requestParams, String requestMethod,
-                                            String requestHost, String requestPath) {
-        String retStr = "";
-        retStr += requestMethod;
-        retStr += requestHost;
-        retStr += requestPath;
-        retStr += buildParamStr(requestParams);
-
-        return retStr;
-    }
-
-    private String buildParamStr(Map<String, String> requestParams) {
-        StringBuilder retStr = new StringBuilder();
-        for(Map.Entry<String, String> entry : requestParams.entrySet()) {
-            if (retStr.length()==0) {
-                retStr.append('?');
-            } else {
-                retStr.append('&');
-            }
-            retStr.append(entry.getKey().replace("_", ".")).append('=').append(entry.getValue().toString());
-
-        }
-        return retStr.toString();
     }
 }

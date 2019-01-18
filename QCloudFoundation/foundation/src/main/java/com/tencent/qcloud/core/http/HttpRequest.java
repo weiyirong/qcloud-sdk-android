@@ -1,6 +1,5 @@
 package com.tencent.qcloud.core.http;
 
-import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSigner;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.util.QCloudStringUtils;
@@ -125,10 +124,6 @@ public class HttpRequest<T> {
         return requestBuilder.build();
     }
 
-    QCloudSignSourceProvider getSignProvider() {
-        return null;
-    }
-
     QCloudSigner getQCloudSigner() throws QCloudClientException {
         return null;
     }
@@ -185,6 +180,11 @@ public class HttpRequest<T> {
 
         public Builder<T> host(String host) {
             httpUrlBuilder.host(host);
+            return this;
+        }
+
+        public Builder<T> port(int port) {
+            httpUrlBuilder.port(port);
             return this;
         }
 

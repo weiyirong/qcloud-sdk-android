@@ -3,6 +3,7 @@ package com.tencent.qcloud.core.auth;
 import android.text.TextUtils;
 
 import com.tencent.qcloud.core.common.QCloudClientException;
+import com.tencent.qcloud.core.http.HttpConfiguration;
 import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpRequest;
 import com.tencent.qcloud.core.http.QCloudHttpRequest;
@@ -114,7 +115,7 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
                 if (HttpConstants.Header.CONTENT_MD5.equalsIgnoreCase(headerKey) ||
                         HttpConstants.Header.CONTENT_DISPOSITION.equalsIgnoreCase(headerKey) ||
                         HttpConstants.Header.CONTENT_ENCODING.equalsIgnoreCase(headerKey) ||
-                        headerKey.startsWith("x-cos-")) {
+                        (headerKey.startsWith("x-cos-") && !COSXmlSigner.COS_SESSION_TOKEN.equals(headerKey))) {
                     headerKeysRequiredToSign.add(headerKey);
                 }
             }
@@ -158,10 +159,7 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
 
             // 3、是否存在Date
             if (lowerCaseHeaders != null && lowerCaseHeaders.contains(DATE.toLowerCase())) {
-                Date d = new Date();
-                DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-                format.setTimeZone(TimeZone.getTimeZone("GMT"));
-                request.addHeader(DATE, format.format(d));
+                request.addHeader(DATE, HttpConfiguration.getGMTDate(new Date()));
             }
         }
 

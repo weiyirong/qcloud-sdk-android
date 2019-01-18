@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.task;
 
+import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
+
 /**
  * <p>
  * </p>
@@ -29,6 +31,7 @@ public class RetryStrategy {
 
     public static RetryStrategy FAIL_FAST = new RetryStrategy(0,
             0, 0);
+    private QCloudHttpRetryHandler qCloudHttpRetryHandler = QCloudHttpRetryHandler.DEFAULT;
 
     public RetryStrategy(int initBackoff, int maxBackoff, int maxAttempts) {
         this.initBackoff = initBackoff;
@@ -43,4 +46,13 @@ public class RetryStrategy {
     public boolean shouldRetry(int attempts, long millstook) {
         return attempts < maxAttempts;
     }
+
+    public void setRetryHandler(QCloudHttpRetryHandler qCloudHttpRetryHandler){
+        this.qCloudHttpRetryHandler = qCloudHttpRetryHandler;
+    }
+
+    public QCloudHttpRetryHandler getQCloudHttpRetryHandler(){
+        return qCloudHttpRetryHandler;
+    }
+
 }

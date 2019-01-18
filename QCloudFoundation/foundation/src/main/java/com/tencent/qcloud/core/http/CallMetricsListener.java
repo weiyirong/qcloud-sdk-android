@@ -121,7 +121,7 @@ class CallMetricsListener extends EventListener {
     @Override
     public void responseHeadersEnd(Call call, Response response) {
         super.responseHeadersEnd(call, response);
-        readResponseHeaderTookTime = System.nanoTime() - readResponseHeaderStartTime;
+        readResponseHeaderTookTime += System.nanoTime() - readResponseHeaderStartTime;
     }
 
     @Override
@@ -133,16 +133,16 @@ class CallMetricsListener extends EventListener {
     @Override
     public void responseBodyEnd(Call call, long byteCount) {
         super.responseBodyEnd(call, byteCount);
-        readResponseBodyTookTime = System.nanoTime() - readResponseBodyStartTime;
+        readResponseBodyTookTime += System.nanoTime() - readResponseBodyStartTime;
     }
 
     void dumpMetrics(HttpTaskMetrics metrics) {
-        metrics.dnsLookupTookTime = dnsLookupTookTime;
-        metrics.connectTookTime = connectTookTime;
-        metrics.secureConnectTookTime = secureConnectTookTime;
-        metrics.writeRequestHeaderTookTime = writeRequestHeaderTookTime;
-        metrics.writeRequestBodyTookTime = writeRequestBodyTookTime;
-        metrics.readResponseHeaderTookTime = readResponseHeaderTookTime;
-        metrics.readResponseBodyTookTime = readResponseBodyTookTime;
+        metrics.dnsLookupTookTime += dnsLookupTookTime;
+        metrics.connectTookTime += connectTookTime;
+        metrics.secureConnectTookTime += secureConnectTookTime;
+        metrics.writeRequestHeaderTookTime += writeRequestHeaderTookTime;
+        metrics.writeRequestBodyTookTime += writeRequestBodyTookTime;
+        metrics.readResponseHeaderTookTime += readResponseHeaderTookTime;
+        metrics.readResponseBodyTookTime += readResponseBodyTookTime;
     }
 }

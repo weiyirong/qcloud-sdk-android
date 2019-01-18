@@ -3,6 +3,7 @@ package com.tencent.qcloud.core.http;
 
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSigner;
+import com.tencent.qcloud.core.auth.STSCredentialScope;
 import com.tencent.qcloud.core.auth.SignerFactory;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.util.QCloudStringUtils;
@@ -20,16 +21,22 @@ public final class QCloudHttpRequest<T> extends HttpRequest<T> {
 
     private final QCloudSignSourceProvider signProvider;
     private final String signerType;
+    private final STSCredentialScope[] credentialScope;
 
     public QCloudHttpRequest(Builder<T> builder) {
         super(builder);
 
         signerType = builder.signerType;
         signProvider = builder.signProvider;
+        credentialScope = builder.credentialScope;
     }
 
     public QCloudSignSourceProvider getSignProvider() {
-        return shouldCalculateAuth() ? signProvider : null;
+        return signProvider;
+    }
+
+    public STSCredentialScope[] getCredentialScope() {
+        return credentialScope;
     }
 
     QCloudSigner getQCloudSigner() throws QCloudClientException {
@@ -52,10 +59,16 @@ public final class QCloudHttpRequest<T> extends HttpRequest<T> {
 
         private QCloudSignSourceProvider signProvider;
         private String signerType;
+        private STSCredentialScope[] credentialScope;
 
         public Builder<T> signer(String signerType, QCloudSignSourceProvider signProvider) {
             this.signerType = signerType;
             this.signProvider = signProvider;
+            return this;
+        }
+
+        public Builder<T> credentialScope(STSCredentialScope[] credentialScope) {
+            this.credentialScope = credentialScope;
             return this;
         }
 
@@ -77,6 +90,11 @@ public final class QCloudHttpRequest<T> extends HttpRequest<T> {
         @Override
         public Builder<T> host(String host) {
             return (Builder<T>) super.host(host);
+        }
+
+        @Override
+        public Builder<T> port(int port) {
+            return (Builder<T>) super.port(port);
         }
 
         @Override

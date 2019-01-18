@@ -164,8 +164,7 @@ public final class QCloudHttpClient {
 
     private <T> HttpTask<T> handleRequest(HttpRequest<T> request,
                                             QCloudCredentialProvider credentialProvider) {
-        request.addHeader(HttpConstants.Header.HOST, request.host());
-
+        //request.addHeader(HttpConstants.Header.HOST, request.host());
         return new HttpTask<>(request, credentialProvider, this);
     }
 
@@ -173,6 +172,7 @@ public final class QCloudHttpClient {
         int connectionTimeout = 15 * 1000;  //in milliseconds
         int socketTimeout = 30 * 1000;  //in milliseconds
         RetryStrategy retryStrategy;
+        QCloudHttpRetryHandler qCloudHttpRetryHandler;
         OkHttpClient.Builder mBuilder;
 
         public Builder() {
@@ -199,6 +199,11 @@ public final class QCloudHttpClient {
             return this;
         }
 
+        public Builder setQCloudHttpRetryHandler(QCloudHttpRetryHandler qCloudHttpRetryHandler) {
+            this.qCloudHttpRetryHandler = qCloudHttpRetryHandler;
+            return this;
+        }
+
         public Builder setInheritBuilder(OkHttpClient.Builder builder) {
             mBuilder = builder;
             return this;
@@ -207,6 +212,9 @@ public final class QCloudHttpClient {
         public QCloudHttpClient build() {
             if (retryStrategy == null) {
                 retryStrategy = RetryStrategy.DEFAULT;
+            }
+            if(qCloudHttpRetryHandler != null){
+                retryStrategy.setRetryHandler(qCloudHttpRetryHandler);
             }
             if (mBuilder == null) {
                 mBuilder = new OkHttpClient.Builder();

@@ -24,6 +24,7 @@ public class Utils {
     private static final char[] DIGITS_UPPER;
 
     private static Calendar calendar = Calendar.getInstance();
+
     static {
         calendar.set(2010, 0, 1);
     }
@@ -80,7 +81,7 @@ public class Utils {
 
     public static byte[] sha1(String data) {
         try {
-            MessageDigest messageDigest =  MessageDigest.getInstance("SHA-1");
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
             return messageDigest.digest(QCloudStringUtils.getBytesUTF8(data));
         } catch (NoSuchAlgorithmException var2) {
             throw new IllegalArgumentException(var2);
@@ -126,5 +127,14 @@ public class Utils {
         } else {
             return digit;
         }
+    }
+
+    static long[] parseKeyTimes(String keyTime) {
+        String[] times = keyTime.split(";");
+        long beginTime = Long.parseLong(times[0]);
+        long expireTime = Long.parseLong(times[1]);
+        return new long[] {
+            beginTime, expireTime
+        };
     }
 }

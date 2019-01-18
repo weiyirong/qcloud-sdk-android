@@ -23,8 +23,6 @@ import okio.Okio;
 import okio.Source;
 
 /**
- * <p>
- * </p>
  * Created by wjielai on 2017/11/29.
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
