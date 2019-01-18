@@ -16,6 +16,7 @@ import com.tencent.cos.xml.model.object.ListPartsRequest;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
+import com.tencent.qcloud.core.http.HttpTaskMetrics;
 
 import java.util.List;
 import java.util.Map;
@@ -46,8 +47,6 @@ public abstract class COSXMLTask {
 
     /** header 属性 */
     protected Map<String, List<String>> headers;
-    /** 设置 QCloudSignSourceProvider */
-    protected QCloudSignSourceProvider cosXmlSignSourceProvider;
     /** 是否需要计算 MD5 */
     protected boolean isNeedMd5 = true;
     /** register some callback */
@@ -61,6 +60,9 @@ public abstract class COSXMLTask {
 
     /** 直接提供签名串 */
     protected OnSignatureListener onSignatureListener;
+
+    /** 获取 http metrics */
+    protected OnGetHttpTaskMetrics onGetHttpTaskMetrics;
 
     protected void setCosXmlService(CosXmlSimpleService cosXmlService){
         this.cosXmlService = cosXmlService;
@@ -95,6 +97,22 @@ public abstract class COSXMLTask {
 
     public void setOnSignatureListener(OnSignatureListener onSignatureListener){
         this.onSignatureListener = onSignatureListener;
+    }
+
+    public void setOnGetHttpTaskMetrics(OnGetHttpTaskMetrics onGetHttpTaskMetrics){
+        this.onGetHttpTaskMetrics = onGetHttpTaskMetrics;
+    }
+
+    protected void getHttpMetrics(CosXmlRequest cosXmlRequest, final String requestName){
+        if(onGetHttpTaskMetrics != null){
+            cosXmlRequest.attachMetrics(new HttpTaskMetrics(){
+                @Override
+                public void onDataReady() {
+                    super.onDataReady();
+                    onGetHttpTaskMetrics.onGetHttpMetrics(requestName, this);
+                }
+            });
+        }
     }
 
     public abstract void pause();
@@ -218,5 +236,9 @@ public abstract class COSXMLTask {
          * @see AbortMultiUploadRequest
          */
         String onGetSign(CosXmlRequest cosXmlRequest);
+    }
+
+    public interface OnGetHttpTaskMetrics{
+        void onGetHttpMetrics(String requestName, HttpTaskMetrics httpTaskMetrics);
     }
 }

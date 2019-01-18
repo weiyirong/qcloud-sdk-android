@@ -70,7 +70,7 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
             }
         }
         MTAProxy.getInstance().reportCosXmlServerException(ResponseXmlS3BodySerializer.class.getSimpleName(),
-                String.format(Locale.ENGLISH, "%s %s",cosXmlServiceException.getErrorCode(), cosXmlServiceException.getErrorMessage()));
+                String.format(Locale.ENGLISH, "%s %s",cosXmlServiceException.getStatusCode(), cosXmlServiceException.getErrorCode()));
         throw cosXmlServiceException;
     }
 

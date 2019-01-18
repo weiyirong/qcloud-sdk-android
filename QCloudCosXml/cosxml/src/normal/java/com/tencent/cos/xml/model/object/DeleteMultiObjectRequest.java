@@ -7,6 +7,7 @@ import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.Delete;
 import com.tencent.cos.xml.transfer.XmlBuilder;
+import com.tencent.qcloud.core.auth.STSCredentialScope;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -73,6 +74,17 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         }
     }
 
+    @Override
+    public STSCredentialScope[] getSTSCredentialScope(CosXmlServiceConfig config) {
+        STSCredentialScope[] scopes = new STSCredentialScope[delete.deleteObjects.size()];
+        int i = 0;
+        for (Delete.DeleteObject deleteObject : delete.deleteObjects) {
+            scopes[i++] = new STSCredentialScope("name/cos:DeleteObject", config.getBucket(bucket),
+                    config.getRegion(), deleteObject.key);
+        }
+
+        return scopes;
+    }
 
     @Override
     public String getPath(CosXmlServiceConfig config) {

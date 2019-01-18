@@ -123,7 +123,6 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
                 copyObjectRequest.getCopySource());
         this.queries = copyObjectRequest.getQueryString();
         this.headers = copyObjectRequest.getRequestHeaders();
-        this.cosXmlSignSourceProvider = copyObjectRequest.getSignSourceProvider();
         this.isNeedMd5 = copyObjectRequest.isNeedMD5();
     }
 
@@ -139,9 +138,9 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             copyObjectRequest.setSign(onSignatureListener.onGetSign(copyObjectRequest));
-        }else {
-            copyObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(copyObjectRequest, "CopyObjectRequest");
 
         copyObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
@@ -201,9 +200,9 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             initMultipartUploadRequest.setSign(onSignatureListener.onGetSign(initMultipartUploadRequest));
-        }else {
-            initMultipartUploadRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(initMultipartUploadRequest, "InitMultipartUploadRequest");
 
         initMultipartUploadRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
@@ -259,9 +258,9 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             listPartsRequest.setSign(onSignatureListener.onGetSign(listPartsRequest));
-        }else {
-            listPartsRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(listPartsRequest, "ListPartsRequest");
 
         listPartsRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
@@ -321,9 +320,9 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
                 if(onSignatureListener != null){
                     uploadPartCopyRequest.setSign(onSignatureListener.onGetSign(uploadPartCopyRequest));
-                }else {
-                    uploadPartCopyRequest.setSignSourceProvider(cosXmlSignSourceProvider);
                 }
+
+                getHttpMetrics(uploadPartCopyRequest, "UploadPartCopyRequest");
 
                 uploadPartCopyRequest.setTaskStateListener(new QCloudTaskStateListener() {
                     @Override
@@ -376,9 +375,9 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             completeMultiUploadRequest.setSign(onSignatureListener.onGetSign(completeMultiUploadRequest));
-        }else {
-            completeMultiUploadRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(completeMultiUploadRequest, "CompleteMultiUploadRequest");
 
         completeMultiUploadRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
@@ -449,9 +448,9 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             abortMultiUploadRequest.setSign(onSignatureListener.onGetSign(abortMultiUploadRequest));
-        }else {
-            abortMultiUploadRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(abortMultiUploadRequest, "AbortMultiUploadRequest");
 
         cosXmlService.abortMultiUploadAsync(abortMultiUploadRequest, new CosXmlResultListener() {
             @Override
@@ -559,9 +558,9 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             headObjectRequest.setSign(onSignatureListener.onGetSign(headObjectRequest));
-        }else {
-            headObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(headObjectRequest, "HeadObjectRequest");
 
         headObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override

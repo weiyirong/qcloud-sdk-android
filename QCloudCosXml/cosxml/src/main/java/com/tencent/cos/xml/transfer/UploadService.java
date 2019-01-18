@@ -24,6 +24,7 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
 import com.tencent.cos.xml.utils.SharePreferenceUtils;
+import com.tencent.qcloud.core.http.HttpTaskMetrics;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.io.File;
@@ -73,6 +74,7 @@ public class UploadService {
     private EncryptionType encryptionType = EncryptionType.NONE;
     private boolean isSupportAccelerate = false;
     private OnSignatureListener onSignatureListener;
+    private OnGetHttpTaskMetrics onGetHttpTaskMetrics;
 
     public UploadService(CosXmlSimpleService cosXmlService, ResumeData resumeData){
         this.cosXmlService = cosXmlService;
@@ -165,6 +167,22 @@ public class UploadService {
 
     public void setOnSignatureListener(OnSignatureListener onSignatureListener){
         this.onSignatureListener = onSignatureListener;
+    }
+
+    public void setOnGetHttpTaskMetrics(OnGetHttpTaskMetrics onGetHttpTaskMetrics){
+        this.onGetHttpTaskMetrics = onGetHttpTaskMetrics;
+    }
+
+    private void getHttpMetrics(CosXmlRequest cosXmlRequest, final String requestName){
+        if(onGetHttpTaskMetrics != null){
+            cosXmlRequest.attachMetrics(new HttpTaskMetrics(){
+                @Override
+                public void onDataReady() {
+                    super.onDataReady();
+                    onGetHttpTaskMetrics.onGetHttpMetrics(requestName, this);
+                }
+            });
+        }
     }
 
     public void setRequestHeaders(String key, String value){
@@ -281,6 +299,8 @@ public class UploadService {
         }else {
             setSignTime(putObjectRequest);
         }
+
+        getHttpMetrics(putObjectRequest, "PutObjectRequest");
 
         setRequestHeaders(putObjectRequest);
         setSupportAccelerate(putObjectRequest);
@@ -449,6 +469,8 @@ public class UploadService {
             setSignTime(initMultipartUploadRequest);
         }
 
+        getHttpMetrics(initMultipartUploadRequest, "InitMultipartUploadRequest");
+
         setRequestHeaders(initMultipartUploadRequest);
         setSupportAccelerate(initMultipartUploadRequest);
         setEncryption(initMultipartUploadRequest);
@@ -467,6 +489,8 @@ public class UploadService {
         }else {
             setSignTime(listPartsRequest);
         }
+
+        getHttpMetrics(listPartsRequest, "ListPartsRequest");
 
         setRequestHeaders(listPartsRequest);
         setSupportAccelerate(listPartsRequest);
@@ -488,6 +512,8 @@ public class UploadService {
         }else {
             setSignTime(uploadPartRequest);
         }
+
+        getHttpMetrics(uploadPartRequest, "UploadPartRequest");
 
         try {
             setRequestHeaders(uploadPartRequest);
@@ -537,6 +563,8 @@ public class UploadService {
             setSignTime(completeMultiUploadRequest);
         }
 
+        getHttpMetrics(completeMultiUploadRequest, "CompleteMultiUploadResult");
+
         setRequestHeaders(completeMultiUploadRequest);
         setSupportAccelerate(completeMultiUploadRequest);
         //setEncryption(completeMultiUploadRequest);
@@ -558,6 +586,8 @@ public class UploadService {
         }else {
             setSignTime(abortMultiUploadRequest);
         }
+
+        getHttpMetrics(abortMultiUploadRequest, "AbortMultiUploadRequest");
 
         try {
             setRequestHeaders(abortMultiUploadRequest);
@@ -705,5 +735,9 @@ public class UploadService {
          * @return String
          */
         String onGetSign(CosXmlRequest cosXmlRequest);
+    }
+
+    public interface OnGetHttpTaskMetrics{
+        void onGetHttpMetrics(String requestName, HttpTaskMetrics httpTaskMetrics);
     }
 }

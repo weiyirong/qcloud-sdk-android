@@ -24,7 +24,7 @@ import java.util.Map;
  * @see com.tencent.cos.xml.SimpleCosXml#completeMultiUpload(CompleteMultiUploadRequest)
  * @see com.tencent.cos.xml.SimpleCosXml#completeMultiUploadAsync(CompleteMultiUploadRequest, CosXmlResultListener)
  */
-final public class CompleteMultiUploadRequest extends ObjectRequest{
+final public class CompleteMultiUploadRequest extends BaseMultipartUploadRequest{
 
     /**
      * @see CompleteMultipartUpload

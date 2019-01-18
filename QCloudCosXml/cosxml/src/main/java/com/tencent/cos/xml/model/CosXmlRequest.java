@@ -7,6 +7,7 @@ import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
 import com.tencent.qcloud.core.auth.COSXmlSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
+import com.tencent.qcloud.core.auth.STSCredentialScope;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
 import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpTask;
@@ -156,10 +157,14 @@ public abstract class CosXmlRequest{
     }
 
     public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
+        return getHost(config, isSupportAccelerate, false);
+    }
+
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate, boolean isHeader){
         if (TextUtils.isEmpty(bucket)) {
             throw new IllegalArgumentException("bucket is null");
         }
-        return config.getHost(bucket, region, isSupportAccelerate);
+        return config.getHost(bucket, region, isSupportAccelerate, isHeader);
     }
 
     public void isSupportAccelerate(boolean isSupportAccelerate){
@@ -183,6 +188,13 @@ public abstract class CosXmlRequest{
 
     public void setSignSourceProvider(QCloudSignSourceProvider cosXmlSignSourceProvider){
         this.signSourceProvider = cosXmlSignSourceProvider;
+    }
+
+    public STSCredentialScope[] getSTSCredentialScope(CosXmlServiceConfig config) {
+        String action = "name/cos:" + getClass().getSimpleName().replace("Request", "");
+        STSCredentialScope scope = new STSCredentialScope(action, config.getBucket(bucket),
+                config.getRegion(), getPath(config));
+        return scope.toArray();
     }
 
     /**

@@ -1,8 +1,5 @@
 package com.tencent.cos.xml.transfer;
 
-
-import android.util.Log;
-
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -27,6 +24,7 @@ import com.tencent.qcloud.core.common.QCloudTaskStateListener;
 import com.tencent.qcloud.core.http.HttpTask;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,6 +49,12 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     private String srcPath;
     /** 源文件的长度 */
     private long fileLength;
+
+    /** 字节数组, COSXMLUploadTask 中只支持简单上传 */
+    private byte[] bytes;
+
+    /** 字节流，COSXMLUploadTask 中只支持简单上传 */
+    private InputStream inputStream;
 
     /** 简单上传 */
     private PutObjectRequest putObjectRequest;
@@ -124,12 +128,27 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
         this.cosXmlService = cosXmlService;
     }
 
+    COSXMLUploadTask(CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, byte[] bytes){
+        this.region = region;
+        this.bucket = bucket;
+        this.cosPath = cosPath;
+        this.bytes = bytes;
+        this.cosXmlService = cosXmlService;
+    }
+
+    COSXMLUploadTask(CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, InputStream inputStream){
+        this.region = region;
+        this.bucket = bucket;
+        this.cosPath = cosPath;
+        this.inputStream = inputStream;
+        this.cosXmlService = cosXmlService;
+    }
+
     COSXMLUploadTask(CosXmlSimpleService cosXmlService, PutObjectRequest putObjectRequest, String uploadId){
         this(cosXmlService, putObjectRequest.getRegion(), putObjectRequest.getBucket(), putObjectRequest.getPath(cosXmlService.getConfig()),
                 putObjectRequest.getSrcPath(), uploadId);
         this.queries = putObjectRequest.getQueryString();
         this.headers = putObjectRequest.getRequestHeaders();
-        this.cosXmlSignSourceProvider = putObjectRequest.getSignSourceProvider();
         this.isNeedMd5 = putObjectRequest.isNeedMD5();
     }
 
@@ -141,16 +160,21 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     }
 
     private void simpleUpload(CosXmlSimpleService cosXmlService){
-        putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
+        if(bytes != null){
+            putObjectRequest = new PutObjectRequest(bucket, cosPath, bytes);
+        }else if(inputStream != null){
+            putObjectRequest = new PutObjectRequest(bucket, cosPath, inputStream);
+        }else {
+            putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
+        }
         putObjectRequest.setRegion(region);
         putObjectRequest.setNeedMD5(isNeedMd5);
         putObjectRequest.setRequestHeaders(headers);
 
         if(onSignatureListener != null){
             putObjectRequest.setSign(onSignatureListener.onGetSign(putObjectRequest));
-        }else {
-            putObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+        getHttpMetrics(putObjectRequest, "PutObjectRequest");
 
         putObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
@@ -216,9 +240,9 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             initMultipartUploadRequest.setSign(onSignatureListener.onGetSign(initMultipartUploadRequest));
-        }else {
-            initMultipartUploadRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(initMultipartUploadRequest, "InitMultipartUploadRequest");
 
         initMultipartUploadRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
@@ -254,9 +278,9 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             listPartsRequest.setSign(onSignatureListener.onGetSign(listPartsRequest));
-        }else {
-            listPartsRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(listPartsRequest, "ListPartsRequest");
 
         listPartsRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
@@ -302,9 +326,9 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
 
                 if(onSignatureListener != null){
                     uploadPartRequest.setSign(onSignatureListener.onGetSign(uploadPartRequest));
-                }else {
-                    uploadPartRequest.setSignSourceProvider(cosXmlSignSourceProvider);
                 }
+
+                getHttpMetrics(uploadPartRequest, "UploadPartRequest");
 
                 uploadPartRequestLongMap.put(uploadPartRequest, 0L);
                 uploadPartRequest.setProgressListener(new CosXmlProgressListener() {
@@ -365,9 +389,9 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             completeMultiUploadRequest.setSign(onSignatureListener.onGetSign(completeMultiUploadRequest));
-        }else {
-            completeMultiUploadRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(completeMultiUploadRequest, "CompleteMultiUploadRequest");
 
         cosXmlService.completeMultiUploadAsync(completeMultiUploadRequest, new CosXmlResultListener() {
             @Override
@@ -419,9 +443,9 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             abortMultiUploadRequest.setSign(onSignatureListener.onGetSign(abortMultiUploadRequest));
-        }else {
-            abortMultiUploadRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(abortMultiUploadRequest, "AbortMultiUploadRequest");
 
         cosXmlService.abortMultiUploadAsync(abortMultiUploadRequest, new CosXmlResultListener() {
             @Override
@@ -478,6 +502,14 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     @Override
     public void resume() {
         if(updateState(TransferState.RESUMED_WAITING)){
+            if(inputStream != null){
+                CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.SINK_SOURCE_NOT_FOUND.getCode(), "inputStream closed");
+                mException = cosXmlClientException;
+                if(cosXmlResultListener != null){
+                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
+                }
+                return;
+            }
             upload();
         }
     }
@@ -558,6 +590,12 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     @Override
     public void run() {
         updateState(TransferState.WAITING); // waiting
+        //bytes or inputStream using simple upload method
+        if(bytes != null || inputStream != null){
+            simpleUpload(cosXmlService);
+            return;
+        }
+
         File file = new File(srcPath);
         if(!file.exists() || file.isDirectory() || !file.canRead()){
             if(updateState(TransferState.FAILED)){

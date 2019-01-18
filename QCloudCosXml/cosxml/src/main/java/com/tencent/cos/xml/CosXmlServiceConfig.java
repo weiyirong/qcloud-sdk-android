@@ -5,7 +5,10 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.tencent.cos.xml.common.VersionInfo;
+import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
 import com.tencent.qcloud.core.task.RetryStrategy;
+
+import java.util.concurrent.Executor;
 
 /**
  * Client configuration options such as timeout settings, protocol string, max
@@ -34,6 +37,7 @@ public class CosXmlServiceConfig {
     private String appid;
 
     private String host;
+    private int port;
     private String endpointSuffix;
 
     private boolean bucketInPath;
@@ -41,9 +45,12 @@ public class CosXmlServiceConfig {
     private boolean isDebuggable;
 
     private RetryStrategy retryStrategy;
+    private QCloudHttpRetryHandler qCloudHttpRetryHandler;
 
     private int connectionTimeout;
     private int socketTimeout;
+
+    private Executor executor;
 
     public CosXmlServiceConfig(Builder builder) {
         this.protocol = builder.protocol;
@@ -53,6 +60,7 @@ public class CosXmlServiceConfig {
         this.appid = builder.appid;
         this.region = builder.region;
         this.host = builder.host;
+        this.port = builder.port;
         this.endpointSuffix = builder.endpointSuffix;
         this.bucketInPath = builder.bucketInPath;
         if (TextUtils.isEmpty(endpointSuffix) && TextUtils.isEmpty(region) &&
@@ -61,8 +69,11 @@ public class CosXmlServiceConfig {
         }
 
         this.retryStrategy = builder.retryStrategy;
+        this.qCloudHttpRetryHandler = builder.qCloudHttpRetryHandler;
         this.socketTimeout = builder.socketTimeout;
         this.connectionTimeout = builder.connectionTimeout;
+
+        this.executor = builder.executor;
     }
 
     public String getProtocol() {
@@ -77,6 +88,18 @@ public class CosXmlServiceConfig {
         return region;
     }
 
+    public String getBucket(String bucket) {
+        return getBucket(bucket, appid);
+    }
+
+    public String getBucket(String bucket, String appid) {
+        String myBucket = bucket;
+        if (bucket != null && !bucket.endsWith("-" + appid) && !TextUtils.isEmpty(appid)){
+            myBucket = bucket + "-" + appid;
+        }
+        return myBucket;
+    }
+
     public String getAppid() {
         return appid;
     }
@@ -86,21 +109,28 @@ public class CosXmlServiceConfig {
         return getHost(bucket, null, isSupportAccelerate);
     }
 
+    public int getPort(){
+        return port;
+    }
+
+    @Deprecated
     public String getHost(String bucket, String region,
                           boolean isSupportAccelerate) {
         return getHost(bucket, region, appid, isSupportAccelerate);
     }
 
     public String getHost(String bucket, String region,
-                          String appId, boolean isSupportAccelerate) {
-        if (!TextUtils.isEmpty(host)) {
+                          boolean isSupportAccelerate, boolean isHeader) {
+        return getHost(bucket, region, appid, isSupportAccelerate, isHeader);
+    }
+
+    public String getHost(String bucket, String region,
+                          String appId, boolean isSupportAccelerate, boolean isHeader){
+        if (!isHeader && !TextUtils.isEmpty(host)) {
             return host;
         }
 
-        String myBucket = bucket;
-        if (!bucket.endsWith("-" + appId) && !TextUtils.isEmpty(appId)){
-            myBucket = bucket + "-" + appId;
-        }
+        String myBucket = getBucket(bucket, appId);
 
         String hostBuilder = "";
         if (!bucketInPath) {
@@ -108,6 +138,12 @@ public class CosXmlServiceConfig {
         }
         hostBuilder += getEndpointSuffix(region, isSupportAccelerate);
         return hostBuilder;
+    }
+
+    @Deprecated
+    public String getHost(String bucket, String region,
+                          String appId, boolean isSupportAccelerate) {
+        return getHost(bucket, region, appId, isSupportAccelerate, false);
     }
 
     public String getEndpointSuffix() {
@@ -204,6 +240,14 @@ public class CosXmlServiceConfig {
         return retryStrategy;
     }
 
+    public QCloudHttpRetryHandler getQCloudHttpRetryHandler(){
+        return qCloudHttpRetryHandler;
+    }
+
+    public Executor getExecutor(){
+        return executor;
+    }
+
     public final static class Builder {
 
         private String protocol;
@@ -212,6 +256,7 @@ public class CosXmlServiceConfig {
         private String region;
         private String appid;
         private String host;
+        private int port = -1;
         private String endpointSuffix;
 
         private boolean bucketInPath;
@@ -219,9 +264,12 @@ public class CosXmlServiceConfig {
         private boolean isDebuggable;
 
         private RetryStrategy retryStrategy;
+        private QCloudHttpRetryHandler qCloudHttpRetryHandler;
 
         private int connectionTimeout = 15 * 1000;  //in milliseconds
         private int socketTimeout = 30 * 1000;  //in milliseconds
+
+        private Executor executor;
 
         public Builder() {
             protocol = HTTP_PROTOCOL;
@@ -286,7 +334,8 @@ public class CosXmlServiceConfig {
         public Builder setHost(Uri uri) {
             this.host = uri.getHost();
             if (uri.getPort() != -1) {
-                this.host += ":" + uri.getPort();
+//                this.host += ":" + uri.getPort();
+                this.port = uri.getPort();
             }
             this.protocol = uri.getScheme();
             return this;
@@ -302,8 +351,18 @@ public class CosXmlServiceConfig {
             return this;
         }
 
+        public Builder setRetryHandler(QCloudHttpRetryHandler qCloudHttpRetryHandler){
+            this.qCloudHttpRetryHandler = qCloudHttpRetryHandler;
+            return this;
+        }
+
         public Builder setBucketInPath(boolean bucketInPath) {
             this.bucketInPath = bucketInPath;
+            return this;
+        }
+
+        public Builder setExecutor(Executor excutor){
+            this.executor = excutor;
             return this;
         }
 

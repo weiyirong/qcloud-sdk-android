@@ -17,7 +17,7 @@ import java.util.Map;
  * @see com.tencent.cos.xml.SimpleCosXml#abortMultiUpload(AbortMultiUploadRequest)
  * @see com.tencent.cos.xml.SimpleCosXml#abortMultiUploadAsync(AbortMultiUploadRequest, CosXmlResultListener)
 */
-final public class AbortMultiUploadRequest extends ObjectRequest {
+final public class AbortMultiUploadRequest extends BaseMultipartUploadRequest {
 
     /** 初始化分片返回的 uploadId */
     private String uploadId;

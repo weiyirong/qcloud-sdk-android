@@ -14,7 +14,7 @@ import java.util.Map;
  * 关于查询特定分块上传中的已上传块接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7747">
  * https://cloud.tencent.com/document/product/436/7747.</a><br>
  */
-final public class ListPartsRequest extends ObjectRequest {
+final public class ListPartsRequest extends BaseMultipartUploadRequest {
 
     private String uploadId;
     private String maxParts;

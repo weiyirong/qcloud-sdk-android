@@ -13,6 +13,7 @@ import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.ACLAccount;
 import com.tencent.cos.xml.utils.DigestUtils;
 import com.tencent.cos.xml.utils.URLEncodeUtils;
+import com.tencent.qcloud.core.auth.STSCredentialScope;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.nio.charset.Charset;
@@ -75,6 +76,15 @@ public class CopyObjectRequest extends ObjectRequest {
 
     public String getCosPath() {
         return cosPath;
+    }
+
+    @Override
+    public STSCredentialScope[] getSTSCredentialScope(CosXmlServiceConfig config) {
+        STSCredentialScope scope1 = new STSCredentialScope("name/cos:PutObject", config.getBucket(bucket),
+                config.getRegion(), getPath(config));
+        STSCredentialScope scope2 = new STSCredentialScope("name/cos:GetObject", copySourceStruct.bucket,
+                copySourceStruct.region, copySourceStruct.cosPath);
+        return STSCredentialScope.toArray(scope1, scope2);
     }
 
     /**

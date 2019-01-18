@@ -37,7 +37,6 @@ final public class GetServiceRequest extends CosXmlRequest {
     @Override
     public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate){
         String endpointSuffix = config.getEndpointSuffix(region, isSupportAccelerate);
-
         if (endpointSuffix.endsWith("myqcloud.com")) {
             return "service.cos.myqcloud.com";
         } else {
@@ -45,4 +44,13 @@ final public class GetServiceRequest extends CosXmlRequest {
         }
     }
 
+    @Override
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate, boolean isHeader) {
+        String endpointSuffix = config.getEndpointSuffix(region, isSupportAccelerate);
+        if (endpointSuffix.endsWith("myqcloud.com")) {
+            return "service.cos.myqcloud.com";
+        } else {
+            return "service." + endpointSuffix;
+        }
+    }
 }

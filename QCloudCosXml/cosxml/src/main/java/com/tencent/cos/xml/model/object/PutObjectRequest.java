@@ -75,10 +75,9 @@ public class PutObjectRequest extends ObjectRequest {
      * @param cosPath 远端路径，即存储到 COS 上的绝对路径
      * @param inputStream 上传的数据流
      */
-    public PutObjectRequest(String bucket, String cosPath, InputStream inputStream) throws CosXmlClientException {
+    public PutObjectRequest(String bucket, String cosPath, InputStream inputStream){
         this(bucket, cosPath);
         this.inputStream = inputStream;
-        //this.srcPath = FileUtils.tempCache(inputStream);
     }
 
 

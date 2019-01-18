@@ -51,6 +51,7 @@ final public class CompleteMultiUploadResult extends CosXmlResult {
                         cosXmlServiceException.setErrorMessage(cosError.message);
                         cosXmlServiceException.setRequestId(cosError.requestId);
                         cosXmlServiceException.setServiceName(cosError.resource);
+                        cosXmlServiceException.setStatusCode(response.code());
                         inputStream.close();
                     } catch (XmlPullParserException e) {
                         MTAProxy.getInstance().reportCosXmlClientException(CompleteMultiUploadResult.class.getSimpleName(), e.getMessage());
@@ -61,7 +62,7 @@ final public class CompleteMultiUploadResult extends CosXmlResult {
                     }
                 }
                 MTAProxy.getInstance().reportCosXmlServerException(CompleteMultiUploadResult.class.getSimpleName(),
-                        cosXmlServiceException.getErrorCode() + " " + cosXmlServiceException.getErrorMessage());
+                        cosXmlServiceException.getStatusCode() + " " + cosXmlServiceException.getErrorCode());
                 throw cosXmlServiceException;
             }
         } catch (XmlPullParserException e) {

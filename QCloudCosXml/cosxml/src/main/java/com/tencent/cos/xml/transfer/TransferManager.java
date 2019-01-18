@@ -9,6 +9,8 @@ import com.tencent.cos.xml.model.object.CopyObjectRequest;
 import com.tencent.cos.xml.model.object.GetObjectRequest;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 
+import java.io.InputStream;
+
 /**
  * Created by bradyxiao on 2018/8/22.
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
@@ -40,6 +42,22 @@ public class TransferManager{
      */
     public COSXMLUploadTask upload(String bucket, String cosPath, String srcPath, String uploadId){
         COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, null, bucket, cosPath, srcPath, uploadId);
+        cosxmlUploadTask.multiUploadSizeDivision = transferConfig.divisionForUpload; // 分片上传的界限
+        cosxmlUploadTask.sliceSize = transferConfig.sliceSizeForUpload; // 分片上传的分片大小
+        cosxmlUploadTask.upload();
+        return cosxmlUploadTask;
+    }
+
+    public COSXMLUploadTask upload(String bucket, String cosPath, byte[] bytes){
+        COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, null, bucket, cosPath, bytes);
+        cosxmlUploadTask.multiUploadSizeDivision = transferConfig.divisionForUpload; // 分片上传的界限
+        cosxmlUploadTask.sliceSize = transferConfig.sliceSizeForUpload; // 分片上传的分片大小
+        cosxmlUploadTask.upload();
+        return cosxmlUploadTask;
+    }
+
+    public COSXMLUploadTask upload(String bucket, String cosPath, InputStream inputStream){
+        COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, null, bucket, cosPath, inputStream);
         cosxmlUploadTask.multiUploadSizeDivision = transferConfig.divisionForUpload; // 分片上传的界限
         cosxmlUploadTask.sliceSize = transferConfig.sliceSizeForUpload; // 分片上传的分片大小
         cosxmlUploadTask.upload();

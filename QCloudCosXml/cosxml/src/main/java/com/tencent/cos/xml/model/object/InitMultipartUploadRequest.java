@@ -14,7 +14,7 @@ import java.util.Map;
  * 关于初始化分片上传的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7746">https://cloud.tencent.com/document/product/436/7746.</a><br>
  * </p>
  */
-final public class InitMultipartUploadRequest extends ObjectRequest {
+final public class InitMultipartUploadRequest extends BaseMultipartUploadRequest {
 
     /**
      * InitMultipartUploadRequest 构造方法

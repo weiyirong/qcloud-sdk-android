@@ -69,7 +69,6 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
                 getObjectRequest.getPath(cosXmlService.getConfig()), getObjectRequest.getSavePath(), getObjectRequest.getSaveFileName());
         this.queries = getObjectRequest.getQueryString();
         this.headers = getObjectRequest.getRequestHeaders();
-        this.cosXmlSignSourceProvider = getObjectRequest.getSignSourceProvider();
         this.isNeedMd5 = getObjectRequest.isNeedMD5();
         //需要取出range字段
         if(this.headers != null && this.headers.containsKey(COSRequestHeaderKey.RANGE)){
@@ -102,9 +101,9 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             getObjectRequest.setSign(onSignatureListener.onGetSign(getObjectRequest));
-        }else {
-            getObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(getObjectRequest, "GetObjectRequest");
 
         getObjectRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
@@ -120,12 +119,13 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 if(updateState(TransferState.COMPLETED)){
                     // complete -> success
+                    clear();
                     QCloudLogger.d(TAG, taskState.name());
                     mResult = buildCOSXMLTaskResult(result);
                     if(cosXmlResultListener != null){
                         cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(request), mResult);
                     }
-                    clear();
+
                 }
             }
 
@@ -278,9 +278,9 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
 
         if(onSignatureListener != null){
             headObjectRequest.setSign(onSignatureListener.onGetSign(headObjectRequest));
-        }else {
-            headObjectRequest.setSignSourceProvider(cosXmlSignSourceProvider);
         }
+
+        getHttpMetrics(headObjectRequest, "HeadObjectRequest");
 
         headObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override

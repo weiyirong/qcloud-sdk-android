@@ -65,7 +65,7 @@ public class ResponseFileBodySerializer<T2> extends ResponseFileConverter<T2> {
             }
         }
         MTAProxy.getInstance().reportCosXmlServerException(ResponseXmlS3BodySerializer.class.getSimpleName(),
-                String.format(Locale.ENGLISH, "%s %s",cosXmlServiceException.getErrorCode(), cosXmlServiceException.getErrorMessage()));
+                String.format(Locale.ENGLISH, "%s %s",cosXmlServiceException.getStatusCode(), cosXmlServiceException.getErrorCode()));
         throw cosXmlServiceException;
     }
 }
