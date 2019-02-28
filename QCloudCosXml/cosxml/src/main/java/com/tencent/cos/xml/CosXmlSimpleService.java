@@ -176,6 +176,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
         if (requestURL != null) {
             try {
                 httpRequestBuilder.url(new URL(requestURL));
+                String hostHeader = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate(), true);
+                httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
             } catch (MalformedURLException e) {
                 throw new CosXmlClientException(ClientErrorCode.BAD_REQUEST.getCode(), e);
             }

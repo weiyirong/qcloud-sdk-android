@@ -1,4 +1,4 @@
-package com.tencent.qcloud.logUtils;
+package com.tencent.qcloud.logutils;
 
 import org.junit.Test;
 
