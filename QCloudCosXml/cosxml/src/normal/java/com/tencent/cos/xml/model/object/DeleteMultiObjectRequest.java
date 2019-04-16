@@ -1,5 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
+import android.text.TextUtils;
+
 import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
 import com.tencent.cos.xml.common.ClientErrorCode;
@@ -72,6 +74,10 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         if(bucket == null){
             throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "bucket must not be null");
         }
+        if( delete.deleteObjects.size() == 0)
+        {
+            throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), "object（null or empty) is invalid");
+        }
     }
 
     @Override
@@ -112,6 +118,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
      * @param object Object的路径
      */
     public void setObjectList(String object) {
+        if(TextUtils.isEmpty(object))return;
         if(object != null){
             if(object.startsWith("/")){
                 object = object.substring(1);
@@ -123,6 +130,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
     }
 
     public void setObjectList(String object, String versionId) {
+        if(TextUtils.isEmpty(object))return;
         if(object != null){
             if(object.startsWith("/")){
                 object = object.substring(1);
@@ -148,6 +156,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
             for(int i = 0; i < size; ++ i){
                 deleteObject = new Delete.DeleteObject();
                 String object = objectList.get(i);
+                if(TextUtils.isEmpty(object))continue;
                 if(object.startsWith("/")){
                     deleteObject.key = object.substring(1);
                 }else{
@@ -165,6 +174,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
                 deleteObject = new Delete.DeleteObject();
                 String object = entry.getKey();
                 String versionId = entry.getValue();
+                if(TextUtils.isEmpty(object))continue;
                 if(object.startsWith("/")){
                     deleteObject.key = object.substring(1);
                 }else{

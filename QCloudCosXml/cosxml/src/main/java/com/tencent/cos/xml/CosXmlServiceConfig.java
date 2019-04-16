@@ -52,6 +52,8 @@ public class CosXmlServiceConfig {
 
     private Executor executor;
 
+    private boolean isQuic;
+
     public CosXmlServiceConfig(Builder builder) {
         this.protocol = builder.protocol;
         this.userAgent = builder.userAgent;
@@ -74,6 +76,7 @@ public class CosXmlServiceConfig {
         this.connectionTimeout = builder.connectionTimeout;
 
         this.executor = builder.executor;
+        this.isQuic = builder.isQuic;
     }
 
     public String getProtocol() {
@@ -248,6 +251,10 @@ public class CosXmlServiceConfig {
         return executor;
     }
 
+    public boolean isEnableQuic(){
+        return isQuic;
+    }
+
     public final static class Builder {
 
         private String protocol;
@@ -270,6 +277,8 @@ public class CosXmlServiceConfig {
         private int socketTimeout = 30 * 1000;  //in milliseconds
 
         private Executor executor;
+
+        private boolean isQuic = false;
 
         public Builder() {
             protocol = HTTP_PROTOCOL;
@@ -363,6 +372,11 @@ public class CosXmlServiceConfig {
 
         public Builder setExecutor(Executor excutor){
             this.executor = excutor;
+            return this;
+        }
+
+        public Builder enableQuic(boolean isEnable){
+            this.isQuic = isEnable;
             return this;
         }
 

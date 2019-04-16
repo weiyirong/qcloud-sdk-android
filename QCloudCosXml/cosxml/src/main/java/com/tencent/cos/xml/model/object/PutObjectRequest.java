@@ -3,6 +3,7 @@ package com.tencent.cos.xml.model.object;
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.COSStorageClass;
 import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -351,6 +352,16 @@ public class PutObjectRequest extends ObjectRequest {
         if (aclAccount != null) {
             addHeader(COSRequestHeaderKey.X_COS_GRANT_FULL_CONTROL, aclAccount.getAccount());
         }
+    }
+
+    /**
+     * 设置 存储对象类别
+     * @see COSStorageClass
+     * @param stroageClass
+     */
+    public void setStroageClass(COSStorageClass stroageClass)
+    {
+        addHeader(COSRequestHeaderKey.X_COS_STORAGE_CLASS_, stroageClass.getStorageClass());
     }
 
 }

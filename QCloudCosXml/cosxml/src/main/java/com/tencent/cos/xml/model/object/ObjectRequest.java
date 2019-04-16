@@ -46,10 +46,10 @@ public abstract class ObjectRequest extends CosXmlRequest {
         if(requestURL != null){
             return;
         }
-        if(bucket == null){
+        if(bucket == null || bucket.length() < 1){
             throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "bucket must not be null ");
         }
-        if(cosPath == null){
+        if(cosPath == null || cosPath.length() < 1){
             throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "cosPath must not be null ");
         }
     }

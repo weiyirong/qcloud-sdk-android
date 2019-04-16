@@ -127,8 +127,9 @@ final public class CompleteMultiUploadRequest extends BaseMultipartUploadRequest
     @Override
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         try {
-            return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
-                    XmlSlimBuilder.buildCompleteMultipartUpload(completeMultipartUpload));
+//            return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
+//                    XmlSlimBuilder.buildCompleteMultipartUpload(completeMultipartUpload));
+            return RequestBodySerializer.bytes(COSRequestHeaderKey.APPLICATION_XML, XmlSlimBuilder.buildCompleteMultipartUpload(completeMultipartUpload).getBytes("utf-8"));
         } catch (IOException e) {
             throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
         } catch (XmlPullParserException e) {

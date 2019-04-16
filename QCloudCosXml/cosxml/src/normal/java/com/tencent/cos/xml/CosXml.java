@@ -117,7 +117,6 @@ public interface CosXml extends SimpleCosXml {
      * 示例：
      * <blockquote><pre>
      * GetServiceRequest request = new GetServiceRequest();
-     * request.setSign(signDuration,null,null); //签名
      * try {
      *     GetServiceResult result = cosXml.getService(request);
      *     Log.w("TEST","success");
@@ -155,7 +154,7 @@ public interface CosXml extends SimpleCosXml {
      * 示例：
      * <blockquote><pre>
      * GetServiceRequest request = new GetServiceRequest();
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getServiceAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -229,7 +228,7 @@ public interface CosXml extends SimpleCosXml {
      * listObject.add("/xml_test_copy.txt");
      * listObject.add("/1511858966419.txt");
      * DeleteMultiObjectRequest request = new DeleteMultiObjectRequest(bucket, null);
-     * request.setSign(signDuration,null,null); //签名
+     
      * request.setQuiet(false);
      * request.setObjectList(listObject);
      * try {
@@ -273,7 +272,7 @@ public interface CosXml extends SimpleCosXml {
      * listObject.add("/xml_test_copy.txt");
      * listObject.add("/1511858966419.txt");
      * DeleteMultiObjectRequest request = new DeleteMultiObjectRequest(bucket, null);
-     * request.setSign(signDuration,null,null); //签名
+     
      * request.setQuiet(false);
      * request.setObjectList(listObject);
      * cosXml.deleteMultiObjectAsync(request, new CosXmlResultListener() {
@@ -316,7 +315,7 @@ public interface CosXml extends SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * GetObjectACLRequest request = new GetObjectACLRequest(bucket, cosPath);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetObjectACLResult result = cosXml.getObjectACL(request);
      *     Log.w("TEST","success");
@@ -353,7 +352,7 @@ public interface CosXml extends SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * GetObjectACLRequest request = new GetObjectACLRequest(bucket, cosPath);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getObjectACLAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -396,7 +395,7 @@ public interface CosXml extends SimpleCosXml {
 //     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
 //     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
 //     * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * try {
 //     *     HeadObjectResult result = cosXml.headObject(request);
 //     *     Log.w("TEST","success");
@@ -435,7 +434,7 @@ public interface CosXml extends SimpleCosXml {
 //     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
 //     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
 //     * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * cosXml.headObjectAsync(request, new CosXmlResultListener() {
 //     *    &nbsp;@Override
 //     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -483,7 +482,7 @@ public interface CosXml extends SimpleCosXml {
      * String origin = "cloud.tencent.com";
      * String method = "GET";
      * OptionObjectRequest request = new OptionObjectRequest(bucket, cosPath, origin, method);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     OptionObjectResult result = cosXml.optionObject(request);
      *     Log.w("TEST","success");
@@ -528,7 +527,7 @@ public interface CosXml extends SimpleCosXml {
      * String origin = "cloud.tencent.com";
      * String method = "GET";
      * OptionObjectRequest request = new OptionObjectRequest(bucket, cosPath, origin, method);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.optionObjectAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -576,7 +575,7 @@ public interface CosXml extends SimpleCosXml {
      * aclAccount.addAccount("1131975903", "1131975903");
      * request.setXCOSGrantRead(aclAccount);
      * request.setXCOSGrantWrite(aclAccount);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     PutBucketACLResult result = cosXml.putObjectACL(request);
      *     Log.w("TEST","success");
@@ -622,7 +621,7 @@ public interface CosXml extends SimpleCosXml {
      * aclAccount.addAccount("1131975903", "1131975903");
      * request.setXCOSGrantRead(aclAccount);
      * request.setXCOSGrantWrite(aclAccount);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.putObjectACLAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -673,7 +672,7 @@ public interface CosXml extends SimpleCosXml {
 //     * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
 //     * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
 //     * "appid", "*source_bucket", "source_region", "source");
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * try {
 //     *     CopyObjectResult result = cosXml.copyObject(request);
 //     *     Log.w("TEST","success");
@@ -723,7 +722,7 @@ public interface CosXml extends SimpleCosXml {
 //     * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
 //     * "appid", "*source_bucket", "source_region", "source");
 //     * CopyObjectRequest request = new CopyObjectRequest(bucket, cosPath, copySourceStruct);
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * cosXml.copyObjectAsync(request, new CosXmlResultListener() {
 //     *    &nbsp;@Override
 //     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -944,7 +943,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketCORSRequest request = new DeleteBucketCORSRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     DeleteBucketCORSResult result = cosXml.deleteBucketCORS(request);
      *     Log.w("TEST","success");
@@ -985,7 +984,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketCORSRequest request = new DeleteBucketCORSRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.deleteBucketCORSAsync(request,new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1026,7 +1025,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketLifecycleRequest request = new DeleteBucketLifecycleRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     DeleteBucketLifecycleResult result = cosXml.deleteBucketLifecycle(request);
      *     Log.w("TEST","success");
@@ -1066,7 +1065,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketLifecycleRequest request = new DeleteBucketLifecycleRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.deleteBucketLifecycleAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1108,7 +1107,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketRequest request = new DeleteBucketRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     DeleteBucketResult result = cosXml.deleteBucket(request);
      *     Log.w("TEST","success");
@@ -1148,7 +1147,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketRequest request = new DeleteBucketRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.deleteBucketAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1183,7 +1182,7 @@ public interface CosXml extends SimpleCosXml {
 //     * <blockquote><pre>
 //     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
 //     * DeleteBucketTaggingRequest request = new DeleteBucketTaggingRequest(bucket);
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * try {
 //     *     DeleteBucketTaggingResult result = cosXml.deleteBucketTagging(request);
 //     *     Log.w("TEST","success");
@@ -1215,7 +1214,7 @@ public interface CosXml extends SimpleCosXml {
 //     * <blockquote><pre>
 //     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
 //     * DeleteBucketTaggingRequest request = new DeleteBucketTaggingRequest(bucket);
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * cosXml.deleteBucketTaggingAsync(request,  new CosXmlResultListener() {
 //     *    &nbsp;@Override
 //     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1255,7 +1254,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketACLRequest request = new GetBucketACLRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetBucketACLResult result = cosXml.getBucketACL(request);
      *     Log.w("TEST","success");
@@ -1293,7 +1292,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketACLRequest request = new GetBucketACLRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getBucketACLAsync(request,  new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1337,7 +1336,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketCORSRequest request = new GetBucketCORSRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetBucketCORSResult result = cosXml.getBucketCORS(request);
      *     Log.w("TEST","success");
@@ -1380,7 +1379,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketCORSRequest request = new GetBucketCORSRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getBucketCORSAsync(request,  new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1420,7 +1419,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketLifecycleRequest request = new GetBucketLifecycleRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetBucketLifecycleResult result = cosXml.getBucketLifecycle(request);
      *     Log.w("TEST","success");
@@ -1458,7 +1457,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketLifecycleRequest request = new GetBucketLifecycleRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getBucketLifecycleAsync(request,  new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1498,7 +1497,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketLocationRequest request = new GetBucketLocationRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetBucketLocationResult result = cosXml.getBucketLocation(request);
      *     Log.w("TEST","success");
@@ -1536,7 +1535,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketLocationRequest request = new GetBucketLocationRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getBucketLocationAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1585,7 +1584,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketRequest request = new GetBucketRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetBucketResult result = cosXml.getBucket(request);
      *     Log.w("TEST","success");
@@ -1632,7 +1631,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketRequest request = new GetBucketRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getBucketAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1660,7 +1659,7 @@ public interface CosXml extends SimpleCosXml {
 //     * <blockquote><pre>
 //     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
 //     * GetBucketTaggingRequest request = new GetBucketTaggingRequest(bucket);
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * try {
 //     *     GetBucketTaggingResult result = cosXml.getBucketTagging(request);
 //     *     Log.w("TEST","success");
@@ -1686,7 +1685,7 @@ public interface CosXml extends SimpleCosXml {
 //     * <blockquote><pre>
 //     * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
 //     * GetBucketTaggingRequest request = new GetBucketTaggingRequest(bucket);
-//     * request.setSign(signDuration,null,null); //签名
+//     
 //     * cosXml.getBucketTaggingAsync(request, new CosXmlResultListener() {
 //     *    &nbsp;@Override
 //     *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1727,7 +1726,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * HeadBucketRequest request = new HeadBucketRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     HeadBucketResult result = cosXml.headBucket(request);
      *     Log.w("TEST","success");
@@ -1765,7 +1764,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * HeadBucketRequest request = new HeadBucketRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.headBucketAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1806,7 +1805,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * ListMultiUploadsRequest request = new ListMultiUploadsRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     ListMultiUploadsResult result = cosXml.listMultiUploads(request);
      *     Log.w("TEST","success");
@@ -1845,7 +1844,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * ListMultiUploadsRequest request = new ListMultiUploadsRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.listMultiUploadsAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1896,7 +1895,7 @@ public interface CosXml extends SimpleCosXml {
      * aclAccount.addAccount("1131975903", "1131975903");
      * request.setXCOSGrantRead(aclAccount);
      * request.setXCOSGrantWrite(aclAccount);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     PutBucketACLResult result = cosXml.putBucketACL(request);
      *     Log.w("TEST","success");
@@ -1945,7 +1944,7 @@ public interface CosXml extends SimpleCosXml {
      * aclAccount.addAccount("1131975903", "1131975903");
      * request.setXCOSGrantRead(aclAccount);
      * request.setXCOSGrantWrite(aclAccount);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.putBucketACLAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2004,7 +2003,7 @@ public interface CosXml extends SimpleCosXml {
      * corsRule.id = "CORSID";
      * corsRule.maxAgeSeconds = 5000;
      * request.addCORSRule(corsRule);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     PutBucketCORSResult result = cosXml.putObject(request);
      *     Log.w("TEST","success");
@@ -2061,7 +2060,7 @@ public interface CosXml extends SimpleCosXml {
      * corsRule.id = "CORSID";
      * corsRule.maxAgeSeconds = 5000;
      * request.addCORSRule(corsRule);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.putBucketCORSAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2116,7 +2115,7 @@ public interface CosXml extends SimpleCosXml {
      * rule.expiration = new LifecycleConfiguration.Expiration();
      * rule.expiration.days = 1;
      * request.setRuleList(rule);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     PutBucketLifecycleResult result = cosXml.putObject(request);
      *     Log.w("TEST","success");
@@ -2169,7 +2168,7 @@ public interface CosXml extends SimpleCosXml {
      * rule.expiration = new LifecycleConfiguration.Expiration();
      * rule.expiration.days = 1;
      * request.setRuleList(rule);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.putBucketLifecycleAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2217,7 +2216,7 @@ public interface CosXml extends SimpleCosXml {
      * ACLAccount aclAccount = new ACLAccount();
      * aclAccount.addAccount("2832742109", "2832742109");
      * request.setXCOSGrantRead(aclAccount);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     PutBucketResult result = cosXml.putObject(request);
      *     Log.w("TEST","success");
@@ -2263,7 +2262,7 @@ public interface CosXml extends SimpleCosXml {
      * ACLAccount aclAccount = new ACLAccount();
      * aclAccount.addAccount("2832742109", "2832742109");
      * request.setXCOSGrantRead(aclAccount);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.putBucketAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2322,7 +2321,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketVersioningRequest request = new GetBucketVersioningRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetBucketVersioningResult result = cosXml.getBucketVersioning(request);
      *     Log.w("TEST","success");
@@ -2358,7 +2357,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketVersioningRequest request = new GetBucketVersioningRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getBucketVersioningAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2398,7 +2397,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * PutBucketVersioningRequest request = new PutBucketVersioningRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     PutBucketVersioningResult result = cosXml.putBucketVersioning(request);
      *     Log.w("TEST","success");
@@ -2436,7 +2435,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * PutBucketVersioningRequest request = new PutBucketVersioningRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.putBucketVersionAsync(putObjectRequest, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2473,7 +2472,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketReplicationRequest request = new GetBucketReplicationRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     GetBucketReplicationResult result = cosXml.putObject(request);
      *     Log.w("TEST","success");
@@ -2508,7 +2507,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * GetBucketReplicationRequest request = new GetBucketReplicationRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.getBucketReplicationAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2553,7 +2552,7 @@ public interface CosXml extends SimpleCosXml {
      * ruleStruct.bucket = "replicationtest";
      * ruleStruct.region = "ap-beijing";
      * request.setReplicationConfigurationWithRule(ruleStruct);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     PutBucketReplicationResult result = cosXml.putBucketReplication(request);
      *     Log.w("TEST","success");
@@ -2596,7 +2595,7 @@ public interface CosXml extends SimpleCosXml {
      * ruleStruct.bucket = "replicationtest";
      * ruleStruct.region = "ap-beijing";
      * request.setReplicationConfigurationWithRule(ruleStruct);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.putBucketReplicationAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2633,7 +2632,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketReplicationRequest request = new DeleteBucketReplicationRequest("androidtest");
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *     DeleteBucketReplicationResult result = cosXml.deleteBucketReplication(request);
      *     Log.w("TEST","success");
@@ -2667,7 +2666,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * DeleteBucketReplicationRequest request = new DeleteBucketReplicationRequest("androidtest");
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.deleteBucketReplicationAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -2704,7 +2703,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * ListBucketVersionsRequest request = new ListBucketVersionsRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * try {
      *      ListBucketVersionsResult result =  cosXml.listBucketVersions(request);
      *     Log.w("TEST","success");
@@ -2739,7 +2738,7 @@ public interface CosXml extends SimpleCosXml {
      * <blockquote><pre>
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * ListBucketVersionsRequest request = new ListBucketVersionsRequest(bucket);
-     * request.setSign(signDuration,null,null); //签名
+     
      * cosXml.listBucketVersionsAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {

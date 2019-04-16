@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 50419
-        versionName "5.4.19"
+        versionCode 50422
+        versionName "5.4.22"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -44,5 +44,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     api project(path: ':foundation')
     api 'com.tencent.qcloud:mtaUtils:5.4.16'
-    api 'com.tencent.qcloud:logUtils:5.4.16'
+    api 'com.tencent.qcloud:logUtils:5.4.21'
 }

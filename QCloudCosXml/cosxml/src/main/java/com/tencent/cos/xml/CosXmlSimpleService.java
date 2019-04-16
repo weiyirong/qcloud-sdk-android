@@ -51,6 +51,8 @@ import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpResult;
 import com.tencent.qcloud.core.http.HttpTask;
+import com.tencent.qcloud.core.http.NetworkClient;
+import com.tencent.qcloud.core.http.OkHttpClientImpl;
 import com.tencent.qcloud.core.http.QCloudHttpClient;
 import com.tencent.qcloud.core.http.QCloudHttpRequest;
 import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
@@ -121,6 +123,17 @@ public class CosXmlSimpleService implements SimpleCosXml {
                     if(qCloudHttpRetryHandler != null){
                         builder.setQCloudHttpRetryHandler(qCloudHttpRetryHandler);
                     }
+                    builder.enableDebugLog(configuration.isDebuggable());
+                    if(configuration.isEnableQuic()){
+                        try {
+                            Class clazz = Class.forName("com.tencent.qcloud.quic.QuicClientImpl");
+                            builder.setNetworkClient((NetworkClient) clazz.newInstance());
+                        } catch (Exception e) {
+                            throw new IllegalStateException(e.getMessage(), e);
+                        }
+                    }else {
+                        builder.setNetworkClient(new OkHttpClientImpl());
+                    }
                     client = builder.build();
                 }
             }
@@ -176,6 +189,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
         if (requestURL != null) {
             try {
                 httpRequestBuilder.url(new URL(requestURL));
+                String hostHeader = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate(), true);
+                httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
             } catch (MalformedURLException e) {
                 throw new CosXmlClientException(ClientErrorCode.BAD_REQUEST.getCode(), e);
             }

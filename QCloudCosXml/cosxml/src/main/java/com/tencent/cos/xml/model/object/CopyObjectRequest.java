@@ -225,8 +225,10 @@ public class CopyObjectRequest extends ObjectRequest {
      * storage class. Enumerated values: Standard, Standard_IA, Nearline; the default is Standard
      * @param cosStorageClass
      */
-    public void setCosStorageClass(COSStorageClass cosStorageClass){
+    public void setCosStorageClass(COSStorageClass cosStorageClass) throws CosXmlClientException {
         if(cosStorageClass != null){
+            if(cosStorageClass.getStorageClass().equals(COSStorageClass.ARCHIVE)) throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(),
+                    "copy nonsupport archive");
             addHeader(COSRequestHeaderKey.X_COS_STORAGE_CLASS_, cosStorageClass.getStorageClass());
         }
     }

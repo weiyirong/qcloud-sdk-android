@@ -1,6 +1,8 @@
 package com.tencent.cos.xml.model.object;
 
 import com.tencent.cos.xml.CosXmlSimpleService;
+import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.COSStorageClass;
 import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -160,6 +162,16 @@ public class PostObjectRequest extends ObjectRequest {
 
     public void setExpires(String expires) {
         formStruct.headers.put("Expires", expires);
+    }
+
+    /**
+     * 设置 存储对象类别
+     * @see COSStorageClass
+     * @param stroageClass
+     */
+    public void setStroageClass(COSStorageClass stroageClass)
+    {
+        formStruct.headers.put(COSRequestHeaderKey.X_COS_STORAGE_CLASS_, stroageClass.getStorageClass());
     }
 
     public void setHeader(String key, String value) {

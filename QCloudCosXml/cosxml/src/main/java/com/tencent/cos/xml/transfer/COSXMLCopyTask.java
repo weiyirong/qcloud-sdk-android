@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
 
-public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
+public final class COSXMLCopyTask extends COSXMLTask {
 
     /** 是否分片拷贝Limit */
     protected long multiCopySizeDivision;
@@ -67,7 +65,6 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
     private AtomicBoolean IS_EXIT;
     private AtomicInteger UPLOAD_PART_COUNT;
     private Object SYNC_UPLOAD_PART = new Object();
-    private static ExecutorService executorService = Executors.newSingleThreadExecutor();
     private LargeCopyStateListener largeCopyStateListenerHandler = new LargeCopyStateListener(){
         @Override
         public void onInit() {
@@ -127,7 +124,7 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
     }
 
     protected void copy(){
-        executorService.submit(this);
+        run();
     }
 
     private void smallFileCopy(){
@@ -550,8 +547,7 @@ public final class COSXMLCopyTask extends COSXMLTask implements Runnable{
         return uploadId;
     }
 
-    @Override
-    public void run() {
+    protected void run() {
         updateState(TransferState.WAITING); // waiting
         headObjectRequest = new HeadObjectRequest(copySourceStruct.bucket, copySourceStruct.cosPath);
         headObjectRequest.setRegion(copySourceStruct.region);

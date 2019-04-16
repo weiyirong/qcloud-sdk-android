@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
 
-public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
+public final class COSXMLDownloadTask extends COSXMLTask{
 
     private final static String TAG = COSXMLUploadTask.class.getSimpleName();
 
@@ -49,7 +49,6 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
     private HeadObjectRequest headObjectRequest;
     private GetObjectRequest getObjectRequest;
     private SharedPreferences sharedPreferences;
-    private static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     COSXMLDownloadTask(Context context, CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, String localSaveDirPath, String localSaveFileName){
         this.region = region;
@@ -86,7 +85,7 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
     }
 
     protected void download(){
-        executorService.submit(this);
+        run();
     }
 
     private void realDownload(long rangeStart, long rangeEnd, final long fileOffset){
@@ -269,8 +268,7 @@ public final class COSXMLDownloadTask extends COSXMLTask implements Runnable{
         return path;
     }
 
-    @Override
-    public void run() {
+    protected void run() {
         updateState(TransferState.WAITING); // waiting
         QCloudLogger.d(TAG, taskState.name());
         headObjectRequest = new HeadObjectRequest(bucket, cosPath);

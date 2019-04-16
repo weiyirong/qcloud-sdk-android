@@ -33,7 +33,7 @@ public class ResponseBytesConverter<T> extends ResponseBodyConverter<T> {
     }
 
     @Override
-    protected T convert(HttpResponse<T> response) throws QCloudClientException, QCloudServiceException {
+    public T convert(HttpResponse<T> response) throws QCloudClientException, QCloudServiceException {
         parseCOSXMLError(response);
         getObjectBytesResult.parseResponseBody(response);
         return (T) getObjectBytesResult;

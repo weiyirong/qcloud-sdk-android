@@ -14,8 +14,11 @@ public enum COSStorageClass {
     STANDARD("Standard"),
 
     /** 冷存储 */
-    STANDARD_IA("Standard_IA");
-//
+    STANDARD_IA("Standard_IA"),
+
+    /** 归档直传 */
+    ARCHIVE("ARCHIVE ");
+
 //    /** 近线存储 */
 //    NEARLINE("Nearline");
 

@@ -35,7 +35,7 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
     }
 
     @Override
-    protected T convert(HttpResponse response) throws QCloudClientException, QCloudServiceException {
+    public T convert(HttpResponse response) throws QCloudClientException, QCloudServiceException {
         parseCOSXMLError(response);
         cosXmlResult.parseResponseBody(response);
         return (T) cosXmlResult;

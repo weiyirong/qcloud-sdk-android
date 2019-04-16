@@ -25,13 +25,13 @@ import com.tencent.qcloud.core.http.HttpTask;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
 
-public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
+public final class COSXMLUploadTask extends COSXMLTask {
 
     /** 满足分片上传的文件最小长度 */
     protected long multiUploadSizeDivision;
@@ -78,7 +78,6 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     private AtomicLong ALREADY_SEND_DATA_LEN;
     private AtomicBoolean IS_EXIT;
     private Object SYNC_UPLOAD_PART = new Object();
-    private static ExecutorService executorService = Executors.newSingleThreadExecutor();
     private MultiUploadsStateListener multiUploadsStateListenerHandler = new MultiUploadsStateListener() {
         @Override
         public void onInit() {
@@ -224,7 +223,7 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     }
 
     private void multiUpload(CosXmlSimpleService cosXmlService){
-        initSlicePart();
+        initSlicePart(fileLength, 1);
         if(uploadId != null){
             listMultiUpload(cosXmlService);
         }else {
@@ -549,46 +548,127 @@ public final class COSXMLUploadTask extends COSXMLTask implements Runnable{
     /**
      * init slice part
      */
-    private void initSlicePart(){
+    private void initSlicePart(long fileLength, int startNumber){
         int count = (int) (fileLength / sliceSize);
-        int i = 1;
-        for(; i < count; ++ i){
+        for(; startNumber < count; ++ startNumber){
             SlicePartStruct slicePartStruct = new SlicePartStruct();
             slicePartStruct.isAlreadyUpload = false;
-            slicePartStruct.partNumber = i;
-            slicePartStruct.offset = (i - 1) * sliceSize;
+            slicePartStruct.partNumber = startNumber;
+            slicePartStruct.offset = (startNumber - 1) * sliceSize;
             slicePartStruct.sliceSize = sliceSize;
-            partStructMap.put(i, slicePartStruct);
+            partStructMap.put(startNumber, slicePartStruct);
         }
         SlicePartStruct slicePartStruct = new SlicePartStruct();
         slicePartStruct.isAlreadyUpload = false;
-        slicePartStruct.partNumber = i;
-        slicePartStruct.offset = (i - 1) * sliceSize;
+        slicePartStruct.partNumber = startNumber;
+        slicePartStruct.offset = (startNumber - 1) * sliceSize;
         slicePartStruct.sliceSize = fileLength - slicePartStruct.offset;
-        partStructMap.put(i, slicePartStruct);
-        UPLOAD_PART_COUNT.set(i);
+        partStructMap.put(startNumber, slicePartStruct);
+        UPLOAD_PART_COUNT.set(startNumber);
         if(IS_EXIT.get())return;
     }
 
+    /**
+     * 需要做如下判断，已上传的分片大小和请求设置分片大小是否一致
+     * 1）若是一致，则可以乱序续传
+     * 2）若不一致，则续传只能从开始partNumber = 1连续已上传的分片开始
+     * 如何判断是否一致
+     * 1）
+     * @param listPartsResult
+     */
     private void updateSlicePart(ListPartsResult listPartsResult){
         if(listPartsResult != null && listPartsResult.listParts != null){
             List<ListParts.Part> parts = listPartsResult.listParts.parts;
-            if(parts != null){
-                for(ListParts.Part part : parts){
-                    if(partStructMap.containsKey(Integer.valueOf(part.partNumber))){
-                        SlicePartStruct slicePartStruct = partStructMap.get(Integer.valueOf(part.partNumber));
-                        slicePartStruct.isAlreadyUpload = true;
+            if(parts != null && parts.size() > 0){
+                if(isFixSliceSize(parts)){
+                    for(ListParts.Part part : parts){
+                        if(partStructMap.containsKey(Integer.valueOf(part.partNumber))){
+                            SlicePartStruct slicePartStruct = partStructMap.get(Integer.valueOf(part.partNumber));
+                            slicePartStruct.isAlreadyUpload = true;
+                            slicePartStruct.eTag = part.eTag;
+                            UPLOAD_PART_COUNT.decrementAndGet();
+                            ALREADY_SEND_DATA_LEN.addAndGet(Long.parseLong(part.size));
+                        }
+                    }
+                }else {
+                    //不支持，则只能从partNumber = 1开始，获取连续块
+                    //排序已上传块
+                    Collections.sort(parts, new Comparator<ListParts.Part>() {
+                        @Override
+                        public int compare(ListParts.Part a, ListParts.Part b) {
+                            int aNumb = Integer.valueOf(a.partNumber);
+                            int bNumb = Integer.valueOf(b.partNumber);
+                            if(aNumb > bNumb) return 1;
+                            if(aNumb < bNumb) return -1;
+                            return 0;
+                        }
+                    });
+                    //只取连续块，且从partNumber =1开始
+                    int index = getIndexOfParts(parts);
+                    if(index < 0){
+                        return;
+                    }
+                    partStructMap.clear();
+                    long completed = 0L;
+                    for(int i = 0; i <= index; i ++){
+                        ListParts.Part part = parts.get(i);
+                        SlicePartStruct slicePartStruct = new SlicePartStruct();
+                        slicePartStruct.partNumber = i + 1;
+                        slicePartStruct.offset = completed;
+                        slicePartStruct.sliceSize = Long.parseLong(part.size);
                         slicePartStruct.eTag = part.eTag;
+                        slicePartStruct.isAlreadyUpload = true;
+                        completed += slicePartStruct.sliceSize;
+                        partStructMap.put(i + 1, slicePartStruct);
+                    }
+                    //重新计算剩下的分片
+                    ALREADY_SEND_DATA_LEN.addAndGet(completed);
+                    initSlicePart(fileLength - completed, index + 2);
+                    for(int i = 0; i <= index; i ++){
                         UPLOAD_PART_COUNT.decrementAndGet();
-                        ALREADY_SEND_DATA_LEN.addAndGet(Long.parseLong(part.size));
                     }
                 }
             }
         }
     }
 
-    @Override
-    public void run() {
+    private boolean isFixSliceSize(List<ListParts.Part> parts){
+        boolean isTrue = true;
+        for(ListParts.Part part : parts){
+            if(partStructMap.containsKey(Integer.valueOf(part.partNumber))){
+                SlicePartStruct slicePartStruct = partStructMap.get(Integer.valueOf(part.partNumber));
+                if(slicePartStruct.sliceSize == Long.valueOf(part.size)) continue;
+                else {
+                    isTrue = false;
+                    break;
+                }
+            }
+        }
+        return isTrue;
+    }
+
+    private int getIndexOfParts(List<ListParts.Part> parts){
+        int index = -1;
+        int currentPartNumber = 1;
+        ListParts.Part firstPart = parts.get(0);
+        if(Integer.valueOf(firstPart.partNumber) != 1){
+            return index;
+        }
+        index = 0;
+        ListParts.Part tmp;
+        for(int i = 1, size = parts.size(); i < size; i ++){
+            tmp = parts.get(i);
+            if(Integer.valueOf(tmp.partNumber) != currentPartNumber + 1){
+                break;
+            }else {
+                index = i;
+                currentPartNumber = Integer.valueOf(tmp.partNumber);
+            }
+        }
+        return index;
+    }
+
+    protected void run() {
         updateState(TransferState.WAITING); // waiting
         //bytes or inputStream using simple upload method
         if(bytes != null || inputStream != null){

@@ -82,7 +82,6 @@ public interface SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * InitMultipartUploadRequest initMultipartUploadRequest = new InitMultipartUploadRequest(bucket, cosPath);
-     * initMultipartUploadRequest.setSign(signDuration,null,null); //签名
      * String uploadId = null;
      * try {
      *     InitMultipartUploadResult initMultipartUploadResult = simpleCosXml.initMultipartUpload(initMultipartUploadRequest);
@@ -123,7 +122,6 @@ public interface SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * InitMultipartUploadRequest initMultipartUploadRequest = new InitMultipartUploadRequest(bucket, cosPath);
-     * initMultipartUploadRequest.setSign(signDuration,null,null); //签名
      * String uploadId = null;
      * simpleCosXml.initMultipartUploadAsync(initMultipartUploadRequest, new CosXmlResultListener() {
      *    &nbsp;@Override
@@ -166,7 +164,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String uploadId = "初始化分片返回的 uploadId";
      * ListPartsRequest listPartsRequest = new ListPartsRequest(bucket, cosPath, uploadId);
-     * listPartsRequest.setSign(signDuration,null,null); //签名
      * try {
      *     ListPartsResult listPartsResult = simpleCosXml.listParts(listPartsRequest);
      *     Log.w("TEST","success: " + listPartsResult.listParts.toString());
@@ -207,7 +204,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String uploadId = "初始化分片返回的 uploadId";
      * ListPartsRequest listPartsRequest = new ListPartsRequest(bucket, cosPath, uploadId);
-     * listPartsRequest.setSign(signDuration,null,null); //签名
      * simpleCosXml.listPartsAsync(listPartsRequest, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -255,7 +251,6 @@ public interface SimpleCosXml {
      * int partNumber = 1;//此次上传分片的编号，从 1 开始
      * String srcPath = "本地文件的绝对路径";
      * UploadPartRequest uploadPartRequest = new UploadPartRequest(bucket, cosPath, partNumber, srcPath, uploadId);
-     * uploadPartRequest.setSign(signDuration,null,null); //签名
      * uploadPartRequest.setProgressListener(new CosXmlProgressListener() {// 进度回调
      *    &nbsp;@Override
      *     public void onProgress(long progress, long max) {
@@ -309,7 +304,6 @@ public interface SimpleCosXml {
      * int partNumber = 1;//此次上传分片的编号，从 1 开始
      * String srcPath = "本地文件的绝对路径";
      * UploadPartRequest uploadPartRequest = new UploadPartRequest(bucket, cosPath, partNumber, srcPath, uploadId);
-     * uploadPartRequest.setSign(signDuration,null,null); //签名
      * uploadPartRequest.setProgressListener(new CosXmlProgressListener() {// 进度回调
      *    &nbsp;@Override
      *     public void onProgress(long progress, long max) {
@@ -363,7 +357,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String uploadId = "初始化分片返回的 uploadId";
      * AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucket, cosPath, uploadId);
-     * abortMultiUploadRequest.setSign(signDuration,null,null); //签名
      * try {
      *     AbortMultiUploadResult abortMultiUploadResult = simpleCosXml.abortMultiUpload(abortMultiUploadRequest);
      *     Log.w("TEST","success");
@@ -405,7 +398,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String uploadId = "初始化分片返回的 uploadId";
      * AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucket, cosPath, uploadId);
-     * abortMultiUploadRequest.setSign(signDuration,null,null); //签名
      * simpleCosXml.abortMultiUploadAsync(initMultipartUploadRequest, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -455,7 +447,6 @@ public interface SimpleCosXml {
      * Map&lt;Integer, String&gt; partNumberAndETag = new HashMap&lt;&gt;();
      * partNumberAndETag.put(partNumber, etag);
      * CompleteMultiUploadRequest completeMultiUploadRequest = new CompleteMultiUploadRequest(bucket, cosPath, uploudId, partNumberAndETag);
-     * completeMultiUploadRequest.setSign(signDuration,null,null); //签名
      * try {
      *     CompleteMultiUploadResult completeMultiUploadResult = simpleCosXml.completeMultiUpload(completeMultiUploadRequest);
      *     Log.w("TEST","success");
@@ -503,7 +494,6 @@ public interface SimpleCosXml {
      * Map&lt;Integer, String&gt; partNumberAndETag = new HashMap&lt;&gt;();
      * partNumberAndETag.put(partNumber, etag);
      * CompleteMultiUploadRequest completeMultiUploadRequest = new CompleteMultiUploadRequest(bucket, cosPath, uploudId, partNumberAndETag);
-     * completeMultiUploadRequest.setSign(signDuration,null,null); //签名
      * simpleCosXml.completeMultiUploadAsync(completeMultiUploadRequest, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -543,7 +533,6 @@ public interface SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucket, cosPath);
-     * deleteObjectRequest.setSign(signDuration,null,null); //签名
      * try {
      *     DeleteObjectResult deleteObjectResult = simpleCosXml.deleteObject(deleteObjectRequest);
      *     Log.w("TEST","success");
@@ -582,7 +571,6 @@ public interface SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucket, cosPath);
-     * deleteObjectRequest.setSign(signDuration,null,null); //签名
      * simpleCosXml.deleteObjectAsync(deleteObjectRequest, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -626,7 +614,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String savePath = "savePath"; //文件下载到本地文件夹的绝对路径
      * GetObjectRequest getObjectRequest = GetObjectRequest(bucket, cosPath, savePath);
-     * getObjectRequest.setSign(signDuration,null,null); //签名
      * getObjectRequest.setProgressListener(new CosXmlProgressListener() {// 进度回调
      *    &nbsp;@Override
      *     public void onProgress(long progress, long max) {
@@ -675,7 +662,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String savePath = "savePath"; //文件下载到本地文件夹的绝对路径
      * GetObjectRequest getObjectRequest = GetObjectRequest(bucket, cosPath, savePath);
-     * getObjectRequest.setSign(signDuration,null,null); //签名
      * getObjectRequest.setProgressListener(new CosXmlProgressListener() {// 进度回调
      *    &nbsp;@Override
      *     public void onProgress(long progress, long max) {
@@ -725,7 +711,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String srcPath = "srcPath"; //本地文件的绝对路径
      * PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
-     * putObjectRequest.setSign(signDuration,null,null); //签名
      * putObjectRequest.setProgressListener(new CosXmlProgressListener() {// 进度回调
      *    &nbsp;@Override
      *     public void onProgress(long progress, long max) {
@@ -777,7 +762,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * String srcPath = "srcPath"; //本地文件的绝对路径
      * PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
-     * putObjectRequest.setSign(signDuration,null,null); //签名
      * putObjectRequest.setProgressListener(new CosXmlProgressListener() { // 进度回调
      *    &nbsp;@Override
      *     public void onProgress(long progress, long max) {
@@ -859,7 +843,6 @@ public interface SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
-     * request.setSign(signDuration,null,null); //签名
      * try {
      *     HeadObjectResult result = cosXml.headObject(request);
      *     Log.w("TEST","success");
@@ -898,7 +881,6 @@ public interface SimpleCosXml {
      * String bucket = "bucket"; //存储桶名称(cos v5 的 bucket格式为：xxx-appid, 如 test-1253960454)
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * HeadObjectRequest request = new HeadObjectRequest(bucket, cosPath);
-     * request.setSign(signDuration,null,null); //签名
      * cosXml.headObjectAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -949,7 +931,6 @@ public interface SimpleCosXml {
      * String cosPath = "cosPath"; //远端路径，即存储到 COS 上的绝对路径
      * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
      * "appid", "*source_bucket", "source_region", "source");
-     * request.setSign(signDuration,null,null); //签名
      * try {
      *     CopyObjectResult result = cosXml.copyObject(request);
      *     Log.w("TEST","success");
@@ -999,7 +980,6 @@ public interface SimpleCosXml {
      * CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
      * "appid", "*source_bucket", "source_region", "source");
      * CopyObjectRequest request = new CopyObjectRequest(bucket, cosPath, copySourceStruct);
-     * request.setSign(signDuration,null,null); //签名
      * cosXml.copyObjectAsync(request, new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
@@ -1055,7 +1035,6 @@ public interface SimpleCosXml {
      * int partNumber = 1; //分片号
      * String uploadId = "uploadId"; //分片uploadId
      * UploadPartCopyRequest request = new UploadPartCopyRequest(bucket, cosPath, partNumber, uploadIdcopySourceStruct);
-     * request.setSign(signDuration,null,null); //签名
      * try {
      *     UploadPartCopyResult result = cosXml.copyObject(request);
      *     Log.w("TEST","success");
@@ -1108,7 +1087,6 @@ public interface SimpleCosXml {
      * int partNumber = 1; //分片号
      * String uploadId = "uploadId"; //分片uploadId
      * UploadPartCopyRequest request = new UploadPartCopyRequest(bucket, cosPath, partNumber, uploadIdcopySourceStruct);
-     * request.setSign(signDuration,null,null); //签名
      * cosXml.copyObjectAsync(request,  new CosXmlResultListener() {
      *    &nbsp;@Override
      *     public void onSuccess(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
