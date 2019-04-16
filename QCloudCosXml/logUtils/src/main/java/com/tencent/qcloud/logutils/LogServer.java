@@ -54,7 +54,9 @@ public class LogServer implements Application.ActivityLifecycleCallbacks, View.O
             Log.d(TAG, "background to foreground");
             if(clipboardManager != null && clipboardManager.hasPrimaryClip()){
                 ClipData clipData = clipboardManager.getPrimaryClip();
+                if(clipData == null) return;
                 ClipData.Item item = clipData.getItemAt(0);
+                if(item == null) return;
                 String content = item.getText().toString().trim();
                 Log.d(TAG, "clip content: " + content);
                 if(KEY_LOG.equals(content)){

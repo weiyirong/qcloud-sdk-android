@@ -1,4 +1,4 @@
-package com.tencent.qcloud.logUtils;
+package com.tencent.qcloud.logutils;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
