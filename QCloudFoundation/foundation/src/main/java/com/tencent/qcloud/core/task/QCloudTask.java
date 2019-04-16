@@ -174,7 +174,7 @@ public abstract class QCloudTask<T> implements Callable<T> {
     @Override
     public T call() throws Exception {
         try {
-            QCloudLogger.d(TaskManager.TASK_LOG_TAG, "[Task] %s start execute", getIdentifier());
+            QCloudLogger.d(TaskManager.TASK_LOG_TAG, "[Task] %s start testExecute", getIdentifier());
             onStateChanged(STATE_EXECUTING);
             return execute();
         } finally {

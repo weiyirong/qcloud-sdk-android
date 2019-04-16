@@ -70,7 +70,7 @@ public class HttpRequest<T> {
         return tag;
     }
 
-    void setOkHttpRequestTag(String tag) {
+    public void setOkHttpRequestTag(String tag) {
         requestBuilder.tag(tag);
     }
 
@@ -112,7 +112,7 @@ public class HttpRequest<T> {
         return url;
     }
 
-    ResponseBodyConverter<T> getResponseBodyConverter() {
+    public ResponseBodyConverter<T> getResponseBodyConverter() {
         return responseBodyConverter;
     }
 
@@ -120,7 +120,7 @@ public class HttpRequest<T> {
         return requestBody;
     }
 
-    Request buildRealRequest() {
+    public Request buildRealRequest() {
         return requestBuilder.build();
     }
 

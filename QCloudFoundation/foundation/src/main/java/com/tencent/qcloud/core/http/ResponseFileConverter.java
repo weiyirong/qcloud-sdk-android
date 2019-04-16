@@ -5,10 +5,7 @@ import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.util.QCloudHttpUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 
 import okhttp3.ResponseBody;
 import okhttp3.internal.Util;
@@ -28,7 +25,9 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
     private String filePath;
     private long offset;
 
-    private QCloudProgressListener progressListener;
+    protected boolean isQuic = false;
+
+    protected QCloudProgressListener progressListener;
 
     private CountingSink countingSink;
 
@@ -41,8 +40,17 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
         this.progressListener = progressListener;
     }
 
+    public void enableQuic(boolean isQuic){
+        this.isQuic = isQuic;
+    }
+
+    public QCloudProgressListener getProgressListener(){
+        return progressListener;
+    }
+
     @Override
     public T convert(HttpResponse<T> response) throws QCloudClientException, QCloudServiceException {
+        if(isQuic) return null;
         HttpResponse.checkResponseSuccessful(response);
 
         String contentRangeString = response.header(HttpConstants.Header.CONTENT_RANGE);
@@ -111,6 +119,20 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
         } finally {
             Util.closeQuietly(inputStream);
             Util.closeQuietly(randomAccessFile);
+        }
+    }
+
+    public OutputStream getOutputStream() throws QCloudClientException {
+        File downloadFilePath = new File(filePath);
+        File parentDir = downloadFilePath.getParentFile();
+        if(parentDir != null && !parentDir.exists() && !parentDir.mkdirs()){
+            throw new QCloudClientException("local file directory can not create.");
+        }
+        try {
+            OutputStream outputStream = new FileOutputStream(downloadFilePath);
+            return outputStream;
+        } catch (FileNotFoundException e) {
+           throw new QCloudClientException(e);
         }
     }
 

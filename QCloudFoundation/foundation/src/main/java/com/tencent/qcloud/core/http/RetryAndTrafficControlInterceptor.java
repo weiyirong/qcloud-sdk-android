@@ -236,7 +236,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 } catch (InterruptedException ex) {
                 }
             }
-            QCloudLogger.i(HTTP_LOG_TAG, "%s start to execute, attempts is %d", request, attempts);
+            QCloudLogger.i(HTTP_LOG_TAG, "%s start to testExecute, attempts is %d", request, attempts);
 
             attempts++;
             long startNs = System.nanoTime();

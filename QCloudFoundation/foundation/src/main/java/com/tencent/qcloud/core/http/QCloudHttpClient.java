@@ -17,16 +17,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
-import okhttp3.Call;
-import okhttp3.Dns;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import okhttp3.*;
 
 /**
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
@@ -36,7 +32,8 @@ public final class QCloudHttpClient {
 
     static final String HTTP_LOG_TAG = "QCloudHttp";
 
-    private final OkHttpClient okHttpClient;
+    private NetworkClient networkClient;
+
     private final TaskManager taskManager;
     private final HttpLogger httpLogger;
 
@@ -115,22 +112,11 @@ public final class QCloudHttpClient {
         this.taskManager = TaskManager.getInstance();
         httpLogger = new HttpLogger(false);
         setDebuggable(false);
-
-        HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor(httpLogger);
-        logInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        okHttpClient = b.mBuilder
-                .followRedirects(true)
-                .followSslRedirects(true)
-                .hostnameVerifier(mHostnameVerifier)
-                .dns(mDns)
-                .connectTimeout(b.connectionTimeout, TimeUnit.MILLISECONDS)
-                .readTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
-                .writeTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
-                .eventListenerFactory(mEventListenerFactory)
-                .addInterceptor(logInterceptor)
-                .addInterceptor(new RetryAndTrafficControlInterceptor(b.retryStrategy))
-                .build();
+        this.networkClient = b.networkClient;
+        if(networkClient == null){
+            networkClient = new OkHttpClientImpl();
+        }
+        networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
     }
 
     public List<HttpTask> getTasksByTag(String tag) {
@@ -158,14 +144,9 @@ public final class QCloudHttpClient {
         return handleRequest(request, credentialProvider);
     }
 
-    Call getOkHttpCall(Request okHttpRequest) {
-        return okHttpClient.newCall(okHttpRequest);
-    }
-
     private <T> HttpTask<T> handleRequest(HttpRequest<T> request,
                                             QCloudCredentialProvider credentialProvider) {
-        //request.addHeader(HttpConstants.Header.HOST, request.host());
-        return new HttpTask<>(request, credentialProvider, this);
+        return new HttpTask<T>(request, credentialProvider, networkClient);
     }
 
     public final static class Builder {
@@ -174,6 +155,8 @@ public final class QCloudHttpClient {
         RetryStrategy retryStrategy;
         QCloudHttpRetryHandler qCloudHttpRetryHandler;
         OkHttpClient.Builder mBuilder;
+        NetworkClient networkClient;
+        boolean enableDebugLog = false;
 
         public Builder() {
         }
@@ -206,6 +189,16 @@ public final class QCloudHttpClient {
 
         public Builder setInheritBuilder(OkHttpClient.Builder builder) {
             mBuilder = builder;
+            return this;
+        }
+
+        public Builder setNetworkClient(NetworkClient networkClient){
+            this.networkClient = networkClient;
+            return this;
+        }
+
+        public Builder enableDebugLog(boolean enableDebugLog){
+            this.enableDebugLog = enableDebugLog;
             return this;
         }
 

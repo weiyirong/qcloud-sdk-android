@@ -50,6 +50,10 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         this.progressListener = progressListener;
     }
 
+    public QCloudProgressListener getProgressListener(){
+        return progressListener;
+    }
+
     protected StreamingRequestBody() {
     }
 
@@ -156,9 +160,10 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         return contentRawLength;
     }
 
-    protected InputStream getStream() throws IOException {
+    public InputStream getStream() throws IOException {
+        InputStream inputStream = null;
         if (bytes != null) {
-            return new ByteArrayInputStream(bytes);
+            inputStream = new ByteArrayInputStream(bytes);
         } else if (stream != null) {
             try {
                 saveInputStreamToTmpFile(stream, file);
@@ -167,16 +172,17 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
                 stream = null;
                 offset = 0;
             }
-            return new FileInputStream(file);
+            inputStream = new FileInputStream(file);
         } else if (file != null) {
-            return new FileInputStream(file);
+            inputStream = new FileInputStream(file);
         } else if (url != null) {
-            return url.openStream();
+            inputStream =  url.openStream();
         } else if (uri != null) {
-            return contentResolver.openInputStream(uri);
-        }
+            inputStream = contentResolver.openInputStream(uri);
 
-        return null;
+        }
+        if(inputStream != null && offset > 0) inputStream.skip(offset);
+        return inputStream;
     }
 
     protected void saveInputStreamToTmpFile(InputStream stream, File file) throws IOException {
@@ -210,9 +216,9 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         try {
             inputStream = getStream();
             if (inputStream != null) {
-                if (offset > 0) {
-                    long skip = inputStream.skip(offset);
-                }
+//                if (offset > 0) {
+//                    long skip = inputStream.skip(offset);
+//                }
                 source = Okio.buffer(Okio.source(inputStream));
                 long contentLength = contentLength();
                 countingSink = new CountingSink(sink, contentLength, progressListener);
@@ -231,4 +237,5 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         }
 
     }
+
 }

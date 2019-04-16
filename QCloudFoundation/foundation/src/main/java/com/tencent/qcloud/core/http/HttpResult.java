@@ -18,7 +18,7 @@ public final class HttpResult<T> {
 
     private final T content;
 
-    HttpResult(HttpResponse<T> response, T content) {
+    public HttpResult(HttpResponse<T> response, T content) {
         this.code = response.code();
         this.message = response.message();
         this.headers = response.response.headers().toMultimap();

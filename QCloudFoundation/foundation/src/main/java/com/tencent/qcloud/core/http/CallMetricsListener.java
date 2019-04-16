@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.http;
 
+import com.tencent.qcloud.core.logger.QCloudLogger;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -19,7 +21,7 @@ import okhttp3.Response;
  * Created by wjielai on 2018/11/30.
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
-class CallMetricsListener extends EventListener {
+public class CallMetricsListener extends EventListener {
 
     private long dnsStartTime;
     private long dnsLookupTookTime;
@@ -42,7 +44,7 @@ class CallMetricsListener extends EventListener {
     private long readResponseBodyStartTime;
     private long readResponseBodyTookTime;
 
-    CallMetricsListener(Call call) {
+    public CallMetricsListener(Call call) {
 
     }
 
@@ -55,6 +57,14 @@ class CallMetricsListener extends EventListener {
     @Override
     public void dnsEnd(Call call, String domainName, List<InetAddress> inetAddressList) {
         super.dnsEnd(call, domainName, inetAddressList);
+        StringBuffer ipList = new StringBuffer("{");
+        if(inetAddressList != null){
+            for(InetAddress inetAddress : inetAddressList){
+                ipList.append(inetAddress.getHostAddress()).append(",");
+            }
+        }
+        ipList.append("}");
+        QCloudLogger.i(QCloudHttpClient.HTTP_LOG_TAG, "dns: " + domainName + ":" + ipList.toString());
         dnsLookupTookTime += System.nanoTime() - dnsStartTime;
     }
 
@@ -136,7 +146,7 @@ class CallMetricsListener extends EventListener {
         readResponseBodyTookTime += System.nanoTime() - readResponseBodyStartTime;
     }
 
-    void dumpMetrics(HttpTaskMetrics metrics) {
+    public void dumpMetrics(HttpTaskMetrics metrics) {
         metrics.dnsLookupTookTime += dnsLookupTookTime;
         metrics.connectTookTime += connectTookTime;
         metrics.secureConnectTookTime += secureConnectTookTime;

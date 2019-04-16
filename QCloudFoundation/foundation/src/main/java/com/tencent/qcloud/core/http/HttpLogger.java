@@ -14,7 +14,7 @@ import okhttp3.Response;
  * Created by wjielai on 2018/9/26.
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
-class HttpLogger implements HttpLoggingInterceptor.Logger {
+public class HttpLogger implements HttpLoggingInterceptor.Logger {
 
     private boolean debuggable;
     private FileLogAdapter fileLogAdapter;

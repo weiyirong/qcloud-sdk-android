@@ -21,11 +21,11 @@ public abstract class ResponseBodyConverter<T> {
      * @throws QCloudClientException
      * @throws QCloudServiceException
      */
-    protected abstract T convert(HttpResponse<T> response) throws QCloudClientException, QCloudServiceException;
+    public abstract T convert(HttpResponse<T> response) throws QCloudClientException, QCloudServiceException;
 
     private static final class StringConverter extends ResponseBodyConverter<String> {
         @Override
-        protected String convert(HttpResponse<String> response) throws QCloudClientException, QCloudServiceException {
+        public String convert(HttpResponse<String> response) throws QCloudClientException, QCloudServiceException {
             try {
                 return response.string();
             } catch (IOException e) {
@@ -37,7 +37,7 @@ public abstract class ResponseBodyConverter<T> {
     private static final class BytesConverter extends ResponseBodyConverter<byte[]> {
 
         @Override
-        protected byte[] convert(HttpResponse<byte[]> response) throws QCloudClientException, QCloudServiceException {
+        public byte[] convert(HttpResponse<byte[]> response) throws QCloudClientException, QCloudServiceException {
 
             try {
                 return response.bytes();

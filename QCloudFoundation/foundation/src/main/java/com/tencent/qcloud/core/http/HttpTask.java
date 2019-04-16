@@ -12,16 +12,12 @@ import com.tencent.qcloud.core.task.QCloudTask;
 import com.tencent.qcloud.core.task.TaskExecutors;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import bolts.CancellationTokenSource;
-import okhttp3.Call;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.internal.Util;
 import okio.Buffer;
 
 /**
@@ -31,15 +27,12 @@ import okio.Buffer;
 public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     private static AtomicInteger increments = new AtomicInteger(1);
 
-    private final HttpRequest<T> httpRequest;
-    private final QCloudCredentialProvider credentialProvider;
-    private final QCloudHttpClient httpClient;
-    private Call httpCall;
-    private HttpResponse<T> httpResponse;
-    private HttpResult<T> httpResult;
-    private HttpTaskMetrics metrics;
+    protected final HttpRequest<T> httpRequest;
+    protected final QCloudCredentialProvider credentialProvider;
+    protected HttpResult<T> httpResult;
+    protected HttpTaskMetrics metrics;
 
-    private Field eventListenerFiled;
+    private NetworkProxy<T> networkProxy;
 
     private QCloudProgressListener mProgressListener = new QCloudProgressListener() {
         @Override
@@ -49,11 +42,13 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     };
 
     HttpTask(HttpRequest<T> httpRequest, QCloudCredentialProvider credentialProvider,
-             QCloudHttpClient httpClient) {
+             NetworkClient networkClient) {
         super("HttpTask-" + httpRequest.tag() + "-" + increments.getAndIncrement(), httpRequest.tag());
         this.httpRequest = httpRequest;
-        this.httpClient = httpClient;
         this.credentialProvider = credentialProvider;
+        this.networkProxy = networkClient.getNetworkProxy();
+        this.networkProxy.identifier = this.getIdentifier();
+        this.networkProxy.mProgressListener = mProgressListener;
     }
 
     public HttpTask<T> scheduleOn(Executor executor) {
@@ -77,12 +72,12 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     }
 
     @Override
-    public HttpResult<T> getResult() {
+    public HttpResult<T> getResult()  {
         return httpResult;
     }
 
     public HttpTask<T> attachMetric(HttpTaskMetrics httpMetric) {
-        this.metrics = httpMetric;
+        metrics = httpMetric;
         return this;
     }
 
@@ -101,7 +96,7 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         ProgressBody body = null;
 
         if (httpRequest.getRequestBody() instanceof ProgressBody) {
-            body = (ProgressBody) httpRequest.getRequestBody();
+            body = (ProgressBody)httpRequest.getRequestBody();
         } else if (httpRequest.getResponseBodyConverter() instanceof ProgressBody) {
             body = (ProgressBody) httpRequest.getResponseBodyConverter();
         }
@@ -113,9 +108,7 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
 
     @Override
     public void cancel() {
-        if (httpCall != null) {
-            httpCall.cancel();
-        }
+        this.networkProxy.cancel();
         super.cancel();
     }
 
@@ -124,6 +117,7 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         if (metrics == null) {
             metrics = new HttpTaskMetrics();
         }
+        networkProxy.metrics = metrics;
         metrics.onTaskStart();
 
         // 准备请求，包括计算MD5和签名
@@ -141,9 +135,9 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         if (httpRequest.getRequestBody() instanceof ProgressBody) {
             ((ProgressBody) httpRequest.getRequestBody()).setProgressListener(mProgressListener);
         }
-
         try {
-            return executeHttpRequest(httpRequest);
+            httpResult = networkProxy.executeHttpRequest(httpRequest);
+            return httpResult;
         } catch (QCloudServiceException serviceException) {
             if (isClockSkewedError(serviceException)) {
                 // re sign request
@@ -153,68 +147,13 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
                     metrics.onSignRequestEnd();
                 }
                 // try again
-                return executeHttpRequest(httpRequest);
+                httpResult = networkProxy.executeHttpRequest(httpRequest);
+                return httpResult;
             } else {
                 throw serviceException;
             }
         } finally {
             metrics.onTaskEnd();
-        }
-    }
-
-    private HttpResult<T> executeHttpRequest(HttpRequest<T> httpRequest) throws QCloudClientException,
-            QCloudServiceException {
-        QCloudClientException clientException = null;
-        QCloudServiceException serviceException = null;
-        Response response = null;
-        CallMetricsListener eventListener = null;
-
-        try {
-            httpRequest.setOkHttpRequestTag(getIdentifier());
-            Request okHttpRequest = httpRequest.buildRealRequest();
-            httpCall = httpClient.getOkHttpCall(okHttpRequest);
-            if (eventListenerFiled == null) {
-                try {
-                    eventListenerFiled = httpCall.getClass().getDeclaredField("eventListener");
-                    eventListenerFiled.setAccessible(true);
-                    eventListener = (CallMetricsListener) eventListenerFiled.get(httpCall);
-                } catch (NoSuchFieldException ignore) {
-                } catch (IllegalAccessException ignore) {
-                }
-            }
-
-            response = httpCall.execute();
-
-            if (response != null) {
-                if (httpResult == null) {
-                    convertResponse(response);
-                }
-            } else {
-                serviceException = new QCloudServiceException("http response is null");
-            }
-
-        } catch (IOException e) {
-            if (e.getCause() instanceof QCloudClientException) {
-                clientException = (QCloudClientException) e.getCause();
-            } else if (e.getCause() instanceof QCloudServiceException) {
-                serviceException = (QCloudServiceException) e.getCause();
-            } else {
-                clientException = new QCloudClientException(e);
-            }
-        } finally {
-            Util.closeQuietly(response);
-        }
-
-        if (eventListener != null) {
-            eventListener.dumpMetrics(metrics);
-        }
-
-        if (clientException != null) {
-            throw clientException;
-        } else if (serviceException != null) {
-            throw serviceException;
-        } else {
-            return httpResult;
         }
     }
 
@@ -252,17 +191,13 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         }
 
         String md5 = sink.md5().base64();
+
         httpRequest.addHeader(HttpConstants.Header.CONTENT_MD5, md5);
         sink.close();
     }
 
     void convertResponse(Response response) throws QCloudClientException, QCloudServiceException {
-        httpResponse = new HttpResponse<>(httpRequest, response);
-        ResponseBodyConverter<T> converter = httpRequest.getResponseBodyConverter();
-        if (converter instanceof ProgressBody) {
-            ((ProgressBody) converter).setProgressListener(mProgressListener);
-        }
-        T content = converter.convert(httpResponse);
-        httpResult = new HttpResult<>(httpResponse, content);
+        httpResult = networkProxy.convertResponse(httpRequest, response);
     }
+
 }

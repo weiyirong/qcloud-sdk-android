@@ -10,7 +10,6 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;

@@ -1,5 +1,6 @@
 package com.tencent.qcloud.core.task;
 
+import android.util.Log;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.util.ArrayList;

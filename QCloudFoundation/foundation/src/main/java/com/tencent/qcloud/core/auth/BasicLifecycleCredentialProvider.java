@@ -42,8 +42,15 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
             QCloudLifecycleCredentials cred = safeGetCredentials();
             if (cred == null || !cred.isValid()) {
                 safeSetCredentials(null);
-                QCloudLifecycleCredentials newCredentials = fetchNewCredentials();
-                safeSetCredentials(newCredentials);
+                try {
+                    QCloudLifecycleCredentials newCredentials = fetchNewCredentials();
+                    safeSetCredentials(newCredentials);
+                } catch (Exception e) {
+                    if (e instanceof QCloudClientException) {
+                        throw e;
+                    }
+                    throw new QCloudClientException("fetch credentials error happens", e);
+                }
             }
         } catch (InterruptedException e) {
             throw new QCloudClientException("interrupt when try to get credential", e);

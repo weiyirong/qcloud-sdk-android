@@ -136,7 +136,7 @@ public class FileLogAdapter implements LogAdapter {
             Arrays.sort(logFiles, new Comparator<File>() {
                 @Override
                 public int compare(File lhs, File rhs) {
-                    return (int) (rhs.lastModified() - lhs.lastModified());
+                    return Long.valueOf(rhs.lastModified()).compareTo(Long.valueOf(lhs.lastModified()));
                 }
             });
             File[] required = new File[Math.min(limit, logFiles.length)];
@@ -157,7 +157,7 @@ public class FileLogAdapter implements LogAdapter {
                 Arrays.sort(logFiles, new Comparator<File>() {
                     @Override
                     public int compare(File lhs, File rhs) {
-                        return (int) (rhs.lastModified() - lhs.lastModified());
+                        return Long.valueOf(rhs.lastModified()).compareTo(Long.valueOf(lhs.lastModified()));
                     }
                 });
                 latestLogFile = logFiles[0];

@@ -22,7 +22,7 @@ public final class HttpResponse<T> {
     final HttpRequest<T> request;
     final Response response;
 
-    HttpResponse(HttpRequest<T> request, Response response) {
+    public HttpResponse(HttpRequest<T> request, Response response) {
         this.request = request;
         this.response = response;
     }
