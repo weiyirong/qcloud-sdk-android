@@ -266,7 +266,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
             MTAProxy.getInstance().reportSendAction(cosXmlRequest.getClass().getSimpleName());
             return httpResult != null ? httpResult.content() : null;
         } catch (QCloudServiceException e) {
-            throw (CosXmlServiceException) e;
+            if(e instanceof CosXmlServiceException) throw (CosXmlServiceException) e;
+            else throw new  CosXmlServiceException(e);
         } catch (QCloudClientException e) {
             if (e instanceof CosXmlClientException) {
                 String reportMessage = String.format(Locale.ENGLISH, "%d %s", ((CosXmlClientException) e).errorCode, e.getCause() == null ?

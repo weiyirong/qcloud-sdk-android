@@ -28,6 +28,15 @@ public class CosXmlServiceException extends QCloudServiceException {
         return httpMsg;
     }
 
+    public CosXmlServiceException(QCloudServiceException qcloudServiceException){
+        super(null);
+        this.setErrorCode(qcloudServiceException.getErrorCode());
+        this.setErrorMessage(qcloudServiceException.getErrorMessage());
+        this.setRequestId(qcloudServiceException.getRequestId());
+        this.setServiceName(qcloudServiceException.getServiceName());
+        this.setStatusCode(qcloudServiceException.getStatusCode());
+    }
+
     @Override
     public String getMessage() {
         return getErrorMessage()

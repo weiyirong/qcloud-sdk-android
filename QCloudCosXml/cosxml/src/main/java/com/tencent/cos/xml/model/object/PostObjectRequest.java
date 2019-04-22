@@ -219,7 +219,6 @@ public class PostObjectRequest extends ObjectRequest {
             MultipartStreamRequestBody requestBody = (MultipartStreamRequestBody) request.getRequestBody();
             requestBody.setSign(authorization);
             request.removeHeader("Authorization");
-            requestBody.build();
         }
     }
 

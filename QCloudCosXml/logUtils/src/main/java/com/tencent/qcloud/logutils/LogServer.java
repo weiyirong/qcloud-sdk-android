@@ -57,7 +57,9 @@ public class LogServer implements Application.ActivityLifecycleCallbacks, View.O
                 if(clipData == null) return;
                 ClipData.Item item = clipData.getItemAt(0);
                 if(item == null) return;
-                String content = item.getText().toString().trim();
+                CharSequence content = item.getText();
+                if(content == null)return;
+                content = content.toString().trim();
                 Log.d(TAG, "clip content: " + content);
                 if(KEY_LOG.equals(content)){
                     Log.d(TAG, "hit it");

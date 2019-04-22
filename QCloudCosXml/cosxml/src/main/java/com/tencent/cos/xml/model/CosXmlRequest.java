@@ -156,7 +156,7 @@ public abstract class CosXmlRequest{
         requestHeaders.put(key, values);
     }
 
-    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException{
         return getHost(config, isSupportAccelerate, false);
     }
 
