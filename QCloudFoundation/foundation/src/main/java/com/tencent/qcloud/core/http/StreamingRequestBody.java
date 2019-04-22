@@ -2,8 +2,9 @@ package com.tencent.qcloud.core.http;
 
 import android.content.ContentResolver;
 import android.net.Uri;
-
+import com.tencent.qcloud.core.common.QCloudDigistListener;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
+import com.tencent.qcloud.core.util.Base64Utils;
 import com.tencent.qcloud.core.util.QCloudUtils;
 
 import java.io.ByteArrayInputStream;
@@ -13,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -20,14 +23,12 @@ import okhttp3.internal.Util;
 import okio.BufferedSink;
 import okio.BufferedSource;
 import okio.Okio;
-import okio.Source;
-
 /**
  * Created by wjielai on 2017/11/29.
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 
-public class StreamingRequestBody extends RequestBody implements ProgressBody {
+public class StreamingRequestBody extends RequestBody implements ProgressBody, QCloudDigistListener {
 
     protected File file;
     protected byte[] bytes;
@@ -216,9 +217,6 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
         try {
             inputStream = getStream();
             if (inputStream != null) {
-//                if (offset > 0) {
-//                    long skip = inputStream.skip(offset);
-//                }
                 source = Okio.buffer(Okio.source(inputStream));
                 long contentLength = contentLength();
                 countingSink = new CountingSink(sink, contentLength, progressListener);
@@ -238,4 +236,31 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody {
 
     }
 
+    @Override
+    public String onGetMd5() throws IOException {
+        InputStream inputStream = null;
+        try{
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            if(bytes != null){
+                messageDigest.update(bytes, (int) offset, (int) contentLength());
+                return Base64Utils.encode(messageDigest.digest());
+            }
+            inputStream = getStream();//已经 skip
+            byte[] buff = new byte[8 * 1024];
+            int readLen;
+            long remainLength = contentLength();
+            while (remainLength > 0L && (readLen = inputStream.read(buff, 0,
+                    (buff.length > remainLength ? (int) remainLength : buff.length)))!= -1){
+                messageDigest.update(buff, 0, readLen);
+                remainLength -= readLen;
+            }
+            return Base64Utils.encode(messageDigest.digest());
+        } catch (IOException e) {
+            throw e;
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException("unSupport Md5 algorithm", e);
+        } finally {
+            Util.closeQuietly(inputStream);
+        }
+    }
 }

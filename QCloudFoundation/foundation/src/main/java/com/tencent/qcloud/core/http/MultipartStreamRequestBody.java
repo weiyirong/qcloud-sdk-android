@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
+import com.tencent.qcloud.core.common.QCloudDigistListener;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 
 import java.io.File;
@@ -27,7 +28,7 @@ import okio.Okio;
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class MultipartStreamRequestBody extends RequestBody implements ProgressBody {
+public class MultipartStreamRequestBody extends RequestBody implements ProgressBody, QCloudDigistListener {
     private Map<String, String> bodyParameters = new LinkedHashMap<>();
     private String name;
     private String fileName;
@@ -77,6 +78,14 @@ public class MultipartStreamRequestBody extends RequestBody implements ProgressB
         }
     }
 
+    public void addMd5() throws IOException {
+        try {
+            bodyParameters.put(HttpConstants.Header.CONTENT_MD5, onGetMd5());
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
     public void build(){
         MultipartBody.Builder builder = new MultipartBody.Builder();
         builder.setType(MediaType.parse(HttpConstants.ContentType.MULTIPART_FORM_DATA));
@@ -116,6 +125,16 @@ public class MultipartStreamRequestBody extends RequestBody implements ProgressB
        }finally {
            Util.closeQuietly(streamingRequestBody.countingSink);
        }
+    }
+
+    @Override
+    public String onGetMd5() throws IOException {
+        if(streamingRequestBody != null){
+            String md5 = streamingRequestBody.onGetMd5();
+            bodyParameters.put(HttpConstants.Header.CONTENT_MD5,md5);
+            return md5;
+        }
+        return null;
     }
 
     private static class ExStreamingRequestBody extends StreamingRequestBody{
@@ -188,9 +207,6 @@ public class MultipartStreamRequestBody extends RequestBody implements ProgressB
             try {
                 inputStream = getStream();
                 if (inputStream != null) {
-                    if (offset > 0) {
-                        long skip = inputStream.skip(offset);
-                    }
                     source = Okio.buffer(Okio.source(inputStream));
                     long contentLength = contentLength();
                     countingSink = new CountingSink(sink, contentLength, progressListener);

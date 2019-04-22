@@ -1,17 +1,23 @@
 package com.tencent.qcloud.core.http;
 
 
+import android.util.Log;
+
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudCredentials;
 import com.tencent.qcloud.core.auth.QCloudSigner;
 import com.tencent.qcloud.core.auth.ScopeLimitCredentialProvider;
 import com.tencent.qcloud.core.common.QCloudClientException;
+import com.tencent.qcloud.core.common.QCloudDigistListener;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.task.QCloudTask;
 import com.tencent.qcloud.core.task.TaskExecutors;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,6 +25,10 @@ import bolts.CancellationTokenSource;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okio.Buffer;
+import okio.BufferedSink;
+import okio.ByteString;
+import okio.Source;
+import okio.Timeout;
 
 /**
  * Created by wjielai on 2017/11/27.
@@ -135,6 +145,10 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         if (httpRequest.getRequestBody() instanceof ProgressBody) {
             ((ProgressBody) httpRequest.getRequestBody()).setProgressListener(mProgressListener);
         }
+        if(httpRequest.getRequestBody() instanceof MultipartStreamRequestBody){
+            MultipartStreamRequestBody multipartStreamRequestBody = (MultipartStreamRequestBody) httpRequest.getRequestBody();
+            multipartStreamRequestBody.build();
+        }
         try {
             httpResult = networkProxy.executeHttpRequest(httpRequest);
             return httpResult;
@@ -183,17 +197,32 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         if (requestBody == null) {
             throw new QCloudClientException("get md5 canceled, request body is null.");
         }
-        Buffer sink = new Buffer();
-        try {
-            requestBody.writeTo(sink);
-        } catch (IOException e) {
-            throw new QCloudClientException("calculate md5 error", e);
+
+        if(requestBody instanceof QCloudDigistListener){
+            //请求 body 比较大，易触发 OOM
+            try {
+                if(httpRequest.getRequestBody() instanceof MultipartStreamRequestBody){
+                    ((MultipartStreamRequestBody) httpRequest.getRequestBody()).addMd5();
+                }else {
+                    httpRequest.addHeader(HttpConstants.Header.CONTENT_MD5, ((QCloudDigistListener) requestBody).onGetMd5());
+                }
+            }catch (IOException e){
+                throw new QCloudClientException("calculate md5 error", e);
+            }
+        }else {
+            //请求 body 比较小，不会 OOM
+            Buffer sink = new Buffer();
+            try {
+                requestBody.writeTo(sink);
+            } catch (IOException e) {
+                throw new QCloudClientException("calculate md5 error", e);
+            }
+
+            String md5 = sink.md5().base64();
+
+            httpRequest.addHeader(HttpConstants.Header.CONTENT_MD5, md5);
+            sink.close();
         }
-
-        String md5 = sink.md5().base64();
-
-        httpRequest.addHeader(HttpConstants.Header.CONTENT_MD5, md5);
-        sink.close();
     }
 
     void convertResponse(Response response) throws QCloudClientException, QCloudServiceException {

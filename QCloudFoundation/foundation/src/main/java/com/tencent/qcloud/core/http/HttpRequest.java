@@ -87,7 +87,7 @@ public class HttpRequest<T> {
         headers.remove(name);
     }
 
-    boolean shouldCalculateContentMD5() {
+    public boolean shouldCalculateContentMD5() {
         return calculateContentMD5 && QCloudStringUtils.isEmpty(header(HttpConstants.Header.CONTENT_MD5));
     }
 

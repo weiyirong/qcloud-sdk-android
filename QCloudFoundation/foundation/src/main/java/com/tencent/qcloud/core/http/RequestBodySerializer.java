@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
+import com.tencent.qcloud.core.common.QCloudDigistListener;
+
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -19,8 +21,7 @@ import okio.ByteString;
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 
-public abstract class RequestBodySerializer {
-
+public abstract class RequestBodySerializer{
     /**
      * 将请求体转换成 ResponseBody
      *
