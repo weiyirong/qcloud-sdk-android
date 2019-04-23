@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.MetaDataDirective;
+import com.tencent.cos.xml.common.Region;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -44,11 +45,7 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ACLAccount;
 import com.tencent.cos.xml.model.tag.ListBucket;
-import com.tencent.qcloud.core.http.HttpTaskMetrics;
-import com.tencent.qcloud.core.http.QCloudHttpClient;
-import com.tencent.qcloud.core.logger.QCloudLogger;
 
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
@@ -72,32 +69,22 @@ public class ObjectTest {
     String cosPath;
     String srcPath;
 
-    private HttpTaskMetrics newTaskMetrics() {
-        return new HttpTaskMetrics() {
-            @Override
-            public void onDataReady() {
-                super.onDataReady();
-                QCloudLogger.i("QCloudHttp", toString());
-            }
-        };
-    }
-
     public void putObject() throws CosXmlServiceException, CosXmlClientException {
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
+        putObjectRequest.setSign(600);
         putObjectRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
                 Log.d(TAG, complete + "/" + target);
             }
         });
-
-        putObjectRequest.attachMetrics(newTaskMetrics());
         PutObjectResult putObjectResult = QServer.cosXml.putObject(putObjectRequest);
         Log.d(TAG, putObjectResult.printResult());
     }
 
     public void headObject() throws CosXmlServiceException, CosXmlClientException {
         HeadObjectRequest headObjectRequest = new HeadObjectRequest(bucket, cosPath);
+        headObjectRequest.setSign(600);
         HeadObjectResult headObjectResult = QServer.cosXml.headObject(headObjectRequest);
         Log.d(TAG, headObjectResult.printResult());
     }
@@ -106,6 +93,7 @@ public class ObjectTest {
         String origin = " http://cloud.tencent.com";
         String method = "PUT";
         OptionObjectRequest optionObjectRequest = new OptionObjectRequest(bucket, cosPath,origin, method);
+        optionObjectRequest.setSign(600);
         optionObjectRequest.setAccessControlHeaders("Authorization");
         OptionObjectResult optionObjectResult = QServer.cosXml.optionObject(optionObjectRequest);
         Log.d(TAG, optionObjectResult.printResult());
@@ -131,7 +119,7 @@ public class ObjectTest {
     public void copyObject() throws CosXmlClientException, CosXmlServiceException {
         String destCosPath = "copy_" + cosPath;
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-              QServer.appid, QServer.persistBucket, QServer.region, cosPath);
+              QServer.appid, QServer.bucketForObjectAPITest, QServer.region, cosPath);
         CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucket, destCosPath, copySourceStruct);
         copyObjectRequest.setCopyMetaDataDirective(MetaDataDirective.COPY);
         copyObjectRequest.setRequestHeaders("x-cos-xml", "cos");
@@ -161,9 +149,6 @@ public class ObjectTest {
     }
 
     public void getObject() throws CosXmlServiceException, CosXmlClientException {
-
-
-
         String savePath = appContext.getExternalCacheDir().getPath();
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, cosPath, savePath);
         getObjectRequest.setProgressListener(new CosXmlProgressListener() {
@@ -258,36 +243,16 @@ public class ObjectTest {
 
     }
 
-    @Test(expected = CosXmlClientException.class)
-    public void deleteObjectWithEmptyString() throws Exception {
-        appContext = InstrumentationRegistry.getContext();
-        bucket = QServer.persistBucket;
-        cosPath = "";
-        srcPath = QServer.createFile(appContext, 1024 * 1024);
-        QServer.init(appContext);
-        deleteObject();
-    }
-
-    @Test(expected = CosXmlClientException.class)
-    public void deleteObjectWithNull() throws Exception {
-        appContext = InstrumentationRegistry.getContext();
-        bucket = QServer.persistBucket;
-        cosPath = null;
-        srcPath = QServer.createFile(appContext, 1024 * 1024);
-        QServer.init(appContext);
-        deleteObject();
-    }
-
     @org.junit.Test
     public void testObject() throws Exception{
         appContext = InstrumentationRegistry.getContext();
-        bucket = QServer.persistBucket;
+        bucket = QServer.bucketForObjectAPITest;
         cosPath = "ip.txt";
         srcPath = QServer.createFile(appContext, 1024 * 1024);
         QServer.init(appContext);
         putObject();
         headObject();
-//        optionObject();
+        //optionObject();
 //         putObjectACL();
         getObjectACL();
         copyObject();

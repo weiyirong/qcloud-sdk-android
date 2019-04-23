@@ -63,7 +63,6 @@ import static com.tencent.cos.xml.QServer.TAG;
 
 @RunWith(AndroidJUnit4.class)
 public class BucketTest {
-
     private Context appContext;
     private String bucketName;
 
@@ -87,7 +86,7 @@ public class BucketTest {
 
     public void getBucket() throws CosXmlServiceException, CosXmlClientException {
         GetBucketRequest getBucketRequest = new GetBucketRequest(bucketName);
-        getBucketRequest.setPrefix("/1251668577/burning/!#$%&'*+,-./,");
+        getBucketRequest.setPrefix("backend/gatling/chat_temp");
         GetBucketResult getBucketResult = QServer.cosXml.getBucket(getBucketRequest);
         Log.d(TAG, getBucketResult.printResult());
     }
@@ -192,7 +191,6 @@ public class BucketTest {
         }
     }
 
-
     public void deleteBucket() throws CosXmlServiceException, CosXmlClientException {
         DeleteBucketRequest deleteBucketRequest = new DeleteBucketRequest(bucketName);
         DeleteBucketResult deleteBucketResult = QServer.cosXml.deleteBucket(deleteBucketRequest);
@@ -209,8 +207,8 @@ public class BucketTest {
                 String bucketName = bucket.name;
                 String region = bucket.location;
                 if(bucketName != null && bucketName.startsWith("android") && region.equalsIgnoreCase(QServer.region) ){
-                    if(bucketName.startsWith(QServer.persistBucket))
-                        continue;
+                    if(bucketName.equalsIgnoreCase("androidsample-1253653367")
+                            || bucketName.equalsIgnoreCase("androidtest-1253653367")) continue;
                     try {
                         DeleteBucketRequest deleteBucketRequest = new DeleteBucketRequest(bucketName);
                         DeleteBucketResult deleteBucketResult = QServer.cosXml.deleteBucket(deleteBucketRequest);
@@ -227,18 +225,13 @@ public class BucketTest {
     public void testBucket() throws Exception{
         appContext = InstrumentationRegistry.getContext();
         QServer.init(appContext);
-        bucketName = QServer.tempBucket;
-//        try {
-//            putBucket();
-//        } catch (CosXmlServiceException e) {
-//            if (e.getStatusCode() != 409) {
-//                throw e;
-//            }
-//        }
+        bucketName = QServer.bucketForBucketAPITest;
+        putBucket();
         getBucket();
         getBucketLocation();
         headBucket();
         putBucketCORS();
+        Thread.sleep(100);
         getBucketCORS();
         deleteBucketCORS();
         putBucketACL();
@@ -248,14 +241,7 @@ public class BucketTest {
         deleteBucketLifecycle();
         listMultiUploads();
         deleteAllUploadIdOfBucket();
-        try {
-            deleteBucket();
-        }catch (CosXmlServiceException e){
-            if (e.getStatusCode() != 409) {
-                throw e;
-            }
-        }
-
+        deleteBucket();
         deleteAllBucketsOfAppid();
     }
 }
