@@ -53,16 +53,26 @@ public class FileLogAdapter implements LogAdapter {
 
     private static final byte[] object = new byte[0];
 
+    private static FileLogAdapter instance;
+
     /**
      * 实例化一个文件日志记录器。默认写入 {@link QCloudLogger#INFO} 级别以上的日志。
      *
      * @param context 上下文
      * @param alias   logger 文件别名
      */
-    public FileLogAdapter(Context context, String alias) {
-        this(context, alias, QCloudLogger.INFO);
+    public static FileLogAdapter getInstance(Context context, String alias){
+        return getInstance(context, alias, QCloudLogger.INFO);
     }
 
+    public static FileLogAdapter getInstance(Context context, String alias, int minPriority){
+        synchronized (FileLogAdapter.class){
+            if(instance == null){
+                instance = new FileLogAdapter(context, alias, minPriority);
+            }
+        }
+        return instance;
+    }
     /**
      * 实例化一个文件日志记录器
      *
@@ -70,7 +80,7 @@ public class FileLogAdapter implements LogAdapter {
      * @param alias       logger 文件别名
      * @param minPriority 最小的日志级别，低于这个级别的日志将不会被保存。
      */
-    public FileLogAdapter(Context context, String alias, int minPriority) {
+    private FileLogAdapter(Context context, String alias, int minPriority) {
         this.alias = alias;
         this.minPriority = minPriority;
         this.logRootDir = new File(context.getExternalCacheDir() + File.separator + LOG_DIR);

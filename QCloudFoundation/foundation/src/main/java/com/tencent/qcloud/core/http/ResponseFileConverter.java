@@ -1,5 +1,6 @@
 package com.tencent.qcloud.core.http;
 
+
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
@@ -10,9 +11,7 @@ import java.io.*;
 import okhttp3.ResponseBody;
 import okhttp3.internal.Util;
 import okio.Buffer;
-import okio.BufferedSink;
-import okio.Okio;
-import okio.Source;
+
 
 /**
  * 解析下载的字节流，并保存为文本
@@ -70,33 +69,16 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
             throw new QCloudClientException("local file directory can not create.");
         }
 
-        BufferedSink sink = null;
-        Source source = null;
         ResponseBody body = response.response.body();
         if (body == null) {
             throw new QCloudServiceException("response body is empty !");
         }
         try {
-            source = body.source();
-            if (offset <= 0) {
-                countingSink = new CountingSink(Okio.sink(downloadFilePath), contentLength,
-                        progressListener);
-                sink = Okio.buffer(countingSink);
-                if (contentLength > 0) {
-                    sink.write(source, contentLength);
-                } else {
-                    sink.writeAll(source);
-                }
-                sink.flush();
-            } else {
-                writeRandomAccessFile(downloadFilePath, response.byteStream(), contentLength);
-            }
+            writeRandomAccessFile(downloadFilePath, response.byteStream(), contentLength);
             return null;
         } catch (IOException e) {
+            e.printStackTrace();
             throw new QCloudClientException("write local file error for " + e.toString(), e);
-        } finally {
-            Util.closeQuietly(sink);
-            Util.closeQuietly(source);
         }
     }
 
@@ -108,7 +90,7 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
         RandomAccessFile randomAccessFile = null;
         try {
             randomAccessFile = new RandomAccessFile(downloadFilePath, "rws");
-            randomAccessFile.seek(offset);
+            if(offset > 0) randomAccessFile.seek(offset);
             byte[] buffer = new byte[8192];
             countingSink = new CountingSink(new Buffer(), contentLength, progressListener);
             int len;
@@ -117,7 +99,6 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
                 countingSink.writeBytesInternal(len);
             }
         } finally {
-            Util.closeQuietly(inputStream);
             Util.closeQuietly(randomAccessFile);
         }
     }

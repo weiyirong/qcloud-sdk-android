@@ -1,5 +1,8 @@
 package com.tencent.qcloud.core.http;
 
+import android.os.Build;
+
+import com.tencent.qcloud.core.BuildConfig;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import okhttp3.Call;
@@ -39,6 +42,14 @@ public class OkHttpProxy<T> extends NetworkProxy<T> {
 
         try {
             httpRequest.setOkHttpRequestTag(identifier);
+
+//            //测试 cos-stgw
+//            if(BuildConfig.QUIC_TEST){
+//                httpRequest.addHeader("Vod-Forward-Cos", httpRequest.header("Host"));
+//                httpRequest.removeHeader("Host");
+//                httpRequest.addHeader("Host", httpRequest.host());
+//            }
+
             Request okHttpRequest = httpRequest.buildRealRequest();
 
             httpCall = okHttpClient.newCall(okHttpRequest);
