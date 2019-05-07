@@ -22,7 +22,6 @@ import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.tag.ListParts;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
-import com.tencent.qcloud.core.http.HttpTask;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -62,7 +61,7 @@ public final class COSXMLCopyTask extends COSXMLTask {
     private List<UploadPartCopyRequest> uploadPartCopyRequestList;
     /** 完成所有上传分片 */
     private CompleteMultiUploadRequest completeMultiUploadRequest;
-    private AtomicBoolean IS_EXIT;
+    private AtomicBoolean IS_EXIT = new AtomicBoolean(false);
     private AtomicInteger UPLOAD_PART_COUNT;
     private Object SYNC_UPLOAD_PART = new Object();
     private LargeCopyStateListener largeCopyStateListenerHandler = new LargeCopyStateListener(){
@@ -83,26 +82,13 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
         @Override
         public void onCompleted(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
-            IS_EXIT.set(true);
-            if(updateState(TransferState.COMPLETED)){
-                mResult = buildCOSXMLTaskResult(cosXmlResult);
-                if(cosXmlResultListener != null){
-                    cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(cosXmlRequest), mResult);
-                }
-
-            }
+            updateState(TransferState.COMPLETED, null, cosXmlResult, false);
         }
 
         @Override
         public void onFailed(CosXmlRequest cosXmlRequest, CosXmlClientException exception, CosXmlServiceException serviceException) {
-            IS_EXIT.set(true);
-            if(updateState(TransferState.FAILED)){
-                mException = exception == null ? serviceException : exception;
-                if(cosXmlResultListener != null){
-                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(cosXmlRequest), exception, serviceException);
-                }
-                cancelAllRequest(cosXmlService);
-            }
+            Exception causeException = exception == null ? serviceException : exception;
+            updateState(TransferState.FAILED, causeException, null, false);
         }
     };
 
@@ -139,41 +125,20 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
         getHttpMetrics(copyObjectRequest, "CopyObjectRequest");
 
-        copyObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
-            @Override
-            public void onStateChanged(String taskId, int state) {
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
-            }
-        });
-
         cosXmlService.copyObjectAsync(copyObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
-                if(updateState(TransferState.COMPLETED)){
-                    // complete -> success
-                    mResult = buildCOSXMLTaskResult(result);
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(request), mResult);
-                    }
-                }
+                if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
+                updateState(TransferState.COMPLETED, null, result, false);
             }
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
-                    return;
-                }else {
-                    if(updateState(TransferState.FAILED)){
-                        // failed -> error
-//                           QCloudLogger.d(TAG, taskState.name());
-                        mException = exception == null ? serviceException : exception;
-                        if(cosXmlResultListener != null){
-                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
-                        }
-                    }
-                }
+                if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
+                Exception causeException = exception == null ? serviceException : exception;
+                updateState(TransferState.FAILED, causeException, null, false);
             }
         });
     }
@@ -201,15 +166,6 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
         getHttpMetrics(initMultipartUploadRequest, "InitMultipartUploadRequest");
 
-        initMultipartUploadRequest.setTaskStateListener(new QCloudTaskStateListener() {
-            @Override
-            public void onStateChanged(String taskId, int state) {
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
-            }
-        });
-
         cosXmlService.initMultipartUploadAsync(initMultipartUploadRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
@@ -223,6 +179,7 @@ public final class COSXMLCopyTask extends COSXMLTask {
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                 // notify -> exit caused by failed
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 largeCopyStateListenerHandler.onFailed(request, exception, serviceException);
             }
         });
@@ -259,16 +216,6 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
         getHttpMetrics(listPartsRequest, "ListPartsRequest");
 
-        listPartsRequest.setTaskStateListener(new QCloudTaskStateListener() {
-            @Override
-            public void onStateChanged(String taskId, int state) {
-                if(IS_EXIT.get())return;
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
-            }
-        });
-
         cosXmlService.listPartsAsync(listPartsRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
@@ -281,6 +228,7 @@ public final class COSXMLCopyTask extends COSXMLTask {
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 largeCopyStateListenerHandler.onFailed(request, exception, serviceException);
             }
         });
@@ -321,26 +269,17 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
                 getHttpMetrics(uploadPartCopyRequest, "UploadPartCopyRequest");
 
-                uploadPartCopyRequest.setTaskStateListener(new QCloudTaskStateListener() {
-                    @Override
-                    public void onStateChanged(String taskId, int state) {
-                        if(state == HttpTask.STATE_EXECUTING){
-                            updateState(TransferState.IN_PROGRESS); // running
-                        }
-                    }
-                });
-
                 uploadPartCopyRequestList.add(uploadPartCopyRequest);
 
                 cosXmlService.copyObjectAsync(uploadPartCopyRequest, new CosXmlResultListener() {
                     @Override
                     public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                        if(IS_EXIT.get())return;
                         copyPartStruct.eTag = ((UploadPartCopyResult)result).copyObject.eTag;
                         copyPartStruct.isAlreadyUpload = true;
                         synchronized (SYNC_UPLOAD_PART){
                             UPLOAD_PART_COUNT.decrementAndGet();
                             if(UPLOAD_PART_COUNT.get() == 0){
-                                if(IS_EXIT.get())return;
                                 largeCopyStateListenerHandler.onUploadPartCopy();
                             }
                         }
@@ -349,6 +288,7 @@ public final class COSXMLCopyTask extends COSXMLTask {
                     @Override
                     public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                         if(IS_EXIT.get())return;//已经上报失败了
+                        IS_EXIT.set(true);
                         largeCopyStateListenerHandler.onFailed(request, exception, serviceException);
                     }
                 });
@@ -376,25 +316,18 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
         getHttpMetrics(completeMultiUploadRequest, "CompleteMultiUploadRequest");
 
-        completeMultiUploadRequest.setTaskStateListener(new QCloudTaskStateListener() {
-            @Override
-            public void onStateChanged(String taskId, int state) {
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
-            }
-        });
-
         cosXmlService.completeMultiUploadAsync(completeMultiUploadRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 largeCopyStateListenerHandler.onCompleted(request, result);
             }
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 largeCopyStateListenerHandler.onFailed(request, exception, serviceException);
             }
         });
@@ -425,7 +358,6 @@ public final class COSXMLCopyTask extends COSXMLTask {
             for (UploadPartCopyRequest uploadPartCopyRequest : uploadPartCopyRequestList) {
                 cosXmlService.cancel(uploadPartCopyRequest);
             }
-            uploadPartCopyRequestList.clear();
         }
         if(completeMultiUploadRequest != null){
             cosXmlService.cancel(completeMultiUploadRequest);
@@ -464,59 +396,44 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
     //clear all
     private void clear(){
-    }
-
-    @Override
-    public void pause() {
-        if(updateState(TransferState.PAUSED)){
-//            CosXmlClientException cosXmlClientException = new CosXmlClientException("paused by user");
-//            mException = cosXmlClientException;
-//            if(cosXmlResultListener != null){
-//                cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
-//            }
-            if(isLargeCopy){
-                IS_EXIT.set(true);
-                cancelAllRequest(cosXmlService);
-            }else {
-                cosXmlService.cancel(headObjectRequest);
-                headObjectRequest = null;
-                cosXmlService.cancel(copyObjectRequest);
-                copyObjectRequest = null;
-            }
+        if(uploadPartCopyRequestList != null){
+            uploadPartCopyRequestList.clear();
+        }
+        if(copyPartStructMap != null){
+            copyPartStructMap.clear();
         }
     }
 
     @Override
-    public void cancel() {
-        if(updateState(TransferState.CANCELED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user");
-            mException = cosXmlClientException;
-            if(cosXmlResultListener != null){
-                cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
-            }
-            if(isLargeCopy){
-                IS_EXIT.set(true);
-                cancelAllRequest(cosXmlService);
-                abortMultiUpload(cosXmlService);
-                clear();
-            }else {
-                cosXmlService.cancel(headObjectRequest);
-                headObjectRequest = null;
-                cosXmlService.cancel(copyObjectRequest);
-                copyObjectRequest = null;
-            }
-        }
+    protected void internalCompleted() {
+        clear();
     }
 
     @Override
-    public void resume() {
-        if(updateState(TransferState.RESUMED_WAITING)){
-            copy();
-        }
+    protected void internalFailed() {
+        cancelAllRequest(cosXmlService);
     }
 
     @Override
-    protected CosXmlRequest buildCOSXMLTaskRequest(CosXmlRequest sourceRequest) {
+    protected void internalPause() {
+        cancelAllRequest(cosXmlService);
+    }
+
+    @Override
+    protected void internalCancel() {
+        cancelAllRequest(cosXmlService);
+        if(isLargeCopy)abortMultiUpload(cosXmlService);
+    }
+
+    @Override
+    protected void internalResume() {
+        taskState = TransferState.WAITING;
+        IS_EXIT.set(false); //初始化
+        copy();
+    }
+
+    @Override
+    protected CosXmlRequest buildCOSXMLTaskRequest() {
         COSXMLCopyTaskRequest cosxmlCopyTaskRequest = new COSXMLCopyTaskRequest(region, bucket, cosPath, copySourceStruct,
                 headers, queries);
         return cosxmlCopyTaskRequest;
@@ -548,7 +465,6 @@ public final class COSXMLCopyTask extends COSXMLTask {
     }
 
     protected void run() {
-        updateState(TransferState.WAITING); // waiting
         headObjectRequest = new HeadObjectRequest(copySourceStruct.bucket, copySourceStruct.cosPath);
         headObjectRequest.setRegion(copySourceStruct.region);
 
@@ -561,24 +477,19 @@ public final class COSXMLCopyTask extends COSXMLTask {
         headObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
             public void onStateChanged(String taskId, int state) {
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
+                if(IS_EXIT.get())return;
+                updateState(TransferState.IN_PROGRESS, null, null, false);
             }
         });
         cosXmlService.headObjectAsync(headObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(IS_EXIT.get())return;
                 List<String> contentLengths = result.headers.get("Content-Length");
                 if(contentLengths != null && contentLengths.size() > 0){
                     fileLength = Long.parseLong(contentLengths.get(0));
                 }
                 if(fileLength > multiCopySizeDivision){
-                    if(IS_EXIT != null){
-                        IS_EXIT.set(false);
-                    }else {
-                        IS_EXIT = new AtomicBoolean(false);
-                    }
                     isLargeCopy = true;
                     if(copyPartStructMap != null){
                         copyPartStructMap.clear();
@@ -603,23 +514,15 @@ public final class COSXMLCopyTask extends COSXMLTask {
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
-                    return;
-                }else {
-                    if(updateState(TransferState.FAILED)){
-                        // failed -> error
-//                           QCloudLogger.d(TAG, taskState.name());
-                        mException = exception == null ? serviceException : exception;
-                        if(cosXmlResultListener != null){
-                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
-                        }
-                    }
-                }
+                if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
+                Exception causeException = exception == null ? serviceException : exception;
+                updateState(TransferState.FAILED, causeException, null, false);
             }
         });
     }
 
-    private static interface LargeCopyStateListener{
+    private interface LargeCopyStateListener{
         void onInit();
         void onListParts();
         void onUploadPartCopy();

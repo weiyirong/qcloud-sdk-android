@@ -10,7 +10,6 @@ import com.tencent.cos.xml.model.object.GetObjectRequest;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 
 import java.io.InputStream;
-
 /**
  * Created by bradyxiao on 2018/8/22.
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
@@ -30,6 +29,7 @@ public class TransferManager{
         }
         this.cosXmlService = cosXmlService;
         this.transferConfig = transferConfig;
+
     }
 
     /**

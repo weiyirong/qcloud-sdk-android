@@ -103,9 +103,11 @@ public class CosXmlSimpleService implements SimpleCosXml {
      * @param configuration cos android SDK 服务配置{@link CosXmlServiceConfig}
      */
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration) {
-        FileLogAdapter fileLogAdapter = new FileLogAdapter(context, "QLog");
-        LogServerProxy.init(context, fileLogAdapter);
-        QCloudLogger.addAdapter(fileLogAdapter);
+        if(configuration.isDebuggable()){
+            FileLogAdapter fileLogAdapter = FileLogAdapter.getInstance(context, "QLog");
+            LogServerProxy.init(context, fileLogAdapter);
+            QCloudLogger.addAdapter(fileLogAdapter);
+        }
         MTAProxy.init(context.getApplicationContext());
         appCachePath = context.getApplicationContext().getFilesDir().getPath();
 
@@ -321,7 +323,12 @@ public class CosXmlSimpleService implements SimpleCosXml {
                                 null);
                     }
                 } else {
-                    cosXmlResultListener.onFail(cosXmlRequest, null, (CosXmlServiceException) serviceException);
+                    if(serviceException instanceof CosXmlServiceException){
+                        cosXmlResultListener.onFail(cosXmlRequest, null, (CosXmlServiceException) serviceException);
+                    }else {
+                        cosXmlResultListener.onFail(cosXmlRequest, null, new CosXmlServiceException(serviceException));
+                    }
+
                 }
 
             }

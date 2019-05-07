@@ -1,8 +1,7 @@
 package com.tencent.cos.xml.transfer;
 
-import android.util.Log;
-
 import com.tencent.cos.xml.CosXmlSimpleService;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -15,17 +14,13 @@ import com.tencent.cos.xml.model.object.InitMultipartUploadRequest;
 import com.tencent.cos.xml.model.object.ListPartsRequest;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
-import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 import com.tencent.qcloud.core.http.HttpTaskMetrics;
-
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.tencent.cos.xml.transfer.TaskStateMonitor.MESSAGE_TASK_INIT;
+import static com.tencent.cos.xml.transfer.TaskStateMonitor.MESSAGE_TASK_MANUAL;
 
 /**
  * Created by bradyxiao on 2018/8/23.
@@ -33,8 +28,14 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 
 public abstract class COSXMLTask {
+
+    protected static TaskStateMonitor monitor = TaskStateMonitor.getInstance();
+
     /** CosXmlService */
     protected CosXmlSimpleService cosXmlService;
+    /**
+     * cos 业务
+     */
     protected String region;
     protected String bucket;
     protected String cosPath;
@@ -54,9 +55,10 @@ public abstract class COSXMLTask {
     protected CosXmlResultListener cosXmlResultListener;
     protected TransferStateListener transferStateListener;
     /** cosxml task state during the whole lifecycle */
-    protected TransferState taskState  = TransferState.WAITING;
+    protected volatile TransferState taskState  = TransferState.WAITING;
 
-//    protected volatile boolean IS_CANCELED = false;
+    /** 退出：pause, cancel, failed*/
+    protected AtomicBoolean IS_EXIT = new AtomicBoolean(false);
 
     /** 直接提供签名串 */
     protected OnSignatureListener onSignatureListener;
@@ -74,25 +76,12 @@ public abstract class COSXMLTask {
 
     public void setCosXmlResultListener(CosXmlResultListener cosXmlResultListener){
         this.cosXmlResultListener = cosXmlResultListener;
-        if(cosXmlResultListener != null){
-            if(mResult != null){
-                cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(null), mResult);
-            }
-            if(mException != null){
-                if(mException instanceof CosXmlClientException){
-                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), (CosXmlClientException) mException, null);
-                }else {
-                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), null, (CosXmlServiceException) mException);
-                }
-            }
-        }
+        monitor.sendStateMessage(this, null, mException, mResult, MESSAGE_TASK_INIT);
     }
 
     public void setTransferStateListener(TransferStateListener transferStateListener){
         this.transferStateListener = transferStateListener;
-        if(this.transferStateListener != null){
-            this.transferStateListener.onStateChanged(taskState);
-        }
+        monitor.sendStateMessage(this, taskState, null, null, MESSAGE_TASK_INIT);
     }
 
     public void setOnSignatureListener(OnSignatureListener onSignatureListener){
@@ -115,11 +104,32 @@ public abstract class COSXMLTask {
         }
     }
 
-    public abstract void pause();
+    protected void internalCompleted(){}
 
-    public abstract void cancel();
+    protected void internalFailed(){}
 
-    public abstract void resume();
+    protected void internalPause(){}
+
+    protected void internalCancel(){}
+
+    protected void internalResume(){}
+
+    /**
+     * 异步的，发送通知，置位
+     */
+    public void pause(){
+        if(!IS_EXIT.get())IS_EXIT.set(true);
+        monitor.sendStateMessage(this, TransferState.PAUSED,null,null, MESSAGE_TASK_MANUAL);
+    }
+
+    public void cancel(){
+        if(!IS_EXIT.get())IS_EXIT.set(true);
+        monitor.sendStateMessage(this, TransferState.CANCELED,new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user"),null, MESSAGE_TASK_MANUAL);
+    }
+
+    public void resume(){
+        monitor.sendStateMessage(this, TransferState.RESUMED_WAITING,null,null, MESSAGE_TASK_MANUAL);
+    }
 
     public TransferState getTaskState() {
         return taskState;
@@ -133,7 +143,7 @@ public abstract class COSXMLTask {
         return mException;
     }
 
-    protected abstract CosXmlRequest buildCOSXMLTaskRequest(CosXmlRequest sourceRequest); // 构造COSXMLTask返回的Request
+    protected abstract CosXmlRequest buildCOSXMLTaskRequest(); // 构造COSXMLTask返回的Request
 
     protected abstract CosXmlResult buildCOSXMLTaskResult(CosXmlResult sourceResult); //构造COSXMLTask返回的Result
 
@@ -145,38 +155,60 @@ public abstract class COSXMLTask {
      * pause: 暂停状态，只能由waiting、in_progress状态转为它, task 暂停执行.
      * cancel: 取消状态，除了complete之外，任何状态都可以转为它, task 取消，并释放资源.
      * resume_waiting: 恢复状态，只能由 pause、failed. 这是一个特殊的状态，会直接过渡到waiting, task 恢复执行.
+     * 此方法中 newTaskState 不能是 waiting
      * @param newTaskState new state for operating
-     * @return boolean
      */
-    protected synchronized boolean updateState(TransferState newTaskState){
+    protected synchronized void updateState(TransferState newTaskState, Exception exception, CosXmlResult result, boolean isInit){
+        if(isInit){
+            if(exception != null){
+                if(cosXmlResultListener != null){
+                    if(exception instanceof CosXmlClientException){
+                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(), (CosXmlClientException) exception, null);
+                    }else {
+                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(), null, (CosXmlServiceException) exception);
+                    }
+                }
+            }else if(result != null){
+                if(cosXmlResultListener != null){
+                    cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(), result);
+                }
+            }else if(newTaskState != null){
+                if(transferStateListener != null){
+                    transferStateListener.onStateChanged(taskState);
+                }
+            }
+            return;
+        }
         switch (newTaskState){
             case WAITING:
-                if(taskState != TransferState.WAITING){
+                if(taskState == TransferState.RESUMED_WAITING){
                     taskState = TransferState.WAITING;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
                     }
-                    return true;
                 }
-                return false;
+                break;
             case IN_PROGRESS:
                 if(taskState == TransferState.WAITING){
                     taskState = TransferState.IN_PROGRESS;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
                     }
-                    return true;
                 }
-                return false;
+                break;
             case COMPLETED:
                 if(taskState == TransferState.IN_PROGRESS){
                     taskState = TransferState.COMPLETED;
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
                     }
-                    return true;
+                    mResult = buildCOSXMLTaskResult(result);
+                    if(cosXmlResultListener != null){
+                        cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(), mResult);
+                    }
+                    internalCompleted();
                 }
-                return false;
+                break;
             case FAILED:
                 if(taskState == TransferState.WAITING
                         || taskState == TransferState.IN_PROGRESS){
@@ -184,9 +216,18 @@ public abstract class COSXMLTask {
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
                     }
-                    return true;
+                    mException = exception;
+                    if(cosXmlResultListener != null){
+                        if(exception instanceof CosXmlClientException){
+                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(), (CosXmlClientException) exception, null);
+                        }else {
+                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(), null, (CosXmlServiceException) exception);
+                        }
+                    }
+
+                    internalFailed();
                 }
-                return false;
+                break;
             case PAUSED:
                 if(taskState == TransferState.WAITING
                         || taskState == TransferState.IN_PROGRESS){
@@ -194,9 +235,9 @@ public abstract class COSXMLTask {
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
                     }
-                    return true;
+                    internalPause();
                 }
-                return false;
+                break;
             case CANCELED:
                 if(taskState != TransferState.CANCELED
                         && taskState != TransferState.COMPLETED){
@@ -204,9 +245,13 @@ public abstract class COSXMLTask {
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
                     }
-                    return true;
+                    mException = exception;
+                    if(cosXmlResultListener != null){
+                        cosXmlResultListener.onFail(buildCOSXMLTaskRequest(), (CosXmlClientException) exception, null);
+                    }
+                    internalCancel();
                 }
-                return false;
+                break;
             case RESUMED_WAITING:
                 if(taskState == TransferState.PAUSED
                         || taskState == TransferState.FAILED){
@@ -214,11 +259,11 @@ public abstract class COSXMLTask {
                     if(transferStateListener != null){
                         transferStateListener.onStateChanged(taskState);
                     }
-                    return true;
+                    internalResume();
                 }
-                return false;
+                break;
             default:
-                return false;
+                throw new IllegalStateException("invalid state: " + newTaskState);
         }
     }
 

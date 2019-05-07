@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.transfer;
 
+
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -21,8 +22,6 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
-import com.tencent.qcloud.core.http.HttpTask;
-
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
@@ -76,7 +75,6 @@ public final class COSXMLUploadTask extends COSXMLTask {
     private Map<Integer, SlicePartStruct> partStructMap;
     private AtomicInteger UPLOAD_PART_COUNT;
     private AtomicLong ALREADY_SEND_DATA_LEN;
-    private AtomicBoolean IS_EXIT;
     private Object SYNC_UPLOAD_PART = new Object();
     private MultiUploadsStateListener multiUploadsStateListenerHandler = new MultiUploadsStateListener() {
         @Override
@@ -96,51 +94,37 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
         @Override
         public void onCompleted(CosXmlRequest cosXmlRequest, CosXmlResult cosXmlResult) {
-            IS_EXIT.set(true);
-            if(updateState(TransferState.COMPLETED)){
-                mResult = buildCOSXMLTaskResult(cosXmlResult);
-                if(cosXmlResultListener != null){
-                    cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(cosXmlRequest), mResult);
-                }
-            }
+            updateState(TransferState.COMPLETED, null, cosXmlResult, false);
         }
 
         @Override
         public void onFailed(CosXmlRequest cosXmlRequest, CosXmlClientException exception, CosXmlServiceException serviceException) {
-            IS_EXIT.set(true);
-            if(updateState(TransferState.FAILED)){
-                mException = exception == null ? serviceException : exception;
-                if(cosXmlResultListener != null){
-                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(buildCOSXMLTaskRequest(cosXmlRequest)), exception, serviceException);
-                }
-                cancelAllRequest(cosXmlService);
-            }
+            Exception causeException = exception == null ? serviceException : exception;
+            updateState(TransferState.FAILED, causeException, null, false);
         }
     };
 
-    COSXMLUploadTask(CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, String srcPath, String uploadId){
+    private COSXMLUploadTask(CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath){
+        this.cosXmlService = cosXmlService;
         this.region = region;
         this.bucket = bucket;
         this.cosPath = cosPath;
+    }
+
+    COSXMLUploadTask(CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, String srcPath, String uploadId){
+        this(cosXmlService, region, bucket, cosPath);
         this.srcPath = srcPath;
         this.uploadId = uploadId;
-        this.cosXmlService = cosXmlService;
     }
 
     COSXMLUploadTask(CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, byte[] bytes){
-        this.region = region;
-        this.bucket = bucket;
-        this.cosPath = cosPath;
+        this(cosXmlService, region, bucket, cosPath);
         this.bytes = bytes;
-        this.cosXmlService = cosXmlService;
     }
 
     COSXMLUploadTask(CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, InputStream inputStream){
-        this.region = region;
-        this.bucket = bucket;
-        this.cosPath = cosPath;
+        this(cosXmlService, region, bucket, cosPath);
         this.inputStream = inputStream;
-        this.cosXmlService = cosXmlService;
     }
 
     COSXMLUploadTask(CosXmlSimpleService cosXmlService, PutObjectRequest putObjectRequest, String uploadId){
@@ -151,10 +135,30 @@ public final class COSXMLUploadTask extends COSXMLTask {
         this.isNeedMd5 = putObjectRequest.isNeedMD5();
     }
 
+    protected boolean checkParameter(){
+        if(bytes == null && inputStream == null && srcPath == null){
+            if(IS_EXIT.get())return false;
+            monitor.sendStateMessage(this, TransferState.FAILED,
+                    new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "source is is invalid: nulll"), null, TaskStateMonitor.MESSAGE_TASK_RESULT);
+            IS_EXIT.set(true);
+            return false;
+        }
+        if(srcPath != null){
+            File file = new File(srcPath);
+            if(!file.exists() || file.isDirectory() || !file.canRead()){
+                if(IS_EXIT.get())return false;
+                monitor.sendStateMessage(this, TransferState.FAILED,
+                        new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "srcPath is is invalid: " + srcPath), null, TaskStateMonitor.MESSAGE_TASK_RESULT);
+                IS_EXIT.set(true);
+                return false;
+            }
+            fileLength = file.length();
+        }
+        return true;
+    }
 
     protected void upload(){
-//        checkParameters();
-//        executorService.submit(this);
+        if(!checkParameter()) return;
         run();
     }
 
@@ -178,9 +182,8 @@ public final class COSXMLUploadTask extends COSXMLTask {
         putObjectRequest.setTaskStateListener(new QCloudTaskStateListener() {
             @Override
             public void onStateChanged(String taskId, int state) {
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
+                if(IS_EXIT.get())return;
+                updateState(TransferState.IN_PROGRESS, null, null, false);
             }
         });
         putObjectRequest.setProgressListener(new CosXmlProgressListener() {
@@ -195,29 +198,17 @@ public final class COSXMLUploadTask extends COSXMLTask {
         cosXmlService.putObjectAsync(putObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
-                if(updateState(TransferState.COMPLETED)){
-                    // complete -> success
-                    mResult = buildCOSXMLTaskResult(result);
-                    if(cosXmlResultListener != null){
-                        cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(null), mResult);
-                    }
-                }
+                if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
+                updateState(TransferState.COMPLETED, null, result, false);
             }
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                if(exception != null && exception.getMessage().toUpperCase().contains("CANCELED")){
-                    return;
-                }else {
-                    if(updateState(TransferState.FAILED)){
-                        // failed -> error
-//                           QCloudLogger.d(TAG, taskState.name());
-                        mException = exception == null ? serviceException : exception;
-                        if(cosXmlResultListener != null){
-                            cosXmlResultListener.onFail(buildCOSXMLTaskRequest(request), exception, serviceException);
-                        }
-                    }
-                }
+                if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
+                Exception causeException = exception == null ? serviceException : exception;
+                updateState(TransferState.FAILED, causeException, null, false);
             }
         });
     }
@@ -247,9 +238,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             @Override
             public void onStateChanged(String taskId, int state) {
                 if(IS_EXIT.get())return;
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
+                updateState(TransferState.IN_PROGRESS, null, null, false);
             }
         });
         cosXmlService.initMultipartUploadAsync(initMultipartUploadRequest, new CosXmlResultListener() {
@@ -265,6 +254,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                 // notify -> exit caused by failed
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
             }
         });
@@ -285,9 +275,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             @Override
             public void onStateChanged(String taskId, int state) {
                 if(IS_EXIT.get())return;
-                if(state == HttpTask.STATE_EXECUTING){
-                    updateState(TransferState.IN_PROGRESS); // running
-                }
+                updateState(TransferState.IN_PROGRESS, null, null, false);
             }
         });
 
@@ -303,6 +291,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
             }
         });
@@ -348,12 +337,12 @@ public final class COSXMLUploadTask extends COSXMLTask {
                 cosXmlService.uploadPartAsync(uploadPartRequest, new CosXmlResultListener() {
                     @Override
                     public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                        if(IS_EXIT.get())return;
                         slicePartStruct.eTag = ((UploadPartResult)result).eTag;
                         slicePartStruct.isAlreadyUpload = true;
                         synchronized (SYNC_UPLOAD_PART){
                             UPLOAD_PART_COUNT.decrementAndGet();
                             if(UPLOAD_PART_COUNT.get() == 0){
-                                if(IS_EXIT.get())return;
                                 multiUploadsStateListenerHandler.onUploadParts();
                             }
                         }
@@ -362,6 +351,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
                     @Override
                     public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                         if(IS_EXIT.get())return;//已经上报失败了
+                        IS_EXIT.set(true);
                         multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
                     }
                 });
@@ -396,15 +386,46 @@ public final class COSXMLUploadTask extends COSXMLTask {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onCompleted(request, result);
             }
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                 if(IS_EXIT.get())return;
+                IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
             }
         });
+    }
+
+    @Override
+    protected void internalCompleted() {
+        clear();
+    }
+
+    @Override
+    protected void internalFailed() {
+        cancelAllRequest(cosXmlService);
+    }
+
+    @Override
+    protected void internalPause() {
+        cancelAllRequest(cosXmlService);
+    }
+
+    @Override
+    protected void internalCancel() {
+        cancelAllRequest(cosXmlService);
+        if(isSliceUpload)abortMultiUpload(cosXmlService);
+        clear();
+    }
+
+    @Override
+    protected void internalResume() {
+        taskState = TransferState.WAITING;
+        IS_EXIT.set(false); //初始化
+        upload();
     }
 
     private void cancelAllRequest(CosXmlSimpleService cosXmlService){
@@ -417,7 +438,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             initMultipartUploadRequest = null;
         }
         if(listPartsRequest != null){
-            cosXmlService.cancel(initMultipartUploadRequest);
+            cosXmlService.cancel(listPartsRequest);
             listPartsRequest = null;
         }
         if(uploadPartRequestLongMap != null){
@@ -426,7 +447,6 @@ public final class COSXMLUploadTask extends COSXMLTask {
             while(iterator.hasNext()){
                 cosXmlService.cancel(iterator.next());
             }
-            uploadPartRequestLongMap.clear();
         }
 
         if(completeMultiUploadRequest != null){
@@ -435,6 +455,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
         }
 
     }
+
     private void abortMultiUpload(CosXmlSimpleService cosXmlService){
         if(uploadId == null) return;
         AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucket, cosPath,
@@ -459,62 +480,17 @@ public final class COSXMLUploadTask extends COSXMLTask {
         });
     }
 
-
-
-    @Override
-    public void pause() {
-        if(updateState(TransferState.PAUSED)){
-//            CosXmlClientException cosXmlClientException = new CosXmlClientException("paused by user");
-//            mException = cosXmlClientException;
-//            if(cosXmlResultListener != null){
-//                cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
-//            }
-            if(isSliceUpload){
-                IS_EXIT.set(true);
-                cancelAllRequest(cosXmlService);
-            }else {
-                cosXmlService.cancel(putObjectRequest);
-                putObjectRequest = null;
-            }
+    private void clear(){
+        if(uploadPartRequestLongMap != null){
+            uploadPartRequestLongMap.clear();
+        }
+        if(partStructMap != null){
+            partStructMap.clear();
         }
     }
 
     @Override
-    public void cancel() {
-        if(updateState(TransferState.CANCELED)){
-            CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user");
-            mException = cosXmlClientException;
-            if(cosXmlResultListener != null){
-                cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
-            }
-            if(isSliceUpload){
-                IS_EXIT.set(true);
-                cancelAllRequest(cosXmlService);
-                abortMultiUpload(cosXmlService);
-            }else {
-                cosXmlService.cancel(putObjectRequest);
-                putObjectRequest = null;
-            }
-        }
-    }
-
-    @Override
-    public void resume() {
-        if(updateState(TransferState.RESUMED_WAITING)){
-            if(inputStream != null){
-                CosXmlClientException cosXmlClientException = new CosXmlClientException(ClientErrorCode.SINK_SOURCE_NOT_FOUND.getCode(), "inputStream closed");
-                mException = cosXmlClientException;
-                if(cosXmlResultListener != null){
-                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(null), cosXmlClientException, null);
-                }
-                return;
-            }
-            upload();
-        }
-    }
-
-    @Override
-    protected CosXmlRequest buildCOSXMLTaskRequest(CosXmlRequest sourceRequest) {
+    protected CosXmlRequest buildCOSXMLTaskRequest() {
         COSXMLUploadTaskRequest cosxmlUploadTaskRequest = new COSXMLUploadTaskRequest(region, bucket,
                 cosPath, srcPath, headers, queries);
         return cosxmlUploadTaskRequest;
@@ -669,31 +645,18 @@ public final class COSXMLUploadTask extends COSXMLTask {
     }
 
     protected void run() {
-        updateState(TransferState.WAITING); // waiting
         //bytes or inputStream using simple upload method
         if(bytes != null || inputStream != null){
             simpleUpload(cosXmlService);
             return;
         }
 
-        File file = new File(srcPath);
-        if(!file.exists() || file.isDirectory() || !file.canRead()){
-            if(updateState(TransferState.FAILED)){
-                mException = new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), srcPath + " is invalid");
-                if(cosXmlResultListener != null){
-                    cosXmlResultListener.onFail(buildCOSXMLTaskRequest(putObjectRequest), (CosXmlClientException) mException, null);
-                }
-            }
-           return;
-        }
-        fileLength = file.length();
         if(fileLength < multiUploadSizeDivision){
             simpleUpload(cosXmlService);
         }else {
             isSliceUpload = true;
-            IS_EXIT = new AtomicBoolean(false);
-            UPLOAD_PART_COUNT = new AtomicInteger(0);
-            ALREADY_SEND_DATA_LEN = new AtomicLong(0);
+            UPLOAD_PART_COUNT = new AtomicInteger(0); //用于计算分片数
+            ALREADY_SEND_DATA_LEN = new AtomicLong(0); //分片上传进度计数
             partStructMap = new LinkedHashMap<>(); //必须有序
             uploadPartRequestLongMap = new LinkedHashMap<>();
             multiUpload(cosXmlService);
@@ -708,7 +671,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
         public String eTag;
     }
 
-    private static interface MultiUploadsStateListener{
+    private interface MultiUploadsStateListener{
         void onInit();
         void onListParts();
         void onUploadParts();
