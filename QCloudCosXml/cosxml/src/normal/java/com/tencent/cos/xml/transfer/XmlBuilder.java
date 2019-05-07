@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.transfer;
 
 
+import com.tencent.cos.xml.model.tag.BucketLoggingStatus;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.Delete;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
@@ -238,6 +239,27 @@ public class XmlBuilder extends XmlSlimBuilder {
         }
         xmlSerializer.endTag("", "RestoreRequest");
 
+        xmlSerializer.endDocument();
+        return removeXMLHeader(xmlContent.toString());
+    }
+
+    public static String buildBucketLogging(BucketLoggingStatus bucketLoggingStatus) throws XmlPullParserException, IOException {
+        if(bucketLoggingStatus == null) return null;
+        StringWriter xmlContent = new StringWriter();
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
+        xmlSerializer.setOutput(xmlContent);
+        xmlSerializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+        xmlSerializer.startDocument("UTF-8", null);
+
+        xmlSerializer.startTag("", "BucketLoggingStatus");
+        if(bucketLoggingStatus.loggingEnabled != null){
+            xmlSerializer.startTag("", "LoggingEnabled");
+            addElement(xmlSerializer, "TargetBucket", bucketLoggingStatus.loggingEnabled.targetBucket);
+            addElement(xmlSerializer, "TargetPrefix", bucketLoggingStatus.loggingEnabled.targetPrefix);
+            xmlSerializer.endTag("", "LoggingEnabled");
+        }
+        xmlSerializer.endTag("", "BucketLoggingStatus");
         xmlSerializer.endDocument();
         return removeXMLHeader(xmlContent.toString());
     }
