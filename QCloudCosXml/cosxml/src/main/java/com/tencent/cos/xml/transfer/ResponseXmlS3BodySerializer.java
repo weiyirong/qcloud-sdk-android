@@ -49,7 +49,7 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
         cosXmlServiceException.setStatusCode(httpCode);
         cosXmlServiceException.setRequestId(response.header("x-cos-request-id"));
         InputStream inputStream = response.byteStream();
-        if(inputStream != null && response.contentLength() > 0){
+        if(inputStream != null){
             CosError cosError = new CosError();
             try {
                 XmlSlimParser.parseError(inputStream, cosError);

@@ -155,6 +155,7 @@ final class TaskStateMonitor implements Runnable{
     }
 
     protected void sendStateMessage(COSXMLTask cosxmlTask, TransferState newState, Exception exception, CosXmlResult cosXmlResult, int what){
+        if(taskHandler == null)return; //暂不处理
         Message message = taskHandler.obtainMessage();
         message.what = what;
         StructMsg structMsg = new StructMsg();

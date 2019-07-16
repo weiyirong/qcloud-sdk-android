@@ -24,9 +24,11 @@ import com.tencent.cos.xml.model.tag.ListParts;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -338,30 +340,31 @@ public final class COSXMLCopyTask extends COSXMLTask {
      * @param cosXmlService cosXmlSimpleService
      */
     private void cancelAllRequest(CosXmlSimpleService cosXmlService){
-        if(headObjectRequest != null){
-            cosXmlService.cancel(headObjectRequest);
-            headObjectRequest = null;
+        HeadObjectRequest tempHeadObjectRequest = headObjectRequest;
+        if(tempHeadObjectRequest != null){
+            cosXmlService.cancel(tempHeadObjectRequest);
         }
-        if(copyObjectRequest != null){
-            cosXmlService.cancel(copyObjectRequest);
-            copyObjectRequest = null;
+        CopyObjectRequest tempCopyObjectRequest = copyObjectRequest;
+        if(tempCopyObjectRequest != null){
+            cosXmlService.cancel(tempCopyObjectRequest);
         }
-        if(initMultipartUploadRequest != null){
-            cosXmlService.cancel(initMultipartUploadRequest);
-            initMultipartUploadRequest = null;
+        InitMultipartUploadRequest tempInitMultipartRequest = initMultipartUploadRequest;
+        if(tempInitMultipartRequest != null){
+            cosXmlService.cancel(tempInitMultipartRequest);
         }
-        if(listPartsRequest != null){
-            cosXmlService.cancel(listPartsRequest);
-            listPartsRequest = null;
+        ListPartsRequest tempListPartsRequest = listPartsRequest;
+        if(tempListPartsRequest != null){
+            cosXmlService.cancel(tempListPartsRequest);
         }
         if(uploadPartCopyRequestList != null) {
-            for (UploadPartCopyRequest uploadPartCopyRequest : uploadPartCopyRequestList) {
-                cosXmlService.cancel(uploadPartCopyRequest);
+            Iterator<UploadPartCopyRequest> iterator = uploadPartCopyRequestList.iterator();
+            while (iterator.hasNext()){
+                cosXmlService.cancel(iterator.next());
             }
         }
-        if(completeMultiUploadRequest != null){
-            cosXmlService.cancel(completeMultiUploadRequest);
-            completeMultiUploadRequest = null;
+        CompleteMultiUploadRequest tempCompleteMultiUploadRequest = completeMultiUploadRequest;
+        if(tempCompleteMultiUploadRequest != null){
+            cosXmlService.cancel(tempCompleteMultiUploadRequest);
         }
     }
 

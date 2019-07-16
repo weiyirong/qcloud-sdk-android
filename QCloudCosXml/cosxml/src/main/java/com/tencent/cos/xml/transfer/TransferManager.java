@@ -29,7 +29,6 @@ public class TransferManager{
         }
         this.cosXmlService = cosXmlService;
         this.transferConfig = transferConfig;
-
     }
 
     /**

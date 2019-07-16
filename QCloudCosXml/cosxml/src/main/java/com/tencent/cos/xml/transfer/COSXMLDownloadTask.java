@@ -178,10 +178,10 @@ public final class COSXMLDownloadTask extends COSXMLTask{
     }
 
     private void cancelAllRequest(){
-        cosXmlService.cancel(headObjectRequest);
-        headObjectRequest = null;
-        cosXmlService.cancel(getObjectRequest);
-        getObjectRequest = null;
+        HeadObjectRequest tempHeadObjectRequest = headObjectRequest;
+        cosXmlService.cancel(tempHeadObjectRequest);
+        GetObjectRequest tempGetObjectRequest = getObjectRequest;
+        cosXmlService.cancel(tempGetObjectRequest);
     }
 
     private synchronized void save(String absolutePath){
@@ -302,8 +302,8 @@ public final class COSXMLDownloadTask extends COSXMLTask{
 
     @Override
     protected void internalResume() {
-        IS_EXIT.set(false);
         taskState = TransferState.WAITING;
+        IS_EXIT.set(false);
         download();
     }
 

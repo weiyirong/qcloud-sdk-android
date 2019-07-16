@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.transfer;
 
+import android.util.Log;
 import android.util.Xml;
 
 
@@ -200,6 +201,9 @@ public class XmlParser extends XmlSlimParser {
                         grant = new AccessControlPolicy.Grant();
                     }else if (tagName.equalsIgnoreCase("Grantee")){
                         grantee = new AccessControlPolicy.Grantee();
+                    }else if (tagName.equalsIgnoreCase("URI")){
+                        xmlPullParser.next();
+                        grantee.uri = xmlPullParser.getText();
                     }else if (tagName.equalsIgnoreCase("Permission")){
                         xmlPullParser.next();
                         grant.permission = xmlPullParser.getText();

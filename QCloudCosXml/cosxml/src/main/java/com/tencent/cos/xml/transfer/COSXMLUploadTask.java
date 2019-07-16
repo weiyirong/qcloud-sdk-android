@@ -429,18 +429,19 @@ public final class COSXMLUploadTask extends COSXMLTask {
     }
 
     private void cancelAllRequest(CosXmlSimpleService cosXmlService){
-        if(putObjectRequest != null){
-            cosXmlService.cancel(putObjectRequest);
-            putObjectRequest = null;
+        PutObjectRequest tempPutObjectRequest = putObjectRequest;
+        if(tempPutObjectRequest != null){
+            cosXmlService.cancel(tempPutObjectRequest);
         }
-        if(initMultipartUploadRequest != null){
-            cosXmlService.cancel(initMultipartUploadRequest);
-            initMultipartUploadRequest = null;
+        InitMultipartUploadRequest tempInitMultipartUploadRequest = initMultipartUploadRequest;
+        if(tempInitMultipartUploadRequest != null){
+            cosXmlService.cancel(tempInitMultipartUploadRequest);
         }
-        if(listPartsRequest != null){
-            cosXmlService.cancel(listPartsRequest);
-            listPartsRequest = null;
+        ListPartsRequest tempListPartsRequest = listPartsRequest;
+        if(tempListPartsRequest != null){
+            cosXmlService.cancel(tempListPartsRequest);
         }
+
         if(uploadPartRequestLongMap != null){
             Set<UploadPartRequest> set = uploadPartRequestLongMap.keySet();
             Iterator<UploadPartRequest> iterator = set.iterator();
@@ -449,9 +450,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
             }
         }
 
-        if(completeMultiUploadRequest != null){
-            cosXmlService.cancel(completeMultiUploadRequest);
-            completeMultiUploadRequest = null;
+        CompleteMultiUploadRequest tempCompleteMultiUploadRequest = completeMultiUploadRequest;
+        if(tempCompleteMultiUploadRequest != null){
+            cosXmlService.cancel(tempCompleteMultiUploadRequest);
         }
 
     }
@@ -661,6 +662,18 @@ public final class COSXMLUploadTask extends COSXMLTask {
             uploadPartRequestLongMap = new LinkedHashMap<>();
             multiUpload(cosXmlService);
         }
+    }
+
+    @Override
+    public void resume() {
+        if(inputStream != null){
+            if(IS_EXIT.get())return;
+            IS_EXIT.set(true);
+            multiUploadsStateListenerHandler.onFailed(buildCOSXMLTaskRequest(),
+                    new CosXmlClientException(ClientErrorCode.SINK_SOURCE_NOT_FOUND.getCode(), "inputStream closed"), null);
+            return;
+        }
+        super.resume();
     }
 
     private static class SlicePartStruct{

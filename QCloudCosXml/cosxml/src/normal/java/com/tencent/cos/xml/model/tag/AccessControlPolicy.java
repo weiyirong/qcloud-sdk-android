@@ -66,10 +66,12 @@ public class AccessControlPolicy {
     public static class Grantee{
         public String id;
         public String displayName;
+        public String uri;
 
         @Override
         public String toString(){
             StringBuilder stringBuilder = new StringBuilder("{Grantee:\n");
+            stringBuilder.append("URI:").append(uri).append("\n");
             stringBuilder.append("Id:").append(id).append("\n");
             stringBuilder.append("DisplayName:").append(displayName).append("\n");
             stringBuilder.append("}");

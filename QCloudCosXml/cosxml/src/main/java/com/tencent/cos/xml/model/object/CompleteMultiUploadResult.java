@@ -34,36 +34,28 @@ final public class CompleteMultiUploadResult extends CosXmlResult {
     @Override
     public void parseResponseBody(HttpResponse response) throws CosXmlServiceException, CosXmlClientException {
         super.parseResponseBody(response);
+        InputStream inputStream = null;
         try {
             completeMultipartUpload = new CompleteMultipartUploadResult();
             byte[] contents = response.bytes();
-            InputStream inputStream = new ByteArrayInputStream(contents);
+            inputStream = new ByteArrayInputStream(contents);
             XmlSlimParser.parseCompleteMultipartUploadResult(inputStream, completeMultipartUpload);
             if(completeMultipartUpload.eTag == null || completeMultipartUpload.key == null
                     || completeMultipartUpload.bucket == null){
-                inputStream.reset();
-                CosXmlServiceException cosXmlServiceException = new CosXmlServiceException("failed");
                 if(contents != null && contents.length > 0){
+                    inputStream.reset();
+                    CosXmlServiceException cosXmlServiceException = new CosXmlServiceException("failed");
                     CosError cosError = new CosError();
-                    try {
-                        XmlSlimParser.parseError(inputStream, cosError);
-                        cosXmlServiceException.setErrorCode(cosError.code);
-                        cosXmlServiceException.setErrorMessage(cosError.message);
-                        cosXmlServiceException.setRequestId(cosError.requestId);
-                        cosXmlServiceException.setServiceName(cosError.resource);
-                        cosXmlServiceException.setStatusCode(response.code());
-                        inputStream.close();
-                    } catch (XmlPullParserException e) {
-                        MTAProxy.getInstance().reportCosXmlClientException(CompleteMultiUploadResult.class.getSimpleName(), e.getMessage());
-                        throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
-                    } catch (IOException e) {
-                        MTAProxy.getInstance().reportCosXmlClientException(CompleteMultiUploadResult.class.getSimpleName(), e.getMessage());
-                        throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
-                    }
+                    XmlSlimParser.parseError(inputStream, cosError);
+                    cosXmlServiceException.setErrorCode(cosError.code);
+                    cosXmlServiceException.setErrorMessage(cosError.message);
+                    cosXmlServiceException.setRequestId(cosError.requestId);
+                    cosXmlServiceException.setServiceName(cosError.resource);
+                    cosXmlServiceException.setStatusCode(response.code());
+                    MTAProxy.getInstance().reportCosXmlServerException(CompleteMultiUploadResult.class.getSimpleName(),
+                            cosXmlServiceException.getStatusCode() + " " + cosXmlServiceException.getErrorCode());
+                    throw cosXmlServiceException;
                 }
-                MTAProxy.getInstance().reportCosXmlServerException(CompleteMultiUploadResult.class.getSimpleName(),
-                        cosXmlServiceException.getStatusCode() + " " + cosXmlServiceException.getErrorCode());
-                throw cosXmlServiceException;
             }
         } catch (XmlPullParserException e) {
             throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
