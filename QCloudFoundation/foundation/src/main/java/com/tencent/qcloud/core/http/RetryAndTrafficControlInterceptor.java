@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.http;
 
+import android.util.Log;
+
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.logger.QCloudLogger;
@@ -282,6 +284,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                     e = new IOException(new QCloudServiceException("client clock skewed").setErrorCode(clockSkewError));
                     break;
                 } else if (shouldRetry(request, response, attempts, startTime, e, statusCode)) {
+
                     QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s, code is %d", request, e, statusCode);
                 } else {
                     QCloudLogger.i(HTTP_LOG_TAG, "%s ends for %s, code is %d", request, e, statusCode);
@@ -297,7 +300,6 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 }
             }
         }
-
         if (e != null) {
             throw e;
         }

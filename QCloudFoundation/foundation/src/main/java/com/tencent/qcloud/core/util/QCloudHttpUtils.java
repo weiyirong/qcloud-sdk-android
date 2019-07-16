@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.util;
 
+import android.text.TextUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -106,9 +108,22 @@ public class QCloudHttpUtils {
 
     public static String urlEncodeString(String source) {
         try {
-            String encoded = URLEncoder.encode(source, "UTF-8");
+            if(TextUtils.isEmpty(source))return source;
+            StringBuilder encoded = new StringBuilder();
+            String[] spaceSegments = source.split(" ", -1);
+            for(int i = 0, size = spaceSegments.length; i < size;  i++){
+                if(i == 0 && "".equals(spaceSegments[i])){
+                    encoded.append("%20");
+                    continue;
+                }
+                if(size > 1 && i == size -1 && "".equals(spaceSegments[i])){
+                    break;
+                }
+                encoded.append(URLEncoder.encode(spaceSegments[i], "UTF-8"));
+                if(i != size -1)encoded.append("%20");
+            }
             // cos 后台需要对 * 做转义，而标准的 Java encode 不需要
-            return encoded.replaceAll("\\*", "%2A");
+            return encoded.toString().replaceAll("\\*", "%2A");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

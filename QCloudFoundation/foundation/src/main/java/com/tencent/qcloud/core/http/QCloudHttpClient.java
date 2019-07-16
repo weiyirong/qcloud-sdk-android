@@ -32,8 +32,9 @@ public final class QCloudHttpClient {
 
     static final String HTTP_LOG_TAG = "QCloudHttp";
 
-    private NetworkClient networkClient;
-
+   // private NetworkClient networkClient;
+    private String networkClientType = OkHttpClientImpl.class.getName();
+    private static Map<Integer, NetworkClient> networkClientMap = new HashMap<>(2);
     private final TaskManager taskManager;
     private final HttpLogger httpLogger;
 
@@ -112,11 +113,29 @@ public final class QCloudHttpClient {
         this.taskManager = TaskManager.getInstance();
         httpLogger = new HttpLogger(false);
         setDebuggable(false);
-        this.networkClient = b.networkClient;
+        NetworkClient networkClient = b.networkClient;
         if(networkClient == null){
             networkClient = new OkHttpClientImpl();
         }
-        networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
+        networkClientType = networkClient.getClass().getName();
+        int hashCode = networkClientType.hashCode();
+        if(!networkClientMap.containsKey(hashCode)){
+            networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
+            networkClientMap.put(hashCode, networkClient);
+        }
+    }
+
+    public void setNetworkClientType(Builder b){
+        NetworkClient networkClient = b.networkClient;
+        if(networkClient != null){
+            String name = networkClient.getClass().getName();
+            int hashCode = name.hashCode();
+            if(!networkClientMap.containsKey(hashCode)){
+                networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
+                networkClientMap.put(hashCode, networkClient);
+            }
+            this.networkClientType = name;
+        }
     }
 
     public List<HttpTask> getTasksByTag(String tag) {
@@ -146,7 +165,7 @@ public final class QCloudHttpClient {
 
     private <T> HttpTask<T> handleRequest(HttpRequest<T> request,
                                             QCloudCredentialProvider credentialProvider) {
-        return new HttpTask<T>(request, credentialProvider, networkClient);
+        return new HttpTask<T>(request, credentialProvider, networkClientMap.get(networkClientType.hashCode()));
     }
 
     public final static class Builder {

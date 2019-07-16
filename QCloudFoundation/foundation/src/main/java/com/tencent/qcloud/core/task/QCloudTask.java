@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.task;
 
+import android.util.Log;
+
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
 import com.tencent.qcloud.core.common.QCloudResultListener;
@@ -103,10 +105,14 @@ public abstract class QCloudTask<T> implements Callable<T> {
             public Task<Void> then(Task<T> task) throws Exception {
                 Executor callbackExc = observerExecutor != null ? observerExecutor : workerExecutor;
                 if (task.isFaulted() || task.isCancelled()) {
-                    return Task.call(new Callable<Void>() {
+                     return Task.call(new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
-                            onFailure();
+                            try {
+                                onFailure();
+                            }catch (Exception e){ // 用户处理回调时引起的异常，直接 error 掉, 不走回调了
+                                throw new Error(e);
+                            }
                             return null;
                         }
                     }, callbackExc);
@@ -114,7 +120,11 @@ public abstract class QCloudTask<T> implements Callable<T> {
                     return Task.call(new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
-                            onSuccess();
+                            try {
+                                onSuccess();
+                            }catch (Exception e){// 用户处理回调时引起的异常，直接 error 掉, 不走回调了
+                                throw new Error(e);
+                            }
                             return null;
                         }
                     }, callbackExc);
