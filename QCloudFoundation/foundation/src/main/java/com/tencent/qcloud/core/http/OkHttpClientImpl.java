@@ -23,7 +23,7 @@ public class OkHttpClientImpl extends NetworkClient {
     public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, Dns dns, HttpLogger httpLogger) {
         super.init(b, hostnameVerifier, dns, httpLogger);
         HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor(httpLogger);
-        logInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        logInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
         okHttpClient = b.mBuilder
                 .followRedirects(true)
                 .followSslRedirects(true)

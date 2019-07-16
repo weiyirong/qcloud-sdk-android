@@ -21,11 +21,7 @@ public class HttpConfiguration {
 
     private static final String RFC822_DATE_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
     private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
-    private static SimpleDateFormat gmtFormatter = new SimpleDateFormat(RFC822_DATE_PATTERN, Locale.US);
-    static {
-        gmtFormatter.setTimeZone(GMT_TIMEZONE);
-        gmtFormatter.setLenient(false);
-    }
+    private static ThreadLocal<SimpleDateFormat> gmtFormatters = new ThreadLocal<>();
 
     public static void calculateGlobalTimeOffset(String sDate, Date deviceDate) {
         calculateGlobalTimeOffset(sDate, deviceDate, 0);
@@ -33,7 +29,7 @@ public class HttpConfiguration {
 
     public static void calculateGlobalTimeOffset(String sDate, Date deviceDate, int minOffset) {
         try {
-            Date serverDate = gmtFormatter.parse(sDate);
+            Date serverDate = getFormatter().parse(sDate);
             int clockSkew = (int) (serverDate.getTime() - deviceDate.getTime()) / 1000;
             if (Math.abs(clockSkew) >= minOffset) {
                 GLOBAL_TIME_OFFSET.set(clockSkew);
@@ -49,6 +45,17 @@ public class HttpConfiguration {
     }
 
     public static String getGMTDate(Date date) {
-        return gmtFormatter.format(date);
+        return getFormatter().format(date);
+    }
+
+    private static SimpleDateFormat getFormatter() {
+        SimpleDateFormat gmtFormatter = gmtFormatters.get();
+        if (gmtFormatter == null) {
+            gmtFormatter = new SimpleDateFormat(RFC822_DATE_PATTERN, Locale.US);
+            gmtFormatter.setTimeZone(GMT_TIMEZONE);
+            gmtFormatter.setLenient(false);
+            gmtFormatters.set(gmtFormatter);
+        }
+        return gmtFormatter;
     }
 }
