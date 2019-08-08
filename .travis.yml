@@ -29,7 +29,12 @@ android:
     - 'android-sdk-preview-license-.+'
     - 'android-sdk-license-.+'
     - 'google-gdk-license-.+'
-
+notifications:
+  email:
+    recipients:
+      - wjielai@tencent.com
+      - fysntian@tencent.com
+      - burningzhan@tencent.com 
 before_script:
   # Create and start emulator
   - cd QCloudCosXml
