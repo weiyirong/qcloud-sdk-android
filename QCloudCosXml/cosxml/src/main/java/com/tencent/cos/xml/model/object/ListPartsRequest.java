@@ -4,6 +4,7 @@ import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
+import com.tencent.qcloud.core.task.QCloudTask;
 
 import java.util.Map;
 
@@ -138,4 +139,10 @@ final public class ListPartsRequest extends BaseMultipartUploadRequest {
     public String getEncodingType() {
         return encodingType;
     }
+
+    @Override
+    public int getPriority() {
+        return QCloudTask.PRIORITY_HIGH;
+    }
+
 }

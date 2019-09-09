@@ -277,4 +277,8 @@ public abstract class CosXmlRequest{
     public HttpTask getHttpTask(){
         return httpTask;
     }
+    public int getPriority() {
+       return -1;
+    }
+
 }

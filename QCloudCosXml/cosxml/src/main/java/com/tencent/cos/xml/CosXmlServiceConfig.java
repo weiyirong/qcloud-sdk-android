@@ -170,7 +170,7 @@ public class CosXmlServiceConfig {
 
     private String substituteEndpointSuffix(String formatString,
                                             String region) {
-        if (!TextUtils.isEmpty(formatString)) {
+        if (!TextUtils.isEmpty(formatString) && region != null) {
             return formatString
                     .replace("${region}", region);
         }

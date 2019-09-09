@@ -4,6 +4,7 @@ package com.tencent.cos.xml.transfer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
@@ -17,8 +18,10 @@ import com.tencent.cos.xml.model.object.GetObjectRequest;
 import com.tencent.cos.xml.model.object.HeadObjectRequest;
 import com.tencent.cos.xml.utils.DigestUtils;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
+import com.tencent.qcloud.core.http.HttpConfiguration;
 
 import java.io.File;
+import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +46,7 @@ public final class COSXMLDownloadTask extends COSXMLTask{
     private HeadObjectRequest headObjectRequest;
     private GetObjectRequest getObjectRequest;
     private SharedPreferences sharedPreferences;
+
 
     COSXMLDownloadTask(Context context, CosXmlSimpleService cosXmlService, String region, String bucket, String cosPath, String localSaveDirPath, String localSaveFileName){
         this.region = region;
@@ -85,12 +89,12 @@ public final class COSXMLDownloadTask extends COSXMLTask{
     private void realDownload(long rangeStart, long rangeEnd, final long fileOffset){
         getObjectRequest = new GetObjectRequest(bucket, cosPath, localSaveDirPath, localSaveFileName);
         getObjectRequest.setRegion(region);
-        if(rangeEnd > 0 || rangeStart > 0){
-            getObjectRequest.setRange(rangeStart, rangeEnd);
-        }
         getObjectRequest.setFileOffset(fileOffset);
         getObjectRequest.setQueryParameters(queries);
         getObjectRequest.setRequestHeaders(headers);
+        if(rangeEnd > 0 || rangeStart > 0){
+            getObjectRequest.setRange(rangeStart, rangeEnd);
+        }
 
         if(onSignatureListener != null){
             getObjectRequest.setSign(onSignatureListener.onGetSign(getObjectRequest));
@@ -109,6 +113,9 @@ public final class COSXMLDownloadTask extends COSXMLTask{
         cosXmlService.getObjectAsync(getObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(request != getObjectRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 updateState(TransferState.COMPLETED, null, result, false);
@@ -116,9 +123,13 @@ public final class COSXMLDownloadTask extends COSXMLTask{
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(request != getObjectRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 Exception causeException = exception == null ? serviceException : exception;
+                causeException.printStackTrace();
                 updateState(TransferState.FAILED, causeException, null, false);
             }
         });
@@ -239,6 +250,9 @@ public final class COSXMLDownloadTask extends COSXMLTask{
         cosXmlService.headObjectAsync(headObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(request != headObjectRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 List<String> eTags = result.headers.get("ETag");
                 if(eTags != null && eTags.size() > 0){
@@ -271,9 +285,13 @@ public final class COSXMLDownloadTask extends COSXMLTask{
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(request != headObjectRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 Exception causeException = exception == null ? serviceException : exception;
+                causeException.printStackTrace();
                 updateState(TransferState.FAILED, causeException, null, false);
             }
         });

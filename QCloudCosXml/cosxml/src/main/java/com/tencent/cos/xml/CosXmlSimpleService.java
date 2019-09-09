@@ -2,7 +2,6 @@ package com.tencent.cos.xml;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.exception.CosXmlClientException;
@@ -13,6 +12,7 @@ import com.tencent.cos.xml.model.CosXmlResult;
 import com.tencent.cos.xml.model.object.AbortMultiUploadRequest;
 import com.tencent.cos.xml.model.object.AbortMultiUploadResult;
 import com.tencent.cos.xml.model.object.AppendObjectRequest;
+import com.tencent.cos.xml.model.object.BaseMultipartUploadRequest;
 import com.tencent.cos.xml.model.object.CompleteMultiUploadRequest;
 import com.tencent.cos.xml.model.object.CompleteMultiUploadResult;
 import com.tencent.cos.xml.model.object.CopyObjectRequest;
@@ -62,6 +62,7 @@ import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
 import com.tencent.qcloud.core.logger.FileLogAdapter;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.RetryStrategy;
+import com.tencent.qcloud.core.task.TaskExecutors;
 
 import java.io.File;
 import java.io.IOException;
@@ -402,6 +403,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
             Executor executor = config.getExecutor();
             if(executor != null){
                 httpTask.scheduleOn(executor);
+            }else if(cosXmlRequest instanceof BaseMultipartUploadRequest){
+                httpTask.scheduleOn(TaskExecutors.UPLOAD_EXECUTOR, cosXmlRequest.getPriority());
             }
             else {
                 httpTask.schedule();

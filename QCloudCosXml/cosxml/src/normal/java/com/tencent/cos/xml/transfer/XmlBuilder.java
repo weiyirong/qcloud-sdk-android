@@ -4,10 +4,12 @@ package com.tencent.cos.xml.transfer;
 import com.tencent.cos.xml.model.tag.BucketLoggingStatus;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.Delete;
+import com.tencent.cos.xml.model.tag.InventoryConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
 import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
 import com.tencent.cos.xml.model.tag.RestoreConfigure;
 import com.tencent.cos.xml.model.tag.VersioningConfiguration;
+import com.tencent.cos.xml.model.tag.WebsiteConfiguration;
 
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -260,6 +262,121 @@ public class XmlBuilder extends XmlSlimBuilder {
             xmlSerializer.endTag("", "LoggingEnabled");
         }
         xmlSerializer.endTag("", "BucketLoggingStatus");
+        xmlSerializer.endDocument();
+        return removeXMLHeader(xmlContent.toString());
+    }
+
+    public static String buildWebsiteConfiguration(WebsiteConfiguration websiteConfiguration) throws XmlPullParserException, IOException {
+        if(websiteConfiguration == null)return null;
+        StringWriter xmlContent = new StringWriter();
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
+        xmlSerializer.setOutput(xmlContent);
+        xmlSerializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+
+        xmlSerializer.startDocument("UTF-8", null);
+        xmlSerializer.startTag("", "WebsiteConfiguration");
+
+        if(websiteConfiguration.indexDocument != null){
+            xmlSerializer.startTag("", "IndexDocument");
+            addElement(xmlSerializer, "Suffix", websiteConfiguration.indexDocument.suffix);
+            xmlSerializer.endTag("", "IndexDocument");
+        }
+
+        if(websiteConfiguration.errorDocument != null){
+            xmlSerializer.startTag("", "ErrorDocument");
+            addElement(xmlSerializer, "Key", websiteConfiguration.errorDocument.key);
+            xmlSerializer.endTag("", "ErrorDocument");
+        }
+
+        if(websiteConfiguration.redirectAllRequestTo != null){
+            xmlSerializer.startTag("", "RedirectAllRequestTo");
+            addElement(xmlSerializer, "Protocol", websiteConfiguration.redirectAllRequestTo.protocol);
+            xmlSerializer.endTag("", "RedirectAllRequestTo");
+        }
+
+        if(websiteConfiguration.routingRules != null && websiteConfiguration.routingRules.size() > 0){
+            xmlSerializer.startTag("", "RoutingRules");
+            for(WebsiteConfiguration.RoutingRule routingRule : websiteConfiguration.routingRules){
+                xmlSerializer.startTag("", "RoutingRule");
+                if(routingRule.contidion != null){
+                    xmlSerializer.startTag("", "Condition");
+                    addElement(xmlSerializer, "HttpErrorCodeReturnedEquals", String.valueOf(routingRule.contidion.httpErrorCodeReturnedEquals));
+                    addElement(xmlSerializer, "KeyPrefixEquals", routingRule.contidion.keyPrefixEquals);
+                    xmlSerializer.endTag("", "Condition");
+                }
+                if(routingRule.redirect != null){
+                    xmlSerializer.startTag("", "Redirect");
+                    addElement(xmlSerializer, "Protocol", routingRule.redirect.protocol);
+                    addElement(xmlSerializer, "ReplaceKeyPrefixWith", routingRule.redirect.replaceKeyPrefixWith);
+                    addElement(xmlSerializer, "ReplaceKeyWith", routingRule.redirect.replaceKeyWith);
+                    xmlSerializer.endTag("", "Redirect");
+                }
+                xmlSerializer.endTag("", "RoutingRule");
+            }
+            xmlSerializer.endTag("", "RoutingRules");
+        }
+
+        xmlSerializer.endTag("", "WebsiteConfiguration");
+        xmlSerializer.endDocument();
+        return removeXMLHeader(xmlContent.toString());
+    }
+
+    public static String buildInventoryConfiguration(InventoryConfiguration inventoryConfiguration) throws IOException, XmlPullParserException {
+        if(inventoryConfiguration != null)return null;
+        StringWriter xmlContent = new StringWriter();
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
+        xmlSerializer.setOutput(xmlContent);
+        xmlSerializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+
+        xmlSerializer.startDocument("UTF-8", null);
+        xmlSerializer.startTag("", "InventoryConfiguration");
+        if(inventoryConfiguration.id != null)addElement(xmlSerializer, "Id", inventoryConfiguration.id);
+        addElement(xmlSerializer, "IsEnabled", inventoryConfiguration.isEnabled ? "True" : "False");
+        if(inventoryConfiguration.destination != null){
+            xmlSerializer.startTag("", "Destination");
+            if(inventoryConfiguration.destination.cosBucketDestination != null){
+                xmlSerializer.startTag("", "COSBucketDestination");
+                if(inventoryConfiguration.destination.cosBucketDestination.format != null)
+                    addElement(xmlSerializer, "Format", inventoryConfiguration.destination.cosBucketDestination.format);
+                if(inventoryConfiguration.destination.cosBucketDestination.accountId != null)
+                    addElement(xmlSerializer, "AccountId", inventoryConfiguration.destination.cosBucketDestination.accountId);
+                if(inventoryConfiguration.destination.cosBucketDestination.bucket != null)
+                    addElement(xmlSerializer, "Bucket", inventoryConfiguration.destination.cosBucketDestination.bucket);
+                if(inventoryConfiguration.destination.cosBucketDestination.prefix != null){
+                    addElement(xmlSerializer, "Prefix", inventoryConfiguration.destination.cosBucketDestination.prefix);
+                }
+                if(inventoryConfiguration.destination.cosBucketDestination.encryption != null){
+                    xmlSerializer.startTag("", "Encryption");
+                    addElement(xmlSerializer, "SSE-COS", inventoryConfiguration.destination.cosBucketDestination.encryption.sSECOS);
+                    xmlSerializer.endTag("", "Encryption");
+                }
+                xmlSerializer.endTag("", "COSBucketDestination");
+            }
+            xmlSerializer.endTag("", "Destination");
+        }
+        if(inventoryConfiguration.schedule != null && inventoryConfiguration.schedule.frequency != null){
+            xmlSerializer.startTag("", "Schedule");
+            addElement(xmlSerializer, "Frequency", inventoryConfiguration.schedule.frequency);
+            xmlSerializer.endTag("", "Schedule");
+        }
+        if(inventoryConfiguration.filter != null && inventoryConfiguration.filter.prefix != null){
+            xmlSerializer.startTag("", "Filter");
+            addElement(xmlSerializer, "Prefix", inventoryConfiguration.filter.prefix);
+            xmlSerializer.endTag("", "Filter");
+        }
+        if(inventoryConfiguration.includedObjectVersions != null){
+            addElement(xmlSerializer, "IncludeObjectVersions", inventoryConfiguration.includedObjectVersions);
+        }
+        if(inventoryConfiguration.optionalFields != null && inventoryConfiguration.optionalFields.fields != null){
+            xmlSerializer.startTag("", "OptionalFields");
+            for(String field : inventoryConfiguration.optionalFields.fields){
+                addElement(xmlSerializer, "Field", field);
+            }
+            xmlSerializer.endTag("", "OptionalFields");
+        }
+        xmlSerializer.endTag("", "InventoryConfiguration");
         xmlSerializer.endDocument();
         return removeXMLHeader(xmlContent.toString());
     }

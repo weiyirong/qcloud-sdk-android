@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
-
+def version_name = '5.4.29'
+def version_code = 50429
 android {
 
     compileSdkVersion 27
@@ -9,8 +10,9 @@ android {
         minSdkVersion 15
         targetSdkVersion 27
 
-        versionCode 50423
-        versionName "5.4.23"
+        versionCode 50429
+        versionName "5.4.29"
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -18,17 +20,24 @@ android {
     buildTypes {
         debug {
             testCoverageEnabled = true
-            buildConfigField("String", "OwnUin", "\"${System.env.OwnUin}\"")
-            buildConfigField("String", "APPID", "\"${System.env.APPID}\"")
-            buildConfigField("String", "SecretID", "\"${System.env.SecretID}\"")
-            buildConfigField("String", "SecretKey", "\"${System.env.SecretKey}\"")
-            buildConfigField("String", "BucketForObjectTest", "\"${System.env.BucketForObjectTest}\"")
-            buildConfigField("String", "BucketForBucketTest", "\"${System.env.BucketForBucketTest}\"")
-            buildConfigField("String", "Region", "\"${System.env.Region}\"")
+//            buildConfigField 'String', 'COSSecretId', "\"$COSSecretId\""
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+
+        buildTypes.each {
+            it.buildConfigField 'String', 'COSSecretId', COSSecretId
+            it.buildConfigField 'String', 'COSSecretKey', COSSecretKey
+            it.buildConfigField 'String', 'COSAppId', COSAppId
+            it.buildConfigField 'String', 'COSUin', COSUin
+
+            // build for csp unit test
+            it.buildConfigField 'String', 'CSPAppid', CSPAppId
+            it.buildConfigField 'String', 'CSPSecretId', CSPSecretId
+            it.buildConfigField 'String', 'CSPSecretKey', CSPSecretKey
         }
     }
 
@@ -43,14 +52,14 @@ android {
     }
 
 
-    defaultPublishConfig "normalRelease"
+   defaultPublishConfig "normalRelease"
 
 //    defaultPublishConfig "slimRelease"
 
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+   // implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     compileOnly 'com.android.support:appcompat-v7:27.1.1'
     testCompileOnly 'junit:junit:4.12'
@@ -58,9 +67,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     api project(path: ':foundation')
+//    api 'com.tencent.qcloud:qcloud-foundation:1.5.14'
     api 'com.tencent.qcloud:mtaUtils:5.4.16'
     api 'com.tencent.qcloud:logUtils:5.4.22'
-
 }
 
 if (android.defaultPublishConfig.contains("slim")){
@@ -74,3 +83,22 @@ if (android.defaultPublishConfig.contains("slim")){
     project.extensions.add('artifactProduct', 'normal')
     project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk')
 }
+
+
+
+
+//apply plugin: 'maven'
+//uploadArchives {
+//    repositories {
+//        mavenDeployer {
+//            repository(url: 'http://maven.oa.com/nexus/content/repositories/thirdparty'){
+//                authentication(userName: 'rdm', password: 'rdm')
+//                pom.groupId = 'com.tencent.qcloud'
+//                pom.version = "${version_name}"
+//                pom.artifactId = 'cosxml-lite'
+//            }
+//        }
+//    }
+//}
+
+

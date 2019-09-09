@@ -1,4 +1,5 @@
-include ':cosxml', ':foundation', ':mtaUtils', ':logUtils'
+include ':cosxml', ':mtaUtils', ':logUtils',':foundation', ':quic',':myapplication', ':myapplication2'
 project(':foundation').projectDir = new File(rootDir, '../QCloudFoundation/foundation')
+project(':quic').projectDir = new File(rootDir, '../QCloudFoundation/quic')
 
 

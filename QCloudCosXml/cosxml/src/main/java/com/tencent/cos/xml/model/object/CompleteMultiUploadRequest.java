@@ -9,6 +9,7 @@ import com.tencent.cos.xml.model.CosXmlRequest;
 import com.tencent.cos.xml.model.tag.CompleteMultipartUpload;
 import com.tencent.cos.xml.transfer.XmlSlimBuilder;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
+import com.tencent.qcloud.core.task.QCloudTask;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -151,4 +152,8 @@ final public class CompleteMultiUploadRequest extends BaseMultipartUploadRequest
         }
     }
 
+    @Override
+    public int getPriority() {
+        return QCloudTask.PRIORITY_HIGH;
+    }
 }

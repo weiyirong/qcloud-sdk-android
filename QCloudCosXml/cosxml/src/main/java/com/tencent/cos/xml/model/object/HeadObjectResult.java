@@ -5,6 +5,8 @@ import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.model.CosXmlResult;
 import com.tencent.qcloud.core.http.HttpResponse;
 
+import java.net.HttpURLConnection;
+
 final public class HeadObjectResult extends CosXmlResult {
     public String cosObjectType;
     public String cosStorageClass;

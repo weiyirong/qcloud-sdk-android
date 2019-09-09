@@ -118,12 +118,14 @@ public abstract class COSXMLTask {
      * 异步的，发送通知，置位
      */
     public void pause(){
-        if(!IS_EXIT.get())IS_EXIT.set(true);
+        if(IS_EXIT.get())return;
+        else IS_EXIT.set(true);
         monitor.sendStateMessage(this, TransferState.PAUSED,null,null, MESSAGE_TASK_MANUAL);
     }
 
     public void cancel(){
-        if(!IS_EXIT.get())IS_EXIT.set(true);
+        if(IS_EXIT.get())return;
+        else IS_EXIT.set(true);
         monitor.sendStateMessage(this, TransferState.CANCELED,new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user"),null, MESSAGE_TASK_MANUAL);
     }
 
@@ -199,12 +201,12 @@ public abstract class COSXMLTask {
             case COMPLETED:
                 if(taskState == TransferState.IN_PROGRESS){
                     taskState = TransferState.COMPLETED;
-                    if(transferStateListener != null){
-                        transferStateListener.onStateChanged(taskState);
-                    }
                     mResult = buildCOSXMLTaskResult(result);
                     if(cosXmlResultListener != null){
                         cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(), mResult);
+                    }
+                    if(transferStateListener != null){
+                        transferStateListener.onStateChanged(taskState);
                     }
                     internalCompleted();
                 }
@@ -213,9 +215,6 @@ public abstract class COSXMLTask {
                 if(taskState == TransferState.WAITING
                         || taskState == TransferState.IN_PROGRESS){
                     taskState = TransferState.FAILED;
-                    if(transferStateListener != null){
-                        transferStateListener.onStateChanged(taskState);
-                    }
                     mException = exception;
                     if(cosXmlResultListener != null){
                         if(exception instanceof CosXmlClientException){
@@ -224,7 +223,9 @@ public abstract class COSXMLTask {
                             cosXmlResultListener.onFail(buildCOSXMLTaskRequest(), null, (CosXmlServiceException) exception);
                         }
                     }
-
+                    if(transferStateListener != null){
+                        transferStateListener.onStateChanged(taskState);
+                    }
                     internalFailed();
                 }
                 break;

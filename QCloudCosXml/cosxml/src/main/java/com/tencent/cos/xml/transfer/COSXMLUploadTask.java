@@ -198,6 +198,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
         cosXmlService.putObjectAsync(putObjectRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(request != putObjectRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 updateState(TransferState.COMPLETED, null, result, false);
@@ -205,6 +208,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(request != putObjectRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 Exception causeException = exception == null ? serviceException : exception;
@@ -244,6 +250,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
         cosXmlService.initMultipartUploadAsync(initMultipartUploadRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(request != initMultipartUploadRequest){
+                    return;
+                }
                 // notify -> upload part
                 if(IS_EXIT.get())return;
                 uploadId = ((InitMultipartUploadResult)result).initMultipartUpload.uploadId;
@@ -252,6 +261,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(request != initMultipartUploadRequest){
+                    return;
+                }
                 // notify -> exit caused by failed
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
@@ -282,6 +294,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
         cosXmlService.listPartsAsync(listPartsRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(request != listPartsRequest){
+                    return;
+                }
                 //update list part, then upload part.
                 if(IS_EXIT.get())return;
                 updateSlicePart((ListPartsResult)result);
@@ -290,6 +305,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(request != listPartsRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
@@ -337,6 +355,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
                 cosXmlService.uploadPartAsync(uploadPartRequest, new CosXmlResultListener() {
                     @Override
                     public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                        if(request != uploadPartRequest){
+                            return;
+                        }
                         if(IS_EXIT.get())return;
                         slicePartStruct.eTag = ((UploadPartResult)result).eTag;
                         slicePartStruct.isAlreadyUpload = true;
@@ -350,6 +371,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
                     @Override
                     public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                        if(request != uploadPartRequest){
+                            return;
+                        }
                         if(IS_EXIT.get())return;//已经上报失败了
                         IS_EXIT.set(true);
                         multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
@@ -385,6 +409,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
         cosXmlService.completeMultiUploadAsync(completeMultiUploadRequest, new CosXmlResultListener() {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(request != completeMultiUploadRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onCompleted(request, result);
@@ -392,6 +419,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(request != completeMultiUploadRequest){
+                    return;
+                }
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);

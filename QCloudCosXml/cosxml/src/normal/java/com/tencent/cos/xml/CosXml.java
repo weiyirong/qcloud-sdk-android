@@ -7,6 +7,8 @@ import com.tencent.cos.xml.listener.CosXmlBooleanListener;
 import com.tencent.cos.xml.listener.CosXmlResultListener;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketCORSResult;
+import com.tencent.cos.xml.model.bucket.DeleteBucketInventoryRequest;
+import com.tencent.cos.xml.model.bucket.DeleteBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketLifecycleRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketLifecycleResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationRequest;
@@ -15,14 +17,20 @@ import com.tencent.cos.xml.model.bucket.DeleteBucketRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingResult;
+import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteRequest;
+import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteResult;
 import com.tencent.cos.xml.model.bucket.GetBucketACLRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketACLResult;
 import com.tencent.cos.xml.model.bucket.GetBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketCORSResult;
+import com.tencent.cos.xml.model.bucket.GetBucketInventoryRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLifecycleRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLifecycleResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationResult;
+import com.tencent.cos.xml.model.bucket.GetBucketLoggingRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketLoggingResult;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
@@ -31,6 +39,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketTaggingRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
+import com.tencent.cos.xml.model.bucket.GetBucketWebsiteRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketWebsiteResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
 import com.tencent.cos.xml.model.bucket.HeadBucketResult;
 import com.tencent.cos.xml.model.bucket.ListBucketVersionsRequest;
@@ -41,14 +51,20 @@ import com.tencent.cos.xml.model.bucket.PutBucketACLRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketACLResult;
 import com.tencent.cos.xml.model.bucket.PutBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketCORSResult;
+import com.tencent.cos.xml.model.bucket.PutBucketInventoryRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.PutBucketLifecycleRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketLifecycleResult;
+import com.tencent.cos.xml.model.bucket.PutBucketLoggingRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketLoggingResult;
 import com.tencent.cos.xml.model.bucket.PutBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.PutBucketRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketResult;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
+import com.tencent.cos.xml.model.bucket.PutBucketWebsiteRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketWebsiteResult;
 import com.tencent.cos.xml.model.object.AppendObjectRequest;
 import com.tencent.cos.xml.model.object.AppendObjectResult;
 import com.tencent.cos.xml.model.object.CopyObjectRequest;
@@ -2855,5 +2871,37 @@ public interface CosXml extends SimpleCosXml {
      */
     void updateObjectMetaAsync(String bucketName, String objectName, COSMetaData metaData, final CosXmlBooleanListener booleanListener);
 
+
+    PutBucketWebsiteResult putBucketWebsite(PutBucketWebsiteRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    void putBucketWebsiteAsync(PutBucketWebsiteRequest request,  CosXmlResultListener cosXmlResultListener);
+
+    GetBucketWebsiteResult getBucketWebsite(GetBucketWebsiteRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void getBucketWebsiteAsync(GetBucketWebsiteRequest request, CosXmlResultListener cosXmlResultListener);
+
+    DeleteBucketWebsiteResult deleteBucketWebsite(DeleteBucketWebsiteRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    void deleteBucketWebsiteAsync(DeleteBucketWebsiteRequest request, CosXmlResultListener cosXmlResultListener);
+
+    PutBucketLoggingResult putBucketLogging(PutBucketLoggingRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void putBucketLoggingAsync(PutBucketLoggingRequest request, CosXmlResultListener cosXmlResultListener);
+
+    GetBucketLoggingResult getBucketLogging(GetBucketLocationRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void getBucketLoggingAsync(GetBucketLoggingRequest request, CosXmlResultListener cosXmlResultListener);
+
+    PutBucketInventoryResult putBucketInventory(PutBucketInventoryRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void putBucketInventoryAsync(PutBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener);
+
+    GetBucketInventoryResult getBucketInventory(GetBucketInventoryRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void getBucketInventoryAsync(GetBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener);
+
+    DeleteBucketInventoryResult deleteBucketInventory(DeleteBucketInventoryRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    void deleteInventoryAsync(DeleteBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener);
 
 }

@@ -5,17 +5,21 @@ import android.util.Xml;
 
 
 import com.tencent.cos.xml.model.tag.AccessControlPolicy;
+import com.tencent.cos.xml.model.tag.BucketLoggingStatus;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.CopyPart;
 import com.tencent.cos.xml.model.tag.DeleteResult;
+import com.tencent.cos.xml.model.tag.InventoryConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
 import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
 import com.tencent.cos.xml.model.tag.ListBucket;
 import com.tencent.cos.xml.model.tag.ListBucketVersions;
+import com.tencent.cos.xml.model.tag.ListInventoryConfiguration;
 import com.tencent.cos.xml.model.tag.ListMultipartUploads;
 import com.tencent.cos.xml.model.tag.LocationConstraint;
 import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
 import com.tencent.cos.xml.model.tag.VersioningConfiguration;
+import com.tencent.cos.xml.model.tag.WebsiteConfiguration;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -23,6 +27,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Created by bradyxiao on 2017/11/24.
@@ -639,7 +644,7 @@ public class XmlParser extends XmlSlimParser {
                     if(tagName.equalsIgnoreCase("Deleted")){
                         result.deletedList.add(deleted);
                         deleted = null;
-                    }else if(tagName.equalsIgnoreCase("CosError")){
+                    }else if(tagName.equalsIgnoreCase("Error")){
                     result.errorList.add(error);
                     error = null;
                 }
@@ -751,8 +756,299 @@ public class XmlParser extends XmlSlimParser {
                         result.objectVersionList.add(objectVersion);
                         objectVersion = null;
                     }
+                    break;
             }
             eventType = xmlPullParser.next();
         }
     }
+
+    public static void parseWebsiteConfig(InputStream inputStream, WebsiteConfiguration result) throws XmlPullParserException, IOException {
+        XmlPullParser xmlPullParser =  Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        String tagName;
+        result.routingRules = new ArrayList<>();
+        WebsiteConfiguration.RoutingRule routingRule = null;
+        WebsiteConfiguration.IndexDocument indexDocument = null;
+        WebsiteConfiguration.ErrorDocument errorDocument = null;
+        WebsiteConfiguration.RedirectAllRequestTo redirectAllRequestTo = null;
+        while (eventType != XmlPullParser.END_DOCUMENT){
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("IndexDocument")){
+                        indexDocument = new WebsiteConfiguration.IndexDocument();
+                    }else if(tagName.equalsIgnoreCase("Suffix")){
+                        xmlPullParser.next();
+                        indexDocument.suffix = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("ErrorDocument")){
+                        errorDocument = new WebsiteConfiguration.ErrorDocument();
+                    }else if(tagName.equalsIgnoreCase("Key")){
+                        xmlPullParser.next();
+                        errorDocument.key = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("RedirectAllRequestsTo")){
+                        redirectAllRequestTo = new WebsiteConfiguration.RedirectAllRequestTo();
+                    }else if(tagName.equalsIgnoreCase("Protocol")){
+                        xmlPullParser.next();
+                        if(redirectAllRequestTo != null){
+                            redirectAllRequestTo.protocol = xmlPullParser.getText();
+                        }else {
+                            routingRule.redirect.protocol = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("RoutingRule")){
+                        routingRule = new WebsiteConfiguration.RoutingRule();
+                    }else if(tagName.equalsIgnoreCase("Condition")){
+                        routingRule.contidion = new WebsiteConfiguration.Contidion();
+                    }else if(tagName.equalsIgnoreCase("HttpErrorCodeReturnedEquals")){
+                        xmlPullParser.next();
+                        routingRule.contidion.httpErrorCodeReturnedEquals = Integer.parseInt(xmlPullParser.getText());
+                    }else if(tagName.equalsIgnoreCase("KeyPrefixEquals")){
+                        xmlPullParser.next();
+                        routingRule.contidion.keyPrefixEquals = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Redirect")){
+                        routingRule.redirect = new WebsiteConfiguration.Redirect();
+                    }else if(tagName.equalsIgnoreCase("ReplaceKeyPrefixWith")){
+                        xmlPullParser.next();
+                        routingRule.redirect.replaceKeyPrefixWith = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("ReplaceKeyWith")){
+                        xmlPullParser.next();
+                        routingRule.redirect.replaceKeyWith = xmlPullParser.getText();
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("IndexDocument")){
+                        result.indexDocument = indexDocument;
+                        indexDocument = null;
+                    }else if(tagName.equalsIgnoreCase("ErrorDocument")){
+                        result.errorDocument = errorDocument;
+                        errorDocument = null;
+                    }else if(tagName.equalsIgnoreCase("RedirectAllRequestsTo")){
+                        result.redirectAllRequestTo = redirectAllRequestTo;
+                        redirectAllRequestTo = null;
+                    }else if(tagName.equalsIgnoreCase("RoutingRule")){
+                       result.routingRules.add(routingRule);
+                        routingRule = null;
+                    }
+                    break;
+            }
+            eventType = xmlPullParser.next();
+        }
+    }
+
+    public static void parseListInventoryConfiguration(InputStream inputStream, ListInventoryConfiguration result) throws IOException, XmlPullParserException {
+        XmlPullParser xmlPullParser = Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        result.inventoryConfigurations = new HashSet<>(20);
+        InventoryConfiguration inventoryConfiguration = null;
+        InventoryConfiguration.Schedule schedule = null;
+        InventoryConfiguration.Filter filter = null;
+        InventoryConfiguration.OptionalFields optionalFields = null;
+        InventoryConfiguration.COSBucketDestination cosBucketDestination = null;
+        String tagName;
+        while (eventType != XmlPullParser.END_DOCUMENT){
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("IsTruncated")){
+                        xmlPullParser.next();
+                        result.isTruncated = Boolean.valueOf(xmlPullParser.getText());
+                    }else if(tagName.equalsIgnoreCase("ContinuationToken")){
+                        xmlPullParser.next();
+                        result.continuationToken = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("NextContinuationToken")){
+                        xmlPullParser.next();
+                        result.nextContinuationToken = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("InventoryConfiguration")){
+                        inventoryConfiguration = new InventoryConfiguration();
+                    }else if(tagName.equalsIgnoreCase("Id")){
+                        xmlPullParser.next();
+                        inventoryConfiguration.id = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("IsEnabled")){
+                        xmlPullParser.next();
+                        inventoryConfiguration.isEnabled = Boolean.valueOf(xmlPullParser.getText());
+                    }else if(tagName.equalsIgnoreCase("COSBucketDestination")){
+                        cosBucketDestination = new InventoryConfiguration.COSBucketDestination();
+                    }else if(tagName.equalsIgnoreCase("Format")){
+                        xmlPullParser.next();
+                        cosBucketDestination.format = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("AccountId")){
+                        xmlPullParser.next();
+                        cosBucketDestination.accountId = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Bucket")){
+                        xmlPullParser.next();
+                        cosBucketDestination.bucket = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Prefix")){
+                        xmlPullParser.next();
+                        if(cosBucketDestination != null){
+                            cosBucketDestination.prefix = xmlPullParser.getText();
+                        }else if(filter != null){
+                            filter.prefix = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("Encryption")){
+                        xmlPullParser.next();
+                        cosBucketDestination.encryption = new InventoryConfiguration.Encryption();
+                    }else if(tagName.equalsIgnoreCase("SSE-COS")){
+                        xmlPullParser.next();
+                        cosBucketDestination.encryption.sSECOS = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Schedule")){
+                        schedule = new InventoryConfiguration.Schedule();
+                    }else if(tagName.equalsIgnoreCase("Frequency")){
+                        xmlPullParser.next();
+                        schedule.frequency = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Filter")){
+                        inventoryConfiguration.filter = new InventoryConfiguration.Filter();
+                    }else if(tagName.equalsIgnoreCase("IncludedObjectVersions")){
+                        xmlPullParser.next();
+                        inventoryConfiguration.includedObjectVersions = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("OptionalFields")){
+                        optionalFields = new InventoryConfiguration.OptionalFields();
+                        optionalFields.fields = new HashSet<>(6);
+                    }else if(tagName.equalsIgnoreCase("Field")){
+                        xmlPullParser.next();
+                        optionalFields.fields.add(xmlPullParser.getText());
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("COSBucketDestination")){
+                        inventoryConfiguration.destination = new InventoryConfiguration.Destination();
+                        inventoryConfiguration.destination.cosBucketDestination = cosBucketDestination;
+                        cosBucketDestination = null;
+                    }else if(tagName.equalsIgnoreCase("OptionalFields")){
+                        inventoryConfiguration.optionalFields = optionalFields;
+                        optionalFields = null;
+                    }else if(tagName.equalsIgnoreCase("Filter")){
+                        inventoryConfiguration.filter = filter;
+                        filter = null;
+                    }else if(tagName.equalsIgnoreCase("Schedule")){
+                        inventoryConfiguration.schedule = schedule;
+                        schedule = null;
+                    }else if(tagName.equalsIgnoreCase("InventoryConfiguration")){
+                        result.inventoryConfigurations.add(inventoryConfiguration);
+                        inventoryConfiguration = null;
+                    }
+                    break;
+            }
+            xmlPullParser.next();
+        }
+    }
+
+    public static void parseInventoryConfiguration(InputStream inputStream, InventoryConfiguration result) throws XmlPullParserException, IOException {
+        XmlPullParser xmlPullParser = Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        InventoryConfiguration.Schedule schedule = null;
+        InventoryConfiguration.Filter filter = null;
+        InventoryConfiguration.OptionalFields optionalFields = null;
+        InventoryConfiguration.COSBucketDestination cosBucketDestination = null;
+        String tagName;
+        while (eventType != XmlPullParser.END_DOCUMENT){
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("Id")){
+                        xmlPullParser.next();
+                        result.id = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("IsEnabled")){
+                        xmlPullParser.next();
+                        result.isEnabled = Boolean.valueOf(xmlPullParser.getText());
+                    }else if(tagName.equalsIgnoreCase("COSBucketDestination")){
+                        cosBucketDestination = new InventoryConfiguration.COSBucketDestination();
+                    }else if(tagName.equalsIgnoreCase("Format")){
+                        xmlPullParser.next();
+                        cosBucketDestination.format = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("AccountId")){
+                        xmlPullParser.next();
+                        cosBucketDestination.accountId = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Bucket")){
+                        xmlPullParser.next();
+                        cosBucketDestination.bucket = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Prefix")){
+                        xmlPullParser.next();
+                        if(cosBucketDestination != null){
+                            cosBucketDestination.prefix = xmlPullParser.getText();
+                        }else if(filter != null){
+                            filter.prefix = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("Encryption")){
+                        xmlPullParser.next();
+                        cosBucketDestination.encryption = new InventoryConfiguration.Encryption();
+                    }else if(tagName.equalsIgnoreCase("SSE-COS")){
+                        xmlPullParser.next();
+                        cosBucketDestination.encryption.sSECOS = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Schedule")){
+                        schedule = new InventoryConfiguration.Schedule();
+                    }else if(tagName.equalsIgnoreCase("Frequency")){
+                        xmlPullParser.next();
+                        schedule.frequency = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Filter")){
+                        result.filter = new InventoryConfiguration.Filter();
+                    }else if(tagName.equalsIgnoreCase("IncludedObjectVersions")){
+                        xmlPullParser.next();
+                        result.includedObjectVersions = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("OptionalFields")){
+                        optionalFields = new InventoryConfiguration.OptionalFields();
+                        optionalFields.fields = new HashSet<>(6);
+                    }else if(tagName.equalsIgnoreCase("Field")){
+                        xmlPullParser.next();
+                        optionalFields.fields.add(xmlPullParser.getText());
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("COSBucketDestination")){
+                        result.destination = new InventoryConfiguration.Destination();
+                        result.destination.cosBucketDestination = cosBucketDestination;
+                        cosBucketDestination = null;
+                    }else if(tagName.equalsIgnoreCase("OptionalFields")){
+                        result.optionalFields = optionalFields;
+                        optionalFields = null;
+                    }else if(tagName.equalsIgnoreCase("Filter")){
+                        result.filter = filter;
+                        filter = null;
+                    }else if(tagName.equalsIgnoreCase("Schedule")){
+                        result.schedule = schedule;
+                        schedule = null;
+                    }
+                    break;
+            }
+            xmlPullParser.next();
+        }
+    }
+
+    public static void parseBucketLoggingStatus(InputStream inputStream, BucketLoggingStatus result) throws XmlPullParserException, IOException {
+        XmlPullParser xmlPullParser = Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        String tagName;
+        BucketLoggingStatus.LoggingEnabled loggingEnabled = null;
+        while (eventType != XmlPullParser.END_DOCUMENT){
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("LoggingEnabled")){
+                        loggingEnabled = new BucketLoggingStatus.LoggingEnabled();
+                    }else if(tagName.equalsIgnoreCase("TargetBucket")){
+                        xmlPullParser.next();
+                        loggingEnabled.targetBucket = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("TargetPrefix")){
+                        xmlPullParser.next();
+                        loggingEnabled.targetPrefix = xmlPullParser.getText();
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("LoggingEnabled")){
+                        result.loggingEnabled = loggingEnabled;
+                        loggingEnabled = null;
+                    }
+                    break;
+            }
+            eventType = xmlPullParser.next();
+        }
+
+    }
+
 }

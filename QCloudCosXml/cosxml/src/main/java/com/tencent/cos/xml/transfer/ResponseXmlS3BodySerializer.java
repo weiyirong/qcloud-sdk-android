@@ -53,10 +53,10 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
             CosError cosError = new CosError();
             try {
                 XmlSlimParser.parseError(inputStream, cosError);
-                cosXmlServiceException.setErrorCode(cosError.code);
-                cosXmlServiceException.setErrorMessage(cosError.message);
-                cosXmlServiceException.setRequestId(cosError.requestId);
-                cosXmlServiceException.setServiceName(cosError.resource);
+                if(cosError.code != null) cosXmlServiceException.setErrorCode(cosError.code);
+                if(cosError.message != null) cosXmlServiceException.setErrorMessage(cosError.message);
+                if(cosError.requestId != null) cosXmlServiceException.setRequestId(cosError.requestId);
+                if(cosError.resource != null) cosXmlServiceException.setServiceName(cosError.resource);
             } catch (XmlPullParserException e) {
                 String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.SERVERERROR.getCode(), e.getCause() == null ?
                         e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
