@@ -16,7 +16,7 @@ public class ListInventoryConfiguration {
         if(nextContinuationToken != null)stringBuilder.append("NextContinuationToken:").append(nextContinuationToken).append("\n");
         if(inventoryConfigurations != null){
             for(InventoryConfiguration inventoryConfiguration : inventoryConfigurations){
-                if(inventoryConfiguration != null)stringBuilder.append(inventoryConfigurations.toString()).append("\n");
+                if(inventoryConfiguration != null)stringBuilder.append(inventoryConfiguration.toString()).append("\n");
             }
         }
         stringBuilder.append("}");

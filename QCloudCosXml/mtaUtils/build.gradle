@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply from: '../version.gradle'
 
 android {
     compileSdkVersion 27
@@ -8,8 +9,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 50429
-        versionName "5.4.29"
+        versionCode sdkVersionCode
+        versionName "5.4.30"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -31,7 +32,12 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'com.qq.mta:mta:3.4.7-release'
+    implementation 'com.qq.mta:mta:3.4.7-Release'
     implementation 'com.tencent.mid:mid:4.06-Release'
 }
+
+// 模块名
+project.extensions.add('artifactId', 'mtaUtils')
+// 模块描述
+project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk mtaUtils')
 

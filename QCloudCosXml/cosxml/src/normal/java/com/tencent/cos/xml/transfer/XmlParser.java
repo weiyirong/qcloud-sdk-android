@@ -9,6 +9,7 @@ import com.tencent.cos.xml.model.tag.BucketLoggingStatus;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.CopyPart;
 import com.tencent.cos.xml.model.tag.DeleteResult;
+import com.tencent.cos.xml.model.tag.DomainConfiguration;
 import com.tencent.cos.xml.model.tag.InventoryConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
 import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
@@ -973,7 +974,6 @@ public class XmlParser extends XmlSlimParser {
                             filter.prefix = xmlPullParser.getText();
                         }
                     }else if(tagName.equalsIgnoreCase("Encryption")){
-                        xmlPullParser.next();
                         cosBucketDestination.encryption = new InventoryConfiguration.Encryption();
                     }else if(tagName.equalsIgnoreCase("SSE-COS")){
                         xmlPullParser.next();
@@ -984,7 +984,7 @@ public class XmlParser extends XmlSlimParser {
                         xmlPullParser.next();
                         schedule.frequency = xmlPullParser.getText();
                     }else if(tagName.equalsIgnoreCase("Filter")){
-                        result.filter = new InventoryConfiguration.Filter();
+                        filter = new InventoryConfiguration.Filter();
                     }else if(tagName.equalsIgnoreCase("IncludedObjectVersions")){
                         xmlPullParser.next();
                         result.includedObjectVersions = xmlPullParser.getText();
@@ -1051,4 +1051,40 @@ public class XmlParser extends XmlSlimParser {
 
     }
 
+    public static void parseDomainConfiguration(InputStream inputStream, DomainConfiguration result) throws XmlPullParserException, IOException {
+        XmlPullParser xmlPullParser = Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        String tagName;
+        result.domainRules = new ArrayList<>();
+        DomainConfiguration.DomainRule domainRule = null;
+        while (eventType != XmlPullParser.END_DOCUMENT){
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("DomainRule")){
+                        domainRule = new DomainConfiguration.DomainRule();
+                    }else if(tagName.equalsIgnoreCase("Status")){
+                        xmlPullParser.next();
+                        domainRule.status = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Name")){
+                        xmlPullParser.next();
+                        domainRule.name = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Type")){
+                        xmlPullParser.next();
+                        domainRule.type = xmlPullParser.getText();
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("DomainRule")){
+                       result.domainRules.add(domainRule);
+                        domainRule = null;
+                    }
+                    break;
+            }
+            eventType = xmlPullParser.next();
+        }
+
+    }
 }

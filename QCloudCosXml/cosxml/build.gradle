@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
-def version_name = '5.4.29'
-def version_code = 50429
+apply from: '../version.gradle'
+
 android {
 
     compileSdkVersion 27
@@ -10,36 +10,35 @@ android {
         minSdkVersion 15
         targetSdkVersion 27
 
-        versionCode 50429
-        versionName "5.4.29"
+        versionCode sdkVersionCode
+        versionName "5.4.30"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
 
     buildTypes {
+
         debug {
             testCoverageEnabled = true
-//            buildConfigField 'String', 'COSSecretId', "\"$COSSecretId\""
+
+            it.buildConfigField 'String', 'COS_APPID', quotWrapper(System.getenv("COS_APPID"))
+            it.buildConfigField 'String', 'COS_UIN', quotWrapper(System.getenv("COS_UIN"))
+            it.buildConfigField 'String', 'COS_SECRET_ID', quotWrapper(System.getenv("COS_SECRET_ID"))
+            it.buildConfigField 'String', 'COS_SECRET_KEY', quotWrapper(System.getenv("COS_SECRET_KEY"))
+
+            it.buildConfigField 'String', 'CSP_APPID', quotWrapper(System.getenv("CSP_APPID"))
+            it.buildConfigField 'String', 'CSP_UIN', quotWrapper(System.getenv("CSP_UIN"))
+            it.buildConfigField 'String', 'CSP_SECRET_ID', quotWrapper(System.getenv("CSP_SECRET_ID"))
+            it.buildConfigField 'String', 'CSP_SECRET_KEY', quotWrapper(System.getenv("CSP_SECRET_KEY"))
         }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-
-
-        buildTypes.each {
-            it.buildConfigField 'String', 'COSSecretId', COSSecretId
-            it.buildConfigField 'String', 'COSSecretKey', COSSecretKey
-            it.buildConfigField 'String', 'COSAppId', COSAppId
-            it.buildConfigField 'String', 'COSUin', COSUin
-
-            // build for csp unit test
-            it.buildConfigField 'String', 'CSPAppid', CSPAppId
-            it.buildConfigField 'String', 'CSPSecretId', CSPSecretId
-            it.buildConfigField 'String', 'CSPSecretKey', CSPSecretKey
-        }
     }
+
 
     flavorDimensions "production"
 
@@ -51,15 +50,13 @@ android {
         abortOnError false
     }
 
-
-   defaultPublishConfig "normalRelease"
-
-//    defaultPublishConfig "slimRelease"
+    // 切换发 normal 或者 slim 包，需要同步修改 pom.artifactId 信息
+    defaultPublishConfig "normalRelease"
+//  defaultPublishConfig "slimRelease"
 
 }
 
 dependencies {
-   // implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     compileOnly 'com.android.support:appcompat-v7:27.1.1'
     testCompileOnly 'junit:junit:4.12'
@@ -67,10 +64,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     api project(path: ':foundation')
-//    api 'com.tencent.qcloud:qcloud-foundation:1.5.14'
-    api 'com.tencent.qcloud:mtaUtils:5.4.16'
-    api 'com.tencent.qcloud:logUtils:5.4.22'
+    api project(path: ':mtaUtils')
+    api project(path: ':logUtils')
 }
+
+// 发布到 bintray
 
 if (android.defaultPublishConfig.contains("slim")){
     project.extensions.add('artifactId', 'cosxml-lite')
@@ -86,13 +84,14 @@ if (android.defaultPublishConfig.contains("slim")){
 
 
 
+// 发布到内部仓库
 
 //apply plugin: 'maven'
 //uploadArchives {
 //    repositories {
 //        mavenDeployer {
-//            repository(url: 'http://maven.oa.com/nexus/content/repositories/thirdparty'){
-//                authentication(userName: 'rdm', password: 'rdm')
+//            repository(url: 'https://mirrors.tencent.com/repository/maven/cos_terminal/com/tencent/qcloud'){
+//                authentication(userName: 'rickenwang', password: 'e5a1d450d92011e9a1fd6c92bf3ad140')
 //                pom.groupId = 'com.tencent.qcloud'
 //                pom.version = "${version_name}"
 //                pom.artifactId = 'cosxml-lite'
@@ -101,4 +100,16 @@ if (android.defaultPublishConfig.contains("slim")){
 //    }
 //}
 
+static String quotWrapper(key) {
+    if (key == null) {
+        return "\"\""
+    }
+    return "\"".concat(key).concat("\"")
+}
+
+task(printEnvs) {
+
+    println('System envs are :')
+    println(quotWrapper(System.getenv("APPID")))
+}
 

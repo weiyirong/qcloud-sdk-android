@@ -23,6 +23,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketACLRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketACLResult;
 import com.tencent.cos.xml.model.bucket.GetBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketCORSResult;
+import com.tencent.cos.xml.model.bucket.GetBucketDomainRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketDomainResult;
 import com.tencent.cos.xml.model.bucket.GetBucketInventoryRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLifecycleRequest;
@@ -43,6 +45,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketWebsiteRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketWebsiteResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
 import com.tencent.cos.xml.model.bucket.HeadBucketResult;
+import com.tencent.cos.xml.model.bucket.ListBucketInventoryRequest;
+import com.tencent.cos.xml.model.bucket.ListBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.ListBucketVersionsRequest;
 import com.tencent.cos.xml.model.bucket.ListBucketVersionsResult;
 import com.tencent.cos.xml.model.bucket.ListMultiUploadsRequest;
@@ -51,6 +55,8 @@ import com.tencent.cos.xml.model.bucket.PutBucketACLRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketACLResult;
 import com.tencent.cos.xml.model.bucket.PutBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketCORSResult;
+import com.tencent.cos.xml.model.bucket.PutBucketDomainRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketDomainResult;
 import com.tencent.cos.xml.model.bucket.PutBucketInventoryRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.PutBucketLifecycleRequest;
@@ -2904,4 +2910,15 @@ public interface CosXml extends SimpleCosXml {
 
     void deleteInventoryAsync(DeleteBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener);
 
+    ListBucketInventoryResult listBucketInventory(ListBucketInventoryRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    void listBucketInventoryAsync(ListBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener);
+
+    GetBucketDomainResult getBucketDomain(GetBucketDomainRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    void getBucketDomainAsync(GetBucketDomainRequest request, CosXmlResultListener cosXmlResultListener);
+
+    PutBucketDomainResult putBucketDomain(PutBucketDomainRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    void putBucketDomainAsync(PutBucketDomainRequest request, CosXmlResultListener cosXmlResultListener);
 }

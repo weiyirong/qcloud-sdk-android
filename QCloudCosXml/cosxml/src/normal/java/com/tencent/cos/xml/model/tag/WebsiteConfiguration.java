@@ -31,7 +31,7 @@ public class WebsiteConfiguration {
     }
 
     public static class Contidion{
-        public int httpErrorCodeReturnedEquals;
+        public int httpErrorCodeReturnedEquals = -1;
         public String keyPrefixEquals;
     }
 

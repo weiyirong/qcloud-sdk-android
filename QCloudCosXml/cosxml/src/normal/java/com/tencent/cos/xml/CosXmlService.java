@@ -26,6 +26,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketACLRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketACLResult;
 import com.tencent.cos.xml.model.bucket.GetBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketCORSResult;
+import com.tencent.cos.xml.model.bucket.GetBucketDomainRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketDomainResult;
 import com.tencent.cos.xml.model.bucket.GetBucketInventoryRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLifecycleRequest;
@@ -44,6 +46,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketWebsiteRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketWebsiteResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
 import com.tencent.cos.xml.model.bucket.HeadBucketResult;
+import com.tencent.cos.xml.model.bucket.ListBucketInventoryRequest;
+import com.tencent.cos.xml.model.bucket.ListBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.ListBucketVersionsRequest;
 import com.tencent.cos.xml.model.bucket.ListBucketVersionsResult;
 import com.tencent.cos.xml.model.bucket.ListMultiUploadsRequest;
@@ -52,6 +56,8 @@ import com.tencent.cos.xml.model.bucket.PutBucketACLRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketACLResult;
 import com.tencent.cos.xml.model.bucket.PutBucketCORSRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketCORSResult;
+import com.tencent.cos.xml.model.bucket.PutBucketDomainRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketDomainResult;
 import com.tencent.cos.xml.model.bucket.PutBucketInventoryRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketInventoryResult;
 import com.tencent.cos.xml.model.bucket.PutBucketLifecycleRequest;
@@ -1153,6 +1159,36 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     @Override
     public void deleteInventoryAsync(DeleteBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener) {
         schedule(request, new DeleteBucketInventoryResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public ListBucketInventoryResult listBucketInventory(ListBucketInventoryRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new ListBucketInventoryResult());
+    }
+
+    @Override
+    public void listBucketInventoryAsync(ListBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new ListBucketInventoryResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public GetBucketDomainResult getBucketDomain(GetBucketDomainRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new GetBucketDomainResult());
+    }
+
+    @Override
+    public void getBucketDomainAsync(GetBucketDomainRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketDomainResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public PutBucketDomainResult putBucketDomain(PutBucketDomainRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new PutBucketDomainResult());
+    }
+
+    @Override
+    public void putBucketDomainAsync(PutBucketDomainRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new PutBucketDomainResult(), cosXmlResultListener);
     }
 
 

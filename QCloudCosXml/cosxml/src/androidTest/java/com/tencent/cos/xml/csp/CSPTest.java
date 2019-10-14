@@ -21,9 +21,9 @@ public class CSPTest {
 
     private static BaseTest baseSimpleTest;
 
-    String appid = BuildConfig.CSPAppid;
-    String secretId = BuildConfig.CSPSecretId;
-    String secretKey = BuildConfig.CSPSecretKey;
+    String appid = BuildConfig.CSP_APPID;
+    String secretId = BuildConfig.CSP_SECRET_ID;
+    String secretKey = BuildConfig.CSP_SECRET_KEY;
     String region = "wh";
 
 

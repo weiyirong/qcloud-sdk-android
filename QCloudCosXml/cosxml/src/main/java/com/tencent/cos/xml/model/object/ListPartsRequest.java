@@ -144,5 +144,4 @@ final public class ListPartsRequest extends BaseMultipartUploadRequest {
     public int getPriority() {
         return QCloudTask.PRIORITY_HIGH;
     }
-
 }

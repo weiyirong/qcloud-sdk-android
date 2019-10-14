@@ -53,8 +53,8 @@ public class MyQCloudSigner implements QCloudSigner {
     private String exampleLocalSignerService(String method, String schema, String host, String path,
                                              Map<String, List<String>> headers) {
 
-        String secretId = BuildConfig.COSSecretId;
-        String secretKey = BuildConfig.COSSecretKey;
+        String secretId = QServer.secretId;
+        String secretKey = QServer.secretKey;
 
         ShortTimeCredentialProvider credentialProvider = new ShortTimeCredentialProvider(secretId, secretKey, 600);
         QCloudHttpRequest.Builder httpRequestBuilder = null;

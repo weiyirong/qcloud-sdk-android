@@ -4,6 +4,7 @@ package com.tencent.cos.xml.transfer;
 import com.tencent.cos.xml.model.tag.BucketLoggingStatus;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.Delete;
+import com.tencent.cos.xml.model.tag.DomainConfiguration;
 import com.tencent.cos.xml.model.tag.InventoryConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
 import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
@@ -279,19 +280,19 @@ public class XmlBuilder extends XmlSlimBuilder {
 
         if(websiteConfiguration.indexDocument != null){
             xmlSerializer.startTag("", "IndexDocument");
-            addElement(xmlSerializer, "Suffix", websiteConfiguration.indexDocument.suffix);
+            if(websiteConfiguration.indexDocument.suffix != null) addElement(xmlSerializer, "Suffix", websiteConfiguration.indexDocument.suffix);
             xmlSerializer.endTag("", "IndexDocument");
         }
 
         if(websiteConfiguration.errorDocument != null){
             xmlSerializer.startTag("", "ErrorDocument");
-            addElement(xmlSerializer, "Key", websiteConfiguration.errorDocument.key);
+            if(websiteConfiguration.errorDocument.key != null)addElement(xmlSerializer, "Key", websiteConfiguration.errorDocument.key);
             xmlSerializer.endTag("", "ErrorDocument");
         }
 
         if(websiteConfiguration.redirectAllRequestTo != null){
             xmlSerializer.startTag("", "RedirectAllRequestTo");
-            addElement(xmlSerializer, "Protocol", websiteConfiguration.redirectAllRequestTo.protocol);
+            if(websiteConfiguration.redirectAllRequestTo.protocol != null)addElement(xmlSerializer, "Protocol", websiteConfiguration.redirectAllRequestTo.protocol);
             xmlSerializer.endTag("", "RedirectAllRequestTo");
         }
 
@@ -301,15 +302,15 @@ public class XmlBuilder extends XmlSlimBuilder {
                 xmlSerializer.startTag("", "RoutingRule");
                 if(routingRule.contidion != null){
                     xmlSerializer.startTag("", "Condition");
-                    addElement(xmlSerializer, "HttpErrorCodeReturnedEquals", String.valueOf(routingRule.contidion.httpErrorCodeReturnedEquals));
-                    addElement(xmlSerializer, "KeyPrefixEquals", routingRule.contidion.keyPrefixEquals);
+                    if(routingRule.contidion.httpErrorCodeReturnedEquals != -1) addElement(xmlSerializer, "HttpErrorCodeReturnedEquals", String.valueOf(routingRule.contidion.httpErrorCodeReturnedEquals));
+                    if(routingRule.contidion.keyPrefixEquals != null) addElement(xmlSerializer, "KeyPrefixEquals", routingRule.contidion.keyPrefixEquals);
                     xmlSerializer.endTag("", "Condition");
                 }
                 if(routingRule.redirect != null){
                     xmlSerializer.startTag("", "Redirect");
-                    addElement(xmlSerializer, "Protocol", routingRule.redirect.protocol);
-                    addElement(xmlSerializer, "ReplaceKeyPrefixWith", routingRule.redirect.replaceKeyPrefixWith);
-                    addElement(xmlSerializer, "ReplaceKeyWith", routingRule.redirect.replaceKeyWith);
+                    if(routingRule.redirect.protocol != null)addElement(xmlSerializer, "Protocol", routingRule.redirect.protocol);
+                    if(routingRule.redirect.replaceKeyPrefixWith != null)addElement(xmlSerializer, "ReplaceKeyPrefixWith", routingRule.redirect.replaceKeyPrefixWith);
+                    if(routingRule.redirect.replaceKeyWith != null)addElement(xmlSerializer, "ReplaceKeyWith", routingRule.redirect.replaceKeyWith);
                     xmlSerializer.endTag("", "Redirect");
                 }
                 xmlSerializer.endTag("", "RoutingRule");
@@ -377,6 +378,31 @@ public class XmlBuilder extends XmlSlimBuilder {
             xmlSerializer.endTag("", "OptionalFields");
         }
         xmlSerializer.endTag("", "InventoryConfiguration");
+        xmlSerializer.endDocument();
+        return removeXMLHeader(xmlContent.toString());
+    }
+
+    public static String buildDomainConfiguration(DomainConfiguration domainConfiguration) throws IOException, XmlPullParserException {
+        if(domainConfiguration != null)return null;
+        StringWriter xmlContent = new StringWriter();
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
+        xmlSerializer.setOutput(xmlContent);
+        xmlSerializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+        xmlSerializer.startDocument("UTF-8", null);
+        xmlSerializer.startTag("", "DomainConfiguration");
+        if (domainConfiguration.domainRules != null && domainConfiguration.domainRules.size() > 0)
+        {
+            for(DomainConfiguration.DomainRule rule : domainConfiguration.domainRules) {
+                xmlSerializer.startTag("", "DomainRule");
+                addElement(xmlSerializer, "Status", rule.status);
+                addElement(xmlSerializer, "Name", rule.name);
+                addElement(xmlSerializer, "Type", rule.type);
+                addElement(xmlSerializer, "ForcedReplacement", rule.forcedReplacement);
+                xmlSerializer.endTag("", "DomainRule");
+            }
+        }
+        xmlSerializer.endTag("", "DomainConfiguration");
         xmlSerializer.endDocument();
         return removeXMLHeader(xmlContent.toString());
     }

@@ -3,7 +3,6 @@ package com.tencent.cos.xml.csp;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
-
 import com.tencent.cos.xml.CosXmlService;
 import com.tencent.cos.xml.CosXmlServiceConfig;
 import com.tencent.cos.xml.MyQCloudSigner;

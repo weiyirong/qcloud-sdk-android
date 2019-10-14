@@ -30,12 +30,15 @@ public class QServer {
     public final static String TAG = "UnitTest";
 
     /** 腾讯云 cos 服务的 appid */
-    public final static String ownUin = BuildConfig.COSUin;
-    public final static String appid = BuildConfig.COSAppId;
-    public static final String secretId = BuildConfig.COSSecretId;
-    public static final String secretKey = BuildConfig.COSSecretKey;
+
+    public static final String ownUin =  BuildConfig.COS_UIN;
+    public static final String appid = BuildConfig.COS_APPID;
+    public static final String secretId = BuildConfig.COS_SECRET_ID;
+    public static final String secretKey = BuildConfig.COS_SECRET_KEY;
+
     /** persistBucket 所处在的地域 */
     public final static String region = Region.AP_Guangzhou.getRegion() ;
+    
     public static final String persistBucket = "android-ut-persist-bucket";
     public static final String tempBucket = "android-ut-temp-bucket";
     public static CosXmlService cosXml;
@@ -43,7 +46,7 @@ public class QServer {
     public static boolean cspTest = false;
     private QServer(Context context){
         CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
-                .isHttps(false)
+                .isHttps(true)
                 .setAppidAndRegion(appid, region)
                 .setDebuggable(true)
                 .setRetryHandler(new QCloudHttpRetryHandler(){@Override public boolean shouldRetry(Request request, Response response, Exception exception){

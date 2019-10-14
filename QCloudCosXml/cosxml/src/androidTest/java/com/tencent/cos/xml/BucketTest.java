@@ -228,6 +228,7 @@ public class BucketTest {
         appContext = InstrumentationRegistry.getContext();
         QServer.init(appContext);
         bucketName = QServer.tempBucket;
+
 //        try {
 //            putBucket();
 //        } catch (CosXmlServiceException e) {
@@ -235,6 +236,7 @@ public class BucketTest {
 //                throw e;
 //            }
 //        }
+
         getBucket();
         getBucketLocation();
         headBucket();
