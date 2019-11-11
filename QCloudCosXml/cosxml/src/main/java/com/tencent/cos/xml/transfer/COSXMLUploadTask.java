@@ -78,8 +78,6 @@ public final class COSXMLUploadTask extends COSXMLTask {
     private AtomicLong ALREADY_SEND_DATA_LEN;
     private Object SYNC_UPLOAD_PART = new Object();
 
-    private Map<String, List<String>> customHeaders = new HashMap<>();
-
     private MultiUploadsStateListener multiUploadsStateListenerHandler = new MultiUploadsStateListener() {
         @Override
         public void onInit() {
@@ -455,10 +453,6 @@ public final class COSXMLUploadTask extends COSXMLTask {
         cancelAllRequest(cosXmlService);
         if(isSliceUpload)abortMultiUpload(cosXmlService);
         clear();
-    }
-
-    public void setCustomHeaders(Map<String, List<String>> customHeaders) {
-        this.customHeaders = customHeaders;
     }
 
     @Override

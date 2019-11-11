@@ -164,7 +164,7 @@ public class ObjectTest {
 
 
 
-        String savePath = appContext.getExternalCacheDir().getPath();
+        String savePath = QServer.localParentDirectory(appContext).getPath();
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, cosPath, savePath);
         getObjectRequest.setProgressListener(new CosXmlProgressListener() {
             @Override

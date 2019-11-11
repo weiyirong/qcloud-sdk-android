@@ -54,7 +54,7 @@ public class COSXMLDownloadTaskTest {
         PutObjectRequest putObjectRequest = new PutObjectRequest(QServer.persistBucket, cosPath, srcPath);
         QServer.cosXml.putObject(putObjectRequest);
         QServer.deleteLocalFile(srcPath);
-        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localDir = QServer.localParentDirectory(InstrumentationRegistry.getContext()).getPath();
         final String localFileName = cosPath;
         final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.persistBucket, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
@@ -101,7 +101,7 @@ public class COSXMLDownloadTaskTest {
         PutObjectRequest putObjectRequest = new PutObjectRequest(QServer.persistBucket, cosPath, srcPath);
         QServer.cosXml.putObject(putObjectRequest);
         QServer.deleteLocalFile(srcPath);
-        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localDir = QServer.localParentDirectory(InstrumentationRegistry.getContext()).getPath();
         final String localFileName = cosPath;
         final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.persistBucket, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
@@ -148,7 +148,7 @@ public class COSXMLDownloadTaskTest {
         PutObjectRequest putObjectRequest = new PutObjectRequest(QServer.persistBucket, cosPath, srcPath);
         QServer.cosXml.putObject(putObjectRequest);
         QServer.deleteLocalFile(srcPath);
-        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localDir = QServer.localParentDirectory(InstrumentationRegistry.getContext()).getPath();
         final String localFileName = cosPath;
         final COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), QServer.persistBucket, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {

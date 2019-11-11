@@ -37,10 +37,10 @@ public class QServer {
     public static final String secretKey = BuildConfig.COS_SECRET_KEY;
 
     /** persistBucket 所处在的地域 */
-    public final static String region = Region.AP_Guangzhou.getRegion() ;
+    public final static String region = BuildConfig.REGION;
     
-    public static final String persistBucket = "android-ut-persist-bucket";
-    public static final String tempBucket = "android-ut-temp-bucket";
+    public static final String persistBucket = BuildConfig.BUCKET_PERSIST; // "android-ut-persist-bucket";
+    public static final String tempBucket =  BuildConfig.BUCKET_TEMP; //"android-ut-temp-bucket";
     public static CosXmlService cosXml;
 
     public static boolean cspTest = false;
