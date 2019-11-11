@@ -58,19 +58,11 @@ public class ResponseXmlS3BodySerializer<T> extends ResponseBodyConverter<T> {
                 if(cosError.requestId != null) cosXmlServiceException.setRequestId(cosError.requestId);
                 if(cosError.resource != null) cosXmlServiceException.setServiceName(cosError.resource);
             } catch (XmlPullParserException e) {
-                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.SERVERERROR.getCode(), e.getCause() == null ?
-                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
-                MTAProxy.getInstance().reportCosXmlClientException(ResponseXmlS3BodySerializer.class.getSimpleName(), reportMessage);
                 throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
             } catch (IOException e) {
-                String reportMessage = String.format(Locale.ENGLISH, "%d %s", ClientErrorCode.IO_ERROR.getCode(), e.getCause() == null ?
-                        e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
-                MTAProxy.getInstance().reportCosXmlClientException(ResponseXmlS3BodySerializer.class.getSimpleName(), reportMessage);
-                throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+                throw new CosXmlClientException(ClientErrorCode.POOR_NETWORK.getCode(), e);
             }
         }
-        MTAProxy.getInstance().reportCosXmlServerException(ResponseXmlS3BodySerializer.class.getSimpleName(),
-                String.format(Locale.ENGLISH, "%s %s",cosXmlServiceException.getStatusCode(), cosXmlServiceException.getErrorCode()));
         throw cosXmlServiceException;
     }
 

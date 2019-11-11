@@ -2,11 +2,22 @@ package com.tencent.cos.xml;
 
 import android.content.Context;
 
+import com.tencent.cos.xml.common.ClientErrorCode;
+import com.tencent.cos.xml.exception.CosXmlClientException;
+import com.tencent.cos.xml.exception.CosXmlServiceException;
+import com.tencent.qcloud.core.common.QCloudAuthenticationException;
+import com.tencent.qcloud.core.common.QCloudClientException;
+import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.logger.QCloudLogger;
+import com.tencent.qcloud.core.util.QCloudHttpUtils;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Locale;
 
 
 /**
@@ -63,30 +74,55 @@ public class MTAProxy {
         return instance;
     }
 
-    /**
-     * key - exception message
-     * key: class name
-     * exceptionMessage: exception
-     **/
-    public void reportCosXmlClientException(String requestClassName, String exceptionMessage){
-        if(mtaServer != null && reportFailedEvent != null){
-            try {
-                reportFailedEvent.invoke(mtaServer, requestClassName, exceptionMessage);
-            } catch (IllegalAccessException e) {
-                QCloudLogger.d(TAG, e.getMessage());
-            } catch (InvocationTargetException e) {
-                QCloudLogger.d(TAG, e.getMessage());
+    public CosXmlClientException reportXmlClientException(Object cosXmlRequest, QCloudClientException e) {
+        CosXmlClientException xmlClientException;
+        if (e instanceof CosXmlClientException) {
+            xmlClientException = (CosXmlClientException) e;
+        } else {
+            Throwable causeException = e.getCause();
+            if (causeException instanceof IllegalArgumentException) {
+                xmlClientException = new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
+            } else if (causeException instanceof QCloudAuthenticationException) {
+                xmlClientException = new CosXmlClientException(ClientErrorCode.INVALID_CREDENTIALS.getCode(), e);
+            } else if (causeException instanceof IOException) {
+                ClientErrorCode code;
+                if (causeException instanceof FileNotFoundException) {
+                    code = ClientErrorCode.SINK_SOURCE_NOT_FOUND;
+                } else if (QCloudHttpUtils.isNetworkConditionException(causeException)) {
+                    code = ClientErrorCode.POOR_NETWORK;
+                } else {
+                    code = ClientErrorCode.IO_ERROR;
+                }
+                xmlClientException = new CosXmlClientException(code.getCode(), e);
+            } else {
+                xmlClientException = new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), e);
             }
         }
+        String reportMessage = String.format(Locale.ENGLISH, "%d %s", xmlClientException.errorCode, e.getCause() == null ?
+                e.getClass().getSimpleName() : e.getCause().getClass().getSimpleName());
+        reportErrorAction(cosXmlRequest.getClass().getSimpleName(), reportMessage, xmlClientException);
+
+        return xmlClientException;
     }
+
+    public CosXmlServiceException reportXmlServerException(Object cosXmlRequest, QCloudServiceException e){
+        CosXmlServiceException serviceException = e instanceof CosXmlServiceException ? (CosXmlServiceException) e
+                : new CosXmlServiceException(e);
+        reportErrorAction(cosXmlRequest.getClass().getSimpleName(),
+                serviceException.getStatusCode() + " " + serviceException.getErrorCode(), serviceException);
+
+        return serviceException;
+    }
+
 
     /**
      * key - exception message
      * key: class name
      * errorMsg: error code and error msg
      **/
-    public void reportCosXmlServerException(String requestClassName, String errorMsg){
-        if(mtaServer != null && reportFailedEvent != null){
+    private void reportErrorAction(String requestClassName, String errorMsg, Exception ex){
+        if(mtaServer != null && reportFailedEvent != null && isRequestNeedReport(requestClassName) &&
+            isExceptionInterested(ex)){
             try {
                 reportFailedEvent.invoke(mtaServer, requestClassName, errorMsg);
             } catch (IllegalAccessException e) {
@@ -102,7 +138,7 @@ public class MTAProxy {
      * @param requestClassName class name
      */
     public void reportSendAction(String requestClassName){
-        if(mtaServer != null && reportSendEvent != null){
+        if(mtaServer != null && reportSendEvent != null && isRequestNeedReport(requestClassName)){
             try {
                 reportSendEvent.invoke(mtaServer, requestClassName);
             } catch (IllegalAccessException e) {
@@ -111,6 +147,33 @@ public class MTAProxy {
                 QCloudLogger.e(TAG, e.getMessage());
             }
         }
+    }
+
+    private boolean isRequestNeedReport(String requestClassName) {
+        return Arrays.asList(
+                "PutObjectRequest",
+                "GetObjectRequest",
+                "UploadPartRequest",
+                "UploadPartCopyRequest",
+                "CopyObjectRequest").contains(requestClassName);
+    }
+
+    private boolean isExceptionInterested(Exception ex) {
+        if (ex instanceof CosXmlClientException) {
+            int errorCode = ((CosXmlClientException) ex).errorCode;
+            return errorCode == ClientErrorCode.POOR_NETWORK.getCode() ||
+                    errorCode == ClientErrorCode.SERVERERROR.getCode() ||
+                    errorCode == ClientErrorCode.INTERNAL_ERROR.getCode();
+        } else if (ex instanceof CosXmlServiceException) {
+            String serverCode = ((CosXmlServiceException) ex).getErrorCode();
+            return Arrays.asList(
+                    "InvalidDigest",
+                    "BadDigest",
+                    "InvalidSHA1Digest",
+                    "RequestTimeOut").contains(serverCode);
+        }
+
+        return false;
     }
 
 }

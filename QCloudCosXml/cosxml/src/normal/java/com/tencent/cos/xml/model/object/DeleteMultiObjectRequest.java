@@ -62,7 +62,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         } catch (XmlPullParserException e) {
             throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         }
     }
 
@@ -76,7 +76,7 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         }
         if( delete.deleteObjects.size() == 0)
         {
-            throw new CosXmlClientException(ClientErrorCode.INTERNAL_ERROR.getCode(), "object（null or empty) is invalid");
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), "object（null or empty) is invalid");
         }
     }
 

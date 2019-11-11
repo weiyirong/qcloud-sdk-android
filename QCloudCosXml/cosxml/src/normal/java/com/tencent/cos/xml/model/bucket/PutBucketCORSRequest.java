@@ -60,7 +60,7 @@ final public class PutBucketCORSRequest extends BucketRequest {
         } catch (XmlPullParserException e) {
             throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         }
     }
 

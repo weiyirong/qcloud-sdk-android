@@ -8,6 +8,8 @@ package com.tencent.cos.xml.common;
 
 public enum ClientErrorCode {
 
+    UNKNOWN(-10000, "Unknown Error"),
+
     INVALID_ARGUMENT(10000, "InvalidArgument"),
     INVALID_CREDENTIALS(10001, "InvalidCredentials"),
     BAD_REQUEST(10002, "BadRequest"),
@@ -27,6 +29,15 @@ public enum ClientErrorCode {
     ClientErrorCode(int code, String errorMsg){
         this.code = code;
         this.errorMsg = errorMsg;
+    }
+
+    public static ClientErrorCode to(int code) {
+        for (ClientErrorCode errorCode : ClientErrorCode.values()) {
+            if (errorCode.code == code) {
+                return errorCode;
+            }
+        }
+        throw new IllegalArgumentException("not error code defined");
     }
 
     public void setErrorMsg(String errorMsg){

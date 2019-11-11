@@ -7,6 +7,7 @@ import android.util.Log;
 import com.tencent.cos.xml.BuildConfig;
 import com.tencent.cos.xml.CosXmlService;
 import com.tencent.cos.xml.CosXmlServiceConfig;
+import com.tencent.cos.xml.QServer;
 import com.tencent.cos.xml.common.Region;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
@@ -54,8 +55,8 @@ public abstract class BaseCosXmlServiceTest {
 
         this.context = context;
 
-        uin = "1278687956";
-        appid = "1253653367";
+        uin = BuildConfig.COS_UIN;
+        appid = BuildConfig.COS_APPID;
 
         secretId = BuildConfig.COS_SECRET_ID;
         secretKey = BuildConfig.COS_SECRET_KEY;
@@ -70,7 +71,7 @@ public abstract class BaseCosXmlServiceTest {
         cosXmlService = new CosXmlService(context, cosXmlServiceConfig,
                 new ShortTimeCredentialProvider(secretId,secretKey,3600 * 10)); // 有效期为 10 个小时
 
-        localDirectory = context.getExternalCacheDir().getAbsolutePath();
+        localDirectory = QServer.localParentDirectory(context).getAbsolutePath();
     }
 
 

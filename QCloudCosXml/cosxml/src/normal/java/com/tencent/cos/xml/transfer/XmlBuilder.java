@@ -11,6 +11,11 @@ import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
 import com.tencent.cos.xml.model.tag.RestoreConfigure;
 import com.tencent.cos.xml.model.tag.VersioningConfiguration;
 import com.tencent.cos.xml.model.tag.WebsiteConfiguration;
+import com.tencent.cos.xml.model.tag.eventstreaming.CSVInput;
+import com.tencent.cos.xml.model.tag.eventstreaming.CSVOutput;
+import com.tencent.cos.xml.model.tag.eventstreaming.JSONInput;
+import com.tencent.cos.xml.model.tag.eventstreaming.JSONOutput;
+import com.tencent.cos.xml.model.tag.eventstreaming.SelectRequest;
 
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -324,7 +329,7 @@ public class XmlBuilder extends XmlSlimBuilder {
     }
 
     public static String buildInventoryConfiguration(InventoryConfiguration inventoryConfiguration) throws IOException, XmlPullParserException {
-        if(inventoryConfiguration != null)return null;
+        if(inventoryConfiguration == null)return null;
         StringWriter xmlContent = new StringWriter();
         XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
         XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
@@ -383,7 +388,7 @@ public class XmlBuilder extends XmlSlimBuilder {
     }
 
     public static String buildDomainConfiguration(DomainConfiguration domainConfiguration) throws IOException, XmlPullParserException {
-        if(domainConfiguration != null)return null;
+        if(domainConfiguration == null)return null;
         StringWriter xmlContent = new StringWriter();
         XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
         XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
@@ -403,6 +408,78 @@ public class XmlBuilder extends XmlSlimBuilder {
             }
         }
         xmlSerializer.endTag("", "DomainConfiguration");
+        xmlSerializer.endDocument();
+        return removeXMLHeader(xmlContent.toString());
+    }
+
+    public static String buildSelectRequest(SelectRequest selectRequest) throws IOException, XmlPullParserException {
+
+        if (selectRequest == null) {
+            return null;
+        }
+
+        StringWriter xmlContent = new StringWriter();
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
+        xmlSerializer.setOutput(xmlContent);
+        xmlSerializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+        xmlSerializer.startDocument("UTF-8", null);
+
+        xmlSerializer.startTag("", "SelectRequest");
+
+        addElement(xmlSerializer, "Expression", selectRequest.getExpression());
+        addElement(xmlSerializer, "ExpressionType", selectRequest.getExpressionType());
+
+        xmlSerializer.startTag("", "InputSerialization");
+        addElement(xmlSerializer, "CompressionType", selectRequest.getInputSerialization().getCompressionType());
+        if (selectRequest.getInputSerialization().getCsv() != null) {
+
+            CSVInput csvInput = selectRequest.getInputSerialization().getCsv();
+            xmlSerializer.startTag("", "CSV");
+            addElement(xmlSerializer, "FileHeaderInfo", csvInput.getFileHeaderInfo());
+            addElement(xmlSerializer, "RecordDelimiter", csvInput.getRecordDelimiterAsString());
+            addElement(xmlSerializer, "FieldDelimiter", csvInput.getFieldDelimiterAsString());
+            addElement(xmlSerializer, "QuoteCharacter", csvInput.getQuoteCharacterAsString());
+            addElement(xmlSerializer, "QuoteEscapeCharacter", csvInput.getQuoteEscapeCharacterAsString());
+            addElement(xmlSerializer, "Comments", csvInput.getCommentsAsString());
+            addElement(xmlSerializer, "AllowQuotedRecordDelimiter", String.valueOf(csvInput.getAllowQuotedRecordDelimiter()));
+            xmlSerializer.endTag("", "CSV");
+
+        } else if (selectRequest.getInputSerialization().getJson() != null) {
+
+            JSONInput jsonInput = selectRequest.getInputSerialization().getJson();
+
+            xmlSerializer.startTag("", "JSON");
+            addElement(xmlSerializer, "Type", jsonInput.getType());
+            xmlSerializer.endTag("", "JSON");
+        }
+        xmlSerializer.endTag("", "InputSerialization");
+
+        xmlSerializer.startTag("", "OutputSerialization");
+        if (selectRequest.getOutputSerialization().getCsv() != null) {
+            CSVOutput csvOutput = selectRequest.getOutputSerialization().getCsv();
+            xmlSerializer.startTag("", "CSV");
+            addElement(xmlSerializer, "QuoteFields", csvOutput.getQuoteFields());
+            addElement(xmlSerializer, "RecordDelimiter", csvOutput.getRecordDelimiterAsString());
+            addElement(xmlSerializer, "FieldDelimiter", csvOutput.getFieldDelimiterAsString());
+            addElement(xmlSerializer, "QuoteCharacter", csvOutput.getQuoteCharacterAsString());
+            addElement(xmlSerializer, "QuoteEscapeCharacter", csvOutput.getQuoteEscapeCharacterAsString());
+            xmlSerializer.endTag("", "CSV");
+
+        } else if (selectRequest.getOutputSerialization().getJson() != null) {
+
+            JSONOutput jsonOutput = selectRequest.getOutputSerialization().getJson();
+            xmlSerializer.startTag("", "JSON");
+            addElement(xmlSerializer, "RecordDelimiter", jsonOutput.getRecordDelimiterAsString());
+            xmlSerializer.endTag("", "JSON");
+        }
+        xmlSerializer.endTag("", "OutputSerialization");
+
+        xmlSerializer.startTag("", "RequestProgress");
+        addElement(xmlSerializer, "Enabled", String.valueOf(selectRequest.getRequestProgress().getEnabled()));
+        xmlSerializer.endTag("", "RequestProgress");
+
+        xmlSerializer.endTag("", "SelectRequest");
         xmlSerializer.endDocument();
         return removeXMLHeader(xmlContent.toString());
     }

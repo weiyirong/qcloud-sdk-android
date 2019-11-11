@@ -47,15 +47,13 @@ public class CopyObjectResult extends CosXmlResult {
                     cosXmlServiceException.setRequestId(cosError.requestId);
                     cosXmlServiceException.setServiceName(cosError.resource);
                     cosXmlServiceException.setStatusCode(response.code());
-                    MTAProxy.getInstance().reportCosXmlServerException(CopyObjectResult.class.getSimpleName(),
-                            cosXmlServiceException.getStatusCode() + " " + cosXmlServiceException.getErrorCode());
                     throw cosXmlServiceException;
                 }
             }
         }catch (XmlPullParserException e) {
            throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+            throw new CosXmlClientException(ClientErrorCode.POOR_NETWORK.getCode(), e);
         }finally {
             CloseUtil.closeQuietly(inputStream);
         }

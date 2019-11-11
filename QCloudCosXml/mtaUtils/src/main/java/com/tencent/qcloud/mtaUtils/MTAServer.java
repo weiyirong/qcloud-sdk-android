@@ -24,7 +24,7 @@ import java.util.Properties;
 
 public class MTAServer {
     private static final String TAG = "MTAServer";
-    private String mtaAppKey = "Aqcloud105115";
+    private String mtaAppKey = "AX23PXJD16SJ";
     private String sendEventId = "request_sent";
     private String failEventId = "request_fail";
     private String errorParameterName = "error";

@@ -34,7 +34,8 @@ dependencies {
 
 // 模块名
 project.extensions.add('artifactId', 'logUtils')
-// 模块描述
+project.extensions.add('packageType', 'aar')
+project.extensions.add('packageName', 'LogUtils')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk logUtils')
 
 

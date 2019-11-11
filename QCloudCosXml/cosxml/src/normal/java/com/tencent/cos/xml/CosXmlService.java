@@ -85,11 +85,15 @@ import com.tencent.cos.xml.model.object.PutObjectACLRequest;
 import com.tencent.cos.xml.model.object.PutObjectACLResult;
 import com.tencent.cos.xml.model.object.RestoreRequest;
 import com.tencent.cos.xml.model.object.RestoreResult;
+import com.tencent.cos.xml.model.object.SelectObjectContentRequest;
+import com.tencent.cos.xml.model.object.SelectObjectContentResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.model.service.GetServiceResult;
 import com.tencent.cos.xml.model.tag.COSMetaData;
+import com.tencent.cos.xml.transfer.SelectObjectContentConverter;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudSigner;
+import com.tencent.qcloud.core.http.QCloudHttpRequest;
 
 /**
  * Created by bradyxiao on 2017/11/30.
@@ -1191,5 +1195,30 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
         schedule(request, new PutBucketDomainResult(), cosXmlResultListener);
     }
 
+    @Override
+    public SelectObjectContentResult selectObjectContent(SelectObjectContentRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new SelectObjectContentResult());
+    }
 
+    @Override
+    public void selectObjectContentAsync(SelectObjectContentRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new SelectObjectContentResult(), cosXmlResultListener);
+    }
+
+
+    @Override
+    protected <T1 extends CosXmlRequest, T2 extends CosXmlResult> boolean buildHttpRequestBodyConverter(T1 cosXmlRequest, T2 cosXmlResult, QCloudHttpRequest.Builder<T2> httpRequestBuilder) {
+
+        if (cosXmlRequest instanceof SelectObjectContentRequest) {
+
+            SelectObjectContentRequest selectObjectContentRequest = (SelectObjectContentRequest) cosXmlRequest;
+            SelectObjectContentConverter<T2> selectObjectContentConverter = new SelectObjectContentConverter<T2>((SelectObjectContentResult) cosXmlResult,
+                    selectObjectContentRequest.getSelectResponseFilePath());
+            selectObjectContentConverter.setContentListener(selectObjectContentRequest.getSelectObjectContentProgressListener());
+            httpRequestBuilder.converter(selectObjectContentConverter);
+
+            return true;
+        }
+        return super.buildHttpRequestBodyConverter(cosXmlRequest, cosXmlResult, httpRequestBuilder);
+    }
 }

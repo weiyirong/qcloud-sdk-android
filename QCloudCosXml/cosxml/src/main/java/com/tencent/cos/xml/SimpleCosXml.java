@@ -1106,7 +1106,6 @@ public interface SimpleCosXml {
      */
     void copyObjectAsync(UploadPartCopyRequest request,final CosXmlResultListener cosXmlResultListener);
 
-
     /**
      * 取消请求任务
      * @param cosXmlRequest 请求request {@link CosXmlRequest}

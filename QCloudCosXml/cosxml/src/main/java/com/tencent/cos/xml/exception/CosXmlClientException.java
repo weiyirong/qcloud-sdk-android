@@ -1,5 +1,6 @@
 package com.tencent.cos.xml.exception;
 
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.qcloud.core.common.QCloudClientException;
 
 /**
@@ -12,22 +13,20 @@ public class CosXmlClientException extends QCloudClientException {
 
     private static final long serialVersionUID = 1L;
 
-    public int errorCode;
-
-    public String errorMessage;
+    public final int errorCode;
 
     public CosXmlClientException(int errorCode, String message){
         super(message);
-        this.errorCode = errorCode;
+        this.errorCode = ClientErrorCode.to(errorCode).getCode();
     }
 
     public CosXmlClientException(int errorCode, String message, Throwable cause){
         super(message, cause);
-        this.errorCode = errorCode;
+        this.errorCode = ClientErrorCode.to(errorCode).getCode();
     }
 
     public CosXmlClientException(int errorCode, Throwable cause){
         super(cause);
-        this.errorCode = errorCode;
+        this.errorCode = ClientErrorCode.to(errorCode).getCode();
     }
 }

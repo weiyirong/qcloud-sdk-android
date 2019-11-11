@@ -95,7 +95,7 @@ public class PostObjectRequest extends ObjectRequest {
                     return RequestBodySerializer.multiPart(multipartStreamRequestBody);
                 }
             } catch (IOException e) {
-                throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+                throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
             }
         }
         return null;

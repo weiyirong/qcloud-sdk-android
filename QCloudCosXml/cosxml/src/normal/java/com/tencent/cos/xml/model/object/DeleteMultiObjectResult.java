@@ -27,7 +27,7 @@ final public class DeleteMultiObjectResult extends CosXmlResult {
         } catch (XmlPullParserException e) {
             throw new CosXmlClientException(ClientErrorCode.SERVERERROR.getCode(), e);
         } catch (IOException e) {
-            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+            throw new CosXmlClientException(ClientErrorCode.POOR_NETWORK.getCode(), e);
         }
     }
 

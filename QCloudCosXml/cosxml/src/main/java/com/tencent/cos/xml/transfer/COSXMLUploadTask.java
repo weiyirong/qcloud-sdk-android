@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -76,6 +77,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
     private AtomicInteger UPLOAD_PART_COUNT;
     private AtomicLong ALREADY_SEND_DATA_LEN;
     private Object SYNC_UPLOAD_PART = new Object();
+
+    private Map<String, List<String>> customHeaders = new HashMap<>();
+
     private MultiUploadsStateListener multiUploadsStateListenerHandler = new MultiUploadsStateListener() {
         @Override
         public void onInit() {
@@ -170,6 +174,8 @@ public final class COSXMLUploadTask extends COSXMLTask {
         }else {
             putObjectRequest = new PutObjectRequest(bucket, cosPath, srcPath);
         }
+
+
         putObjectRequest.setRegion(region);
         putObjectRequest.setNeedMD5(isNeedMd5);
         putObjectRequest.setRequestHeaders(headers);
@@ -449,6 +455,10 @@ public final class COSXMLUploadTask extends COSXMLTask {
         cancelAllRequest(cosXmlService);
         if(isSliceUpload)abortMultiUpload(cosXmlService);
         clear();
+    }
+
+    public void setCustomHeaders(Map<String, List<String>> customHeaders) {
+        this.customHeaders = customHeaders;
     }
 
     @Override

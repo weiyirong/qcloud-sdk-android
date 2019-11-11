@@ -10,6 +10,10 @@ import com.tencent.cos.xml.model.object.GetObjectRequest;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by bradyxiao on 2018/8/22.
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
@@ -40,12 +44,20 @@ public class TransferManager{
      * @return COSXMLUploadTask
      */
     public COSXMLUploadTask upload(String bucket, String cosPath, String srcPath, String uploadId){
+        return upload(bucket, cosPath, srcPath, uploadId, new HashMap<String, List<String>>());
+    }
+
+    public COSXMLUploadTask upload(String bucket, String cosPath, String srcPath, String uploadId, Map<String, List<String>> headers){
         COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, null, bucket, cosPath, srcPath, uploadId);
         cosxmlUploadTask.multiUploadSizeDivision = transferConfig.divisionForUpload; // 分片上传的界限
         cosxmlUploadTask.sliceSize = transferConfig.sliceSizeForUpload; // 分片上传的分片大小
+        if (headers != null) {
+            cosxmlUploadTask.setCustomHeaders(headers);
+        }
         cosxmlUploadTask.upload();
         return cosxmlUploadTask;
     }
+
 
     public COSXMLUploadTask upload(String bucket, String cosPath, byte[] bytes){
         COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, null, bucket, cosPath, bytes);
@@ -54,6 +66,7 @@ public class TransferManager{
         cosxmlUploadTask.upload();
         return cosxmlUploadTask;
     }
+
 
     public COSXMLUploadTask upload(String bucket, String cosPath, InputStream inputStream){
         COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, null, bucket, cosPath, inputStream);
@@ -93,6 +106,17 @@ public class TransferManager{
         cosxmlUploadTask.setOnSignatureListener(onSignatureListener);
         cosxmlUploadTask.upload();
         return cosxmlUploadTask;
+    }
+
+    private COSXMLUploadTask decorUploadTask(String bucket,
+                                        String cosPath,
+                                        String srcPath, byte[] bytes, InputStream inputStream,
+                                        PutObjectRequest putObjectRequest,
+                                        String uploadId,
+                                        COSXMLTask.OnSignatureListener onSignatureListener) {
+
+        // TODO: 2019-11-11  
+        return null;
     }
 
     /**

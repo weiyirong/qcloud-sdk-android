@@ -132,7 +132,7 @@ final public class CompleteMultiUploadRequest extends BaseMultipartUploadRequest
 //                    XmlSlimBuilder.buildCompleteMultipartUpload(completeMultipartUpload));
             return RequestBodySerializer.bytes(COSRequestHeaderKey.APPLICATION_XML, XmlSlimBuilder.buildCompleteMultipartUpload(completeMultipartUpload).getBytes("utf-8"));
         } catch (IOException e) {
-            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (XmlPullParserException e) {
             throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         }

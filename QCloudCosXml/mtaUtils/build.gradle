@@ -4,8 +4,6 @@ apply from: '../version.gradle'
 android {
     compileSdkVersion 27
 
-
-
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 27
@@ -38,6 +36,7 @@ dependencies {
 
 // 模块名
 project.extensions.add('artifactId', 'mtaUtils')
-// 模块描述
+project.extensions.add('packageType', 'aar')
+project.extensions.add('packageName', 'MTAUtils')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk mtaUtils')
 

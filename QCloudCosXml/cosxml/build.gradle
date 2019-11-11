@@ -52,7 +52,7 @@ android {
 
     // 切换发 normal 或者 slim 包，需要同步修改 pom.artifactId 信息
     defaultPublishConfig "normalRelease"
-//  defaultPublishConfig "slimRelease"
+//    defaultPublishConfig "slimRelease"
 
 }
 
@@ -108,6 +108,12 @@ static String quotWrapper(key) {
 }
 
 task(printEnvs) {
+
+    def packageType = project.extensions.findByName('packageType')
+    packageType = packageType == null ? "jar" : packageType
+    if (packageType.equals("aar")) {
+        println('Yes : aar')
+    }
 
     println('System envs are :')
     println(quotWrapper(System.getenv("APPID")))

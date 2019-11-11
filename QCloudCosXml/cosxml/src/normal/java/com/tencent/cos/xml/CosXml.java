@@ -15,8 +15,6 @@ import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketResult;
-import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingRequest;
-import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteResult;
 import com.tencent.cos.xml.model.bucket.GetBucketACLRequest;
@@ -37,8 +35,6 @@ import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketResult;
-import com.tencent.cos.xml.model.bucket.GetBucketTaggingRequest;
-import com.tencent.cos.xml.model.bucket.GetBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.GetBucketWebsiteRequest;
@@ -71,16 +67,10 @@ import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.PutBucketWebsiteRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketWebsiteResult;
-import com.tencent.cos.xml.model.object.AppendObjectRequest;
-import com.tencent.cos.xml.model.object.AppendObjectResult;
-import com.tencent.cos.xml.model.object.CopyObjectRequest;
-import com.tencent.cos.xml.model.object.CopyObjectResult;
 import com.tencent.cos.xml.model.object.DeleteMultiObjectRequest;
 import com.tencent.cos.xml.model.object.DeleteMultiObjectResult;
 import com.tencent.cos.xml.model.object.GetObjectACLRequest;
 import com.tencent.cos.xml.model.object.GetObjectACLResult;
-import com.tencent.cos.xml.model.object.HeadObjectRequest;
-import com.tencent.cos.xml.model.object.HeadObjectResult;
 import com.tencent.cos.xml.model.object.OptionObjectRequest;
 import com.tencent.cos.xml.model.object.OptionObjectResult;
 import com.tencent.cos.xml.model.object.PutObjectACLRequest;
@@ -88,6 +78,8 @@ import com.tencent.cos.xml.model.object.PutObjectACLResult;
 import com.tencent.cos.xml.model.object.PutObjectRequest;
 import com.tencent.cos.xml.model.object.RestoreRequest;
 import com.tencent.cos.xml.model.object.RestoreResult;
+import com.tencent.cos.xml.model.object.SelectObjectContentRequest;
+import com.tencent.cos.xml.model.object.SelectObjectContentResult;
 import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.service.GetServiceRequest;
@@ -2921,4 +2913,9 @@ public interface CosXml extends SimpleCosXml {
     PutBucketDomainResult putBucketDomain(PutBucketDomainRequest request) throws CosXmlClientException, CosXmlServiceException;
 
     void putBucketDomainAsync(PutBucketDomainRequest request, CosXmlResultListener cosXmlResultListener);
+
+    SelectObjectContentResult selectObjectContent(SelectObjectContentRequest request) throws CosXmlClientException, CosXmlServiceException;
+
+    void selectObjectContentAsync(SelectObjectContentRequest request, CosXmlResultListener cosXmlResultListener);
+
 }

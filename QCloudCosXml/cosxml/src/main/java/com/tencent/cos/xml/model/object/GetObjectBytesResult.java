@@ -26,7 +26,7 @@ public class GetObjectBytesResult extends CosXmlResult {
         try {
             data = response.bytes();
         } catch (IOException e) {
-            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+            throw new CosXmlClientException(ClientErrorCode.POOR_NETWORK.getCode(), e);
         }
     }
 

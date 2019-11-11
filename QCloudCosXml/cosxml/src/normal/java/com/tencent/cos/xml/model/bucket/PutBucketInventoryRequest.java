@@ -108,7 +108,7 @@ public class PutBucketInventoryRequest extends BucketRequest {
             return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML,
                     XmlBuilder.buildInventoryConfiguration(inventoryConfiguration));
         } catch (IOException e) {
-            throw new CosXmlClientException(ClientErrorCode.IO_ERROR.getCode(), e);
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         } catch (XmlPullParserException e) {
             throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
         }

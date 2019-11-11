@@ -167,7 +167,7 @@ public class TransferManagerTest {
     public void download() throws Exception {
         countDownLatch4 = new CountDownLatch(1);
         String cosPath = "uploadTask_download";
-        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localDir = QServer.localParentDirectory(InstrumentationRegistry.getContext()).getPath();
         final String localFileName = "uploadTask_download";
         COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(),  QServer.persistBucket, cosPath, localDir, localFileName);
         cosxmlDownloadTask.setCosXmlProgressListener(new CosXmlProgressListener() {
@@ -207,7 +207,7 @@ public class TransferManagerTest {
     public void download1() throws Exception {
         countDownLatch5 = new CountDownLatch(1);
         String cosPath = "uploadTask_download";
-        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localDir = QServer.localParentDirectory(InstrumentationRegistry.getContext()).getPath();
         final String localFileName = "uploadTask_download";
         GetObjectRequest getObjectRequest = new GetObjectRequest(QServer.persistBucket, cosPath, localDir, localFileName);
         COSXMLDownloadTask cosxmlDownloadTask = transferManager.download(InstrumentationRegistry.getContext(), getObjectRequest);

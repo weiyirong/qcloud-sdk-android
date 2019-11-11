@@ -93,7 +93,7 @@ public class QServer {
     }
 
     public static String createFile(Context context, long fileLength) throws IOException {
-        String cacheFilePath = context.getExternalCacheDir().getPath() + File.separator
+        String cacheFilePath = localParentDirectory(context).getPath() + File.separator
                 + System.currentTimeMillis() + ".txt";
         RandomAccessFile accessFile = new RandomAccessFile(cacheFilePath, "rws");
         accessFile.setLength(fileLength);
@@ -102,6 +102,15 @@ public class QServer {
         accessFile.write(new Random().nextInt(200));
         accessFile.close();
         return cacheFilePath;
+    }
+
+    public static File localParentDirectory(Context context) {
+
+        if (context.getExternalCacheDir() != null) {
+            return context.getExternalCacheDir();
+        } else {
+            return context.getFilesDir();
+        }
     }
 
 }
