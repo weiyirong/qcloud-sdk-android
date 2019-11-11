@@ -1,5 +1,6 @@
 package com.tencent.qcloud.core.auth;
 
+import com.tencent.qcloud.core.common.QCloudAuthenticationException;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.http.HttpConstants;
@@ -42,10 +43,11 @@ public class STSScopeLimitCredentialProvider extends BasicScopeLimitCredentialPr
             if (result.isSuccessful()) {
                 return parseServerResponse(result.content());
             } else {
-                throw new QCloudClientException("fetch new credentials error ", result.asException());
+                throw new QCloudClientException("fetch new credentials error ", new QCloudAuthenticationException(
+                        result.asException().getMessage()));
             }
         } catch (QCloudServiceException e) {
-            throw new QCloudClientException("fetch new credentials error ", e);
+            throw new QCloudClientException("fetch new credentials error ", new QCloudAuthenticationException(e.getMessage()));
         }
     }
 

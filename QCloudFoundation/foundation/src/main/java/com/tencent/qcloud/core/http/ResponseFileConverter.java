@@ -35,6 +35,7 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
         this.offset = offset;
     }
 
+    @Override
     public void setProgressListener(QCloudProgressListener progressListener) {
         this.progressListener = progressListener;
     }
@@ -66,7 +67,7 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
         File downloadFilePath = new File(filePath);
         File parentDir = downloadFilePath.getParentFile();
         if(parentDir != null && !parentDir.exists() && !parentDir.mkdirs()){
-            throw new QCloudClientException("local file directory can not create.");
+            throw new QCloudClientException(new IOException("local file directory can not create."));
         }
 
         ResponseBody body = response.response.body();
@@ -85,7 +86,7 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
     private void writeRandomAccessFile(File downloadFilePath, InputStream inputStream, long contentLength)
             throws IOException, QCloudClientException {
         if (inputStream == null) {
-            throw new QCloudClientException("response body stream is null");
+            throw new QCloudClientException(new IOException("response body stream is null"));
         }
         RandomAccessFile randomAccessFile = null;
         try {
@@ -99,7 +100,7 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
                 countingSink.writeBytesInternal(len);
             }
         } finally {
-            Util.closeQuietly(randomAccessFile);
+            if(randomAccessFile != null) Util.closeQuietly(randomAccessFile);
         }
     }
 
@@ -107,7 +108,7 @@ public class ResponseFileConverter<T> extends ResponseBodyConverter<T> implement
         File downloadFilePath = new File(filePath);
         File parentDir = downloadFilePath.getParentFile();
         if(parentDir != null && !parentDir.exists() && !parentDir.mkdirs()){
-            throw new QCloudClientException("local file directory can not create.");
+            throw new QCloudClientException(new IOException("local file directory can not create."));
         }
         try {
             OutputStream outputStream = new FileOutputStream(downloadFilePath);

@@ -1,5 +1,6 @@
 package com.tencent.qcloud.core.auth;
 
+import com.tencent.qcloud.core.common.QCloudAuthenticationException;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.QCloudHttpRequest;
@@ -22,11 +23,11 @@ public class COSXmlSigner implements QCloudSigner {
     @Override
     public void sign(QCloudHttpRequest request, QCloudCredentials credentials) throws QCloudClientException{
         if (credentials == null) {
-            throw new QCloudClientException("Credentials is null.");
+            throw new QCloudClientException(new QCloudAuthenticationException("Credentials is null."));
         }
         COSXmlSignSourceProvider sourceProvider = (COSXmlSignSourceProvider) request.getSignProvider();
         if (sourceProvider == null) {
-            throw new QCloudClientException("No sign provider for cos xml signer.");
+            throw new QCloudClientException(new QCloudAuthenticationException("No sign provider for cos xml signer."));
         }
 
         StringBuilder authorization = new StringBuilder();

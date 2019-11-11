@@ -36,7 +36,9 @@ public class HttpLogger implements HttpLoggingInterceptor.Logger {
         }
         fileLogAdapter = QCloudLogger.getAdapter(FileLogAdapter.class);
         if (fileLogAdapter != null) {
-            mRequestBufferLogs.add(message);
+            synchronized (mRequestBufferLogs){
+                mRequestBufferLogs.add(message);
+            }
         }
     }
 
@@ -50,7 +52,9 @@ public class HttpLogger implements HttpLoggingInterceptor.Logger {
             fileLogAdapter.log(QCloudLogger.INFO, QCloudHttpClient.HTTP_LOG_TAG,
                     message, null);
         } else {
-            mRequestBufferLogs.clear();
+            synchronized (mRequestBufferLogs){
+                mRequestBufferLogs.clear();
+            }
         }
     }
 
@@ -62,17 +66,21 @@ public class HttpLogger implements HttpLoggingInterceptor.Logger {
             fileLogAdapter.log(QCloudLogger.INFO, QCloudHttpClient.HTTP_LOG_TAG,
                     message, exception);
         } else {
-            mRequestBufferLogs.clear();
+            synchronized (mRequestBufferLogs){
+                mRequestBufferLogs.clear();
+            }
         }
     }
 
-    private void flushRequestBufferLogs() {
-        if (fileLogAdapter != null && mRequestBufferLogs.size() > 0) {
-            for (String requestLog : mRequestBufferLogs) {
-                fileLogAdapter.log(QCloudLogger.INFO, QCloudHttpClient.HTTP_LOG_TAG,
-                        requestLog, null);
+    private synchronized void flushRequestBufferLogs() {
+        synchronized (mRequestBufferLogs){
+            if (fileLogAdapter != null && mRequestBufferLogs.size() > 0) {
+                for (String requestLog : mRequestBufferLogs) {
+                    fileLogAdapter.log(QCloudLogger.INFO, QCloudHttpClient.HTTP_LOG_TAG,
+                            requestLog, null);
+                }
+                mRequestBufferLogs.clear();
             }
-            mRequestBufferLogs.clear();
         }
     }
 }

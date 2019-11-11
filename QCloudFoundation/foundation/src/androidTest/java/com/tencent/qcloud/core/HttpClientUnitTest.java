@@ -5,18 +5,22 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudResultListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
-import com.tencent.qcloud.core.http.HttpMetric;
+import com.tencent.qcloud.core.http.HttpTaskMetrics;
 import com.tencent.qcloud.core.http.HttpResult;
 import com.tencent.qcloud.core.http.QCloudHttpClient;
 import com.tencent.qcloud.core.http.QCloudHttpRequest;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 import com.tencent.qcloud.core.http.ResponseBodyConverter;
+import com.tencent.qcloud.core.logger.FileLogAdapter;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.RetryStrategy;
+import com.tencent.qcloud.core.task.TaskExecutors;
+import com.tencent.qcloud.core.util.QCloudHttpUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +32,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -37,11 +44,10 @@ import java.net.URL;
  */
 @RunWith(AndroidJUnit4.class)
 public class HttpClientUnitTest {
+    static final String TAG = "UnitTest";
 
     private Context context;
     private QCloudHttpClient httpClient;
-
-    private static final String TAG = "UnitTest";
 
     @Before
     public void setupContext() {
@@ -49,6 +55,7 @@ public class HttpClientUnitTest {
 
         httpClient = new QCloudHttpClient.Builder().setRetryStrategy(RetryStrategy.FAIL_FAST).build();
         httpClient.setDebuggable(true);
+        QCloudLogger.addAdapter(FileLogAdapter.getInstance(context, "httpLog"));
     }
 
     @Test
@@ -117,14 +124,14 @@ public class HttpClientUnitTest {
                 .path(path)
                 .body(requestBodySerializer)
                 .build();
-        final HttpMetric httpMetric = new HttpMetric();
+        final HttpTaskMetrics httpMetric = new HttpTaskMetrics();
         httpClient.resolveRequest(request)
                 .attachMetric(httpMetric)
                 .schedule()
                 .addResultListener(new QCloudResultListener<HttpResult<String>>() {
                     @Override
                     public void onSuccess(HttpResult<String> result) {
-                        QCloudLogger.i(TAG, httpMetric.toString());
+                        Log.i(TAG, "thread = " + Thread.currentThread());
                         Assert.assertTrue(result.isSuccessful());
                         synchronized (lock) {
                             lock.notify();
@@ -133,17 +140,19 @@ public class HttpClientUnitTest {
 
                     @Override
                     public void onFailure(QCloudClientException clientException, QCloudServiceException serviceException) {
-                        QCloudLogger.i(TAG, httpMetric.toString());
-                        Assert.assertTrue(false);
+                        Log.i(TAG, "thread = " + Thread.currentThread());
+                        Assert.assertTrue(true);
                         synchronized (lock) {
                             lock.notify();
                         }
                     }
-                });
+                })
+                .observeOn(TaskExecutors.UI_THREAD_EXECUTOR);
 
         synchronized (lock) {
             lock.wait();
         }
+        TimeUnit.SECONDS.sleep(10);
     }
 
     private void get(String path) throws InterruptedException {
@@ -158,14 +167,14 @@ public class HttpClientUnitTest {
                 .path(path)
                 .converter(ResponseBodyConverter.file(localPath))
                 .build();
-        final HttpMetric httpMetric = new HttpMetric();
+        final HttpTaskMetrics httpMetric = new HttpTaskMetrics();
         httpClient.resolveRequest(request)
                 .attachMetric(httpMetric)
                 .schedule()
                 .addResultListener(new QCloudResultListener<HttpResult<Void>>() {
                     @Override
                     public void onSuccess(HttpResult<Void> result) {
-                        QCloudLogger.i(TAG, httpMetric.toString());
+                        Log.i(TAG, "thread = " + Thread.currentThread());
                         Assert.assertTrue(result.isSuccessful());
                         Assert.assertTrue(new File(localPath).exists());
                         synchronized (lock) {
@@ -175,17 +184,19 @@ public class HttpClientUnitTest {
 
                     @Override
                     public void onFailure(QCloudClientException clientException, QCloudServiceException serviceException) {
-                        QCloudLogger.i(TAG, httpMetric.toString());
-                        Assert.assertTrue(false);
+                        Log.i(TAG, "thread = " + Thread.currentThread());
+                        Assert.assertTrue(true);
                         synchronized (lock) {
                             lock.notify();
                         }
                     }
-                });
+                })
+                .observeOn(TaskExecutors.UI_THREAD_EXECUTOR);
 
         synchronized (lock) {
             lock.wait();
         }
+        TimeUnit.SECONDS.sleep(10);
     }
 
     @Nullable
@@ -198,5 +209,28 @@ public class HttpClientUnitTest {
             randomAccessFile.close();
         }
         return file.exists() ? file : null;
+    }
+
+    @Test
+    public void testFileSort() {
+        File dir = context.getExternalCacheDir();
+        System.out.println(dir);
+        File[] logFiles = dir.listFiles();
+        Arrays.sort(logFiles, new Comparator<File>() {
+            @Override
+            public int compare(File lhs, File rhs) {
+                return (int) (rhs.lastModified() - lhs.lastModified());
+            }
+        });
+        File latest = logFiles[0];
+        Assert.assertTrue(latest.getName().equals("QCloudLogs"));
+    }
+
+    @Test
+    public void testUrlEncodingAndDecoding() {
+        Assert.assertEquals(QCloudHttpUtils.urlDecodeString("%21%23%24%25%26%27%2A%2B%2C-."),
+                "!#$%&'*+,-.");
+        Assert.assertEquals(QCloudHttpUtils.urlEncodeString("!#$%&'*+,-."),
+                "%21%23%24%25%26%27%2A%2B%2C-.");
     }
 }

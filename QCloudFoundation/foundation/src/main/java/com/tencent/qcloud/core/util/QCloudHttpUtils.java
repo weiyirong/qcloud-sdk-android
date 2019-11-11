@@ -3,15 +3,23 @@ package com.tencent.qcloud.core.util;
 import android.text.TextUtils;
 
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
+import java.net.HttpRetryException;
+import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.SSLHandshakeException;
 
 /**
  * <p>
@@ -157,5 +165,14 @@ public class QCloudHttpUtils {
             first = false;
         }
         return source.toString();
+    }
+
+    public static boolean isNetworkConditionException(Throwable ex) {
+        return ex instanceof UnknownHostException ||
+                ex instanceof SocketTimeoutException ||
+                ex instanceof ConnectException ||
+                ex instanceof HttpRetryException ||
+                ex instanceof NoRouteToHostException ||
+                (ex instanceof SSLHandshakeException && !(ex.getCause() instanceof CertificateException));
     }
 }

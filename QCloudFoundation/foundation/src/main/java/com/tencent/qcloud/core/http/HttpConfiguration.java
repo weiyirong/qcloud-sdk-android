@@ -1,5 +1,7 @@
 package com.tencent.qcloud.core.http;
 
+import android.util.Log;
+
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.text.ParseException;
@@ -8,6 +10,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * <p>
@@ -17,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class HttpConfiguration {
 
-    private static final AtomicInteger GLOBAL_TIME_OFFSET = new AtomicInteger(0);
+    private static final AtomicLong GLOBAL_TIME_OFFSET = new AtomicLong(0);
 
     private static final String RFC822_DATE_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
     private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
@@ -30,7 +33,7 @@ public class HttpConfiguration {
     public static void calculateGlobalTimeOffset(String sDate, Date deviceDate, int minOffset) {
         try {
             Date serverDate = getFormatter().parse(sDate);
-            int clockSkew = (int) (serverDate.getTime() - deviceDate.getTime()) / 1000;
+            long clockSkew = (serverDate.getTime() - deviceDate.getTime()) / 1000;
             if (Math.abs(clockSkew) >= minOffset) {
                 GLOBAL_TIME_OFFSET.set(clockSkew);
                 QCloudLogger.i(QCloudHttpClient.HTTP_LOG_TAG, "NEW TIME OFFSET is " + clockSkew + "s");
@@ -41,7 +44,8 @@ public class HttpConfiguration {
     }
 
     public static long getDeviceTimeWithOffset() {
-        return System.currentTimeMillis() / 1000 + GLOBAL_TIME_OFFSET.get();
+        long current = System.currentTimeMillis() / 1000 + GLOBAL_TIME_OFFSET.get();
+        return current;
     }
 
     public static String getGMTDate(Date date) {
@@ -57,5 +61,14 @@ public class HttpConfiguration {
             gmtFormatters.set(gmtFormatter);
         }
         return gmtFormatter;
+    }
+
+    public static Date getGMTDate(String strDate){
+        try {
+            return getFormatter().parse(strDate);
+        } catch (ParseException e) {
+//            e.printStackTrace();
+            return null;
+        }
     }
 }

@@ -169,7 +169,7 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody, Q
             try {
                 saveInputStreamToTmpFile(stream, file);
             } finally {
-                Util.closeQuietly(stream);
+                if(stream != null) Util.closeQuietly(stream);
                 stream = null;
                 offset = 0;
             }
@@ -206,7 +206,7 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody, Q
             }
             fos.flush();
         } finally {
-            Util.closeQuietly(fos);
+            if(fos != null) Util.closeQuietly(fos);
         }
     }
 
@@ -229,9 +229,9 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody, Q
                 bufferedSink.flush();
             }
         } finally {
-            Util.closeQuietly(inputStream);
-            Util.closeQuietly(source);
-            Util.closeQuietly(countingSink);
+            if(inputStream != null) Util.closeQuietly(inputStream);
+            if(source != null) Util.closeQuietly(source);
+            if(countingSink != null) Util.closeQuietly(countingSink);
         }
 
     }
@@ -260,7 +260,7 @@ public class StreamingRequestBody extends RequestBody implements ProgressBody, Q
         } catch (NoSuchAlgorithmException e) {
             throw new IOException("unSupport Md5 algorithm", e);
         } finally {
-            Util.closeQuietly(inputStream);
+            if(inputStream != null)Util.closeQuietly(inputStream);
         }
     }
 }

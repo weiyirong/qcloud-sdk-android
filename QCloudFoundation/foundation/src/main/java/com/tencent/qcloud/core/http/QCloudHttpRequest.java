@@ -5,6 +5,7 @@ import com.tencent.qcloud.core.auth.QCloudSignSourceProvider;
 import com.tencent.qcloud.core.auth.QCloudSigner;
 import com.tencent.qcloud.core.auth.STSCredentialScope;
 import com.tencent.qcloud.core.auth.SignerFactory;
+import com.tencent.qcloud.core.common.QCloudAuthenticationException;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.util.QCloudStringUtils;
 
@@ -44,7 +45,7 @@ public final class QCloudHttpRequest<T> extends HttpRequest<T> {
         if (signerType != null && shouldCalculateAuth()) {
             signer = SignerFactory.getSigner(signerType);
             if (signer == null) {
-                throw new QCloudClientException("can't get signer for type : " + signerType);
+                throw new QCloudClientException(new QCloudAuthenticationException("can't get signer for type : " + signerType));
             }
         }
 

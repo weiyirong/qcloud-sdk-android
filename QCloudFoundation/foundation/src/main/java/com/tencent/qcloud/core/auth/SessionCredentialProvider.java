@@ -1,5 +1,6 @@
 package com.tencent.qcloud.core.auth;
 
+import com.tencent.qcloud.core.common.QCloudAuthenticationException;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.http.HttpRequest;
@@ -49,13 +50,14 @@ public class SessionCredentialProvider extends BasicLifecycleCredentialProvider 
                 if (result.isSuccessful()) {
                     return parseServerResponse(result.content());
                 } else {
-                    throw new QCloudClientException("fetch new credentials error ", result.asException());
+                    throw new QCloudClientException("fetch new credentials error ", new QCloudAuthenticationException(
+                            result.asException().getMessage()));
                 }
             } catch (QCloudServiceException e) {
-                throw new QCloudClientException("fetch new credentials error ", e);
+                throw new QCloudClientException("fetch new credentials error ", new QCloudAuthenticationException(e.getMessage()));
             }
         } else {
-            throw new QCloudClientException("please pass http request object for fetching");
+            throw new QCloudClientException(new QCloudAuthenticationException("please pass http request object for fetching"));
         }
     }
 
@@ -110,10 +112,10 @@ public class SessionCredentialProvider extends BasicLifecycleCredentialProvider 
                         return new SessionQCloudCredentials(tmpSecretId, tmpSecretKey, sessionToken, expiredTime);
                     }
                 } else if (code > 0) {
-                    throw new QCloudClientException("get credentials error : " + data.toString());
+                    throw new QCloudClientException(new QCloudAuthenticationException("get credentials error : " + data.toString()));
                 }
             } catch (JSONException e) {
-                throw new QCloudClientException("parse session json fails", e);
+                throw new QCloudClientException("parse session json fails", new QCloudAuthenticationException(e.getMessage()));
             }
         }
 

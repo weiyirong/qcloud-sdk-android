@@ -81,7 +81,7 @@ public class OkHttpProxy<T> extends NetworkProxy<T> {
                 clientException = new QCloudClientException(e);
             }
         } finally {
-            Util.closeQuietly(response);
+            if(response != null) Util.closeQuietly(response);
         }
 
         if (eventListener != null) {

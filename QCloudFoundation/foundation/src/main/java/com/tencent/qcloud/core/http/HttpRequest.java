@@ -82,6 +82,10 @@ public class HttpRequest<T> {
         }
     }
 
+    public void setUrl(String url){
+        requestBuilder.url(url);
+    }
+
     public void removeHeader(String name) {
         requestBuilder.removeHeader(name);
         headers.remove(name);

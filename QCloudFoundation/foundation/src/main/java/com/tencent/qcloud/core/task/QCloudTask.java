@@ -1,6 +1,6 @@
 package com.tencent.qcloud.core.task;
 
-import android.util.Log;
+import android.support.annotation.NonNull;
 
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
@@ -14,10 +14,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import bolts.CancellationToken;
 import bolts.CancellationTokenSource;
 import bolts.Continuation;
+import bolts.ExecutorException;
 import bolts.Task;
 
 import static com.tencent.qcloud.core.task.TaskManager.TASK_LOG_TAG;
@@ -37,6 +41,10 @@ public abstract class QCloudTask<T> implements Callable<T> {
     public static final int STATE_EXECUTING = 2;
     // 任务执行结束
     public static final int STATE_COMPLETE = 3;
+
+    public static final int PRIORITY_LOW = 1;
+    protected static final int PRIORITY_NORMAL = 2;
+    public static final int PRIORITY_HIGH = 3;
 
     private final String identifier;
     private final Object tag;
@@ -87,52 +95,78 @@ public abstract class QCloudTask<T> implements Callable<T> {
         mTask = Task.call(this);
     }
 
-    protected QCloudTask<T> scheduleOn(Executor executor) {
-        return scheduleOn(executor, null);
+    protected QCloudTask<T> scheduleOn(Executor executor,
+                                       CancellationTokenSource cancellationTokenSource) {
+        return scheduleOn(executor, cancellationTokenSource, PRIORITY_NORMAL);
     }
 
     protected QCloudTask<T> scheduleOn(Executor executor,
-                                       CancellationTokenSource cancellationTokenSource) {
+                                       CancellationTokenSource cancellationTokenSource,
+                                       int priority) {
         taskManager.add(this);
         onStateChanged(STATE_QUEUEING);
         workerExecutor = executor;
         mCancellationTokenSource = cancellationTokenSource;
+        if (priority <= 0) {
+            priority = PRIORITY_NORMAL;
+        }
 
-        mTask = Task.call(this, executor, mCancellationTokenSource != null ?
-                mCancellationTokenSource.getToken() : null);
+        mTask = callTask(this, executor, mCancellationTokenSource != null ?
+                mCancellationTokenSource.getToken() : null, priority);
         mTask.continueWithTask(new Continuation<T, Task<Void>>() {
             @Override
             public Task<Void> then(Task<T> task) throws Exception {
-                Executor callbackExc = observerExecutor != null ? observerExecutor : workerExecutor;
                 if (task.isFaulted() || task.isCancelled()) {
-                     return Task.call(new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            try {
-                                onFailure();
-                            }catch (Exception e){ // 用户处理回调时引起的异常，直接 error 掉, 不走回调了
-                                throw new Error(e);
+                    if (observerExecutor == null) {
+                        onFailure();
+                        return null;
+                    } else {
+                        return Task.call(new Callable<Void>() {
+                            @Override
+                            public Void call() throws Exception {
+                                try {
+                                    onFailure();
+                                }catch (Exception e){ // 用户处理回调时引起的异常，直接 error 掉, 不走回调了
+                                    throw new Error(e);
+                                }
+                                return null;
                             }
-                            return null;
-                        }
-                    }, callbackExc);
+                        }, observerExecutor);
+                    }
                 } else {
-                    return Task.call(new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            try {
-                                onSuccess();
-                            }catch (Exception e){// 用户处理回调时引起的异常，直接 error 掉, 不走回调了
-                                throw new Error(e);
+                    if (observerExecutor == null) {
+                        onSuccess();
+                        return null;
+                    } else {
+                        return Task.call(new Callable<Void>() {
+                            @Override
+                            public Void call() throws Exception {
+                                try {
+                                    onSuccess();
+                                } catch (Exception e) {// 用户处理回调时引起的异常，直接 error 掉, 不走回调了
+                                    throw new Error(e);
+                                }
+                                return null;
                             }
-                            return null;
-                        }
-                    }, callbackExc);
+                        }, observerExecutor);
+                    }
                 }
 
             }
         });
         return this;
+    }
+
+    private static <TResult> Task<TResult> callTask(final Callable<TResult> callable, Executor executor,
+                                                    final CancellationToken ct, int priority) {
+        final bolts.TaskCompletionSource<TResult> tcs = new bolts.TaskCompletionSource<>();
+        try {
+            executor.execute(new AtomTask<TResult>(tcs, ct, callable, priority));
+        } catch (Exception e) {
+            tcs.setError(new ExecutorException(e));
+        }
+
+        return tcs.getTask();
     }
 
     public void cancel() {
@@ -360,5 +394,54 @@ public abstract class QCloudTask<T> implements Callable<T> {
 
     public final Object getTag() {
         return tag;
+    }
+
+    private static class AtomTask<TResult> implements Runnable, Comparable<Runnable> {
+
+        private bolts.TaskCompletionSource<TResult> tcs;
+        private CancellationToken ct;
+        private Callable<TResult> callable;
+        private int priority;
+        private static AtomicInteger increment = new AtomicInteger(0);
+        private int taskIdentifier;
+
+        public AtomTask(bolts.TaskCompletionSource<TResult> tcs, CancellationToken ct,
+                        Callable<TResult> callable, int priority) {
+            this.tcs = tcs;
+            this.ct = ct;
+            this.callable = callable;
+            this.priority = priority;
+            this.taskIdentifier = increment.addAndGet(1);
+        }
+
+        @Override
+        public void run() {
+            if (ct != null && ct.isCancellationRequested()) {
+                tcs.setCancelled();
+                return;
+            }
+
+            try {
+                tcs.setResult(callable.call());
+            } catch (CancellationException e) {
+                tcs.setCancelled();
+            } catch (Exception e) {
+                tcs.setError(e);
+            }
+        }
+
+        @Override
+        public int compareTo(@NonNull Runnable o) {
+            if (o instanceof AtomTask) {
+                int priorityDelta =  ((AtomTask) o).priority - priority;
+                if (priorityDelta != 0) {
+                    return priorityDelta;
+                } else {
+                    return taskIdentifier - ((AtomTask) o).taskIdentifier;
+                }
+            }
+
+            return 0;
+        }
     }
 }

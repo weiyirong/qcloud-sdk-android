@@ -2,6 +2,7 @@ package com.tencent.qcloud.core.auth;
 
 
 import com.tencent.qcloud.core.common.QCloudClientException;
+import com.tencent.qcloud.core.http.HttpConfiguration;
 
 /**
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
@@ -23,7 +24,7 @@ public class ShortTimeCredentialProvider extends BasicLifecycleCredentialProvide
     @Override
     protected QCloudLifecycleCredentials fetchNewCredentials() throws QCloudClientException  {
         // 使用本地永久秘钥计算得到临时秘钥
-        long current = System.currentTimeMillis() / 1000;
+        long current = HttpConfiguration.getDeviceTimeWithOffset();
         long expired = current + duration;
         String keyTime = current + ";" + expired;
         String signKey = secretKey2SignKey(secretKey, keyTime);

@@ -7,6 +7,7 @@ import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudCredentials;
 import com.tencent.qcloud.core.auth.QCloudSigner;
 import com.tencent.qcloud.core.auth.ScopeLimitCredentialProvider;
+import com.tencent.qcloud.core.common.QCloudAuthenticationException;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudDigistListener;
 import com.tencent.qcloud.core.common.QCloudProgressListener;
@@ -62,17 +63,27 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     }
 
     public HttpTask<T> scheduleOn(Executor executor) {
-        scheduleOn(executor, new CancellationTokenSource());
+        this.scheduleOn(executor, PRIORITY_NORMAL);
+        return this;
+    }
+
+    public HttpTask<T> scheduleOn(Executor executor, int priority) {
+        scheduleOn(executor, new CancellationTokenSource(), priority);
         return this;
     }
 
     public HttpTask<T> schedule() {
+        schedule(PRIORITY_NORMAL);
+        return this;
+    }
+
+    public HttpTask<T> schedule(int priority) {
         if (httpRequest.getRequestBody() instanceof ProgressBody) {
-            scheduleOn(TaskExecutors.UPLOAD_EXECUTOR, new CancellationTokenSource());
+            this.scheduleOn(TaskExecutors.UPLOAD_EXECUTOR, priority);
         } else if (httpRequest.getResponseBodyConverter() instanceof ProgressBody) {
-            scheduleOn(TaskExecutors.DOWNLOAD_EXECUTOR, new CancellationTokenSource());
+            this.scheduleOn(TaskExecutors.DOWNLOAD_EXECUTOR, priority);
         } else {
-            scheduleOn(TaskExecutors.COMMAND_EXECUTOR, new CancellationTokenSource());
+            this.scheduleOn(TaskExecutors.COMMAND_EXECUTOR, priority);
         }
         return this;
     }
@@ -178,7 +189,7 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
 
     private void signRequest(QCloudSigner signer, QCloudHttpRequest request) throws QCloudClientException {
         if (credentialProvider == null) {
-            throw new QCloudClientException("no credentials provider");
+            throw new QCloudClientException(new QCloudAuthenticationException("no credentials provider"));
         }
 
         QCloudCredentials credentials;
@@ -195,7 +206,7 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
     private void calculateContentMD5() throws QCloudClientException {
         RequestBody requestBody = httpRequest.getRequestBody();
         if (requestBody == null) {
-            throw new QCloudClientException("get md5 canceled, request body is null.");
+            throw new QCloudClientException(new IllegalArgumentException("get md5 canceled, request body is null."));
         }
 
         if(requestBody instanceof QCloudDigistListener){

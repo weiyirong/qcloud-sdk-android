@@ -3,6 +3,7 @@ package com.tencent.qcloud.core.task;
 import android.support.annotation.NonNull;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,14 +28,14 @@ public class TaskExecutors {
 
     static {
         COMMAND_EXECUTOR = new ThreadPoolExecutor(5, 5, 5L,
-                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(128),
-                new TaskThreadFactory("Command-"));
+                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(Integer.MAX_VALUE),
+                new TaskThreadFactory("Command-", 8));
         UPLOAD_EXECUTOR = new ThreadPoolExecutor(2, 2, 5L,
-                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-                new TaskThreadFactory("Upload-"));
+                TimeUnit.SECONDS, new PriorityBlockingQueue<Runnable>(),
+                new TaskThreadFactory("Upload-", 3));
         DOWNLOAD_EXECUTOR = new ThreadPoolExecutor(3, 3, 5L,
-                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(128),
-                new TaskThreadFactory("Download-"));
+                TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(Integer.MAX_VALUE),
+                new TaskThreadFactory("Download-", 3));
         UI_THREAD_EXECUTOR = new UIThreadExecutor();
 
         UPLOAD_EXECUTOR.allowCoreThreadTimeOut(true);
@@ -45,16 +46,18 @@ public class TaskExecutors {
     static final class TaskThreadFactory implements ThreadFactory {
         private final AtomicInteger increment = new AtomicInteger(1);
         private final String tag;
+        private final int priority;
 
-        TaskThreadFactory(String tag) {
+        TaskThreadFactory(String tag, int priority) {
             this.tag = tag;
+            this.priority = priority;
         }
 
         @Override
         public final Thread newThread(@NonNull Runnable runnable) {
             Thread newThread = new Thread(runnable, "QCloud-" + tag + increment.getAndIncrement());
             newThread.setDaemon(false);
-            newThread.setPriority(9);
+            newThread.setPriority(priority);
             return newThread;
         }
     }

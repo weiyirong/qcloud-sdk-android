@@ -1,12 +1,11 @@
+package com.tencent.qcloud.core.http;
+
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudResultListener;
 import com.tencent.qcloud.core.common.QCloudServiceException;
-import com.tencent.qcloud.core.http.HttpRequest;
-import com.tencent.qcloud.core.http.HttpResult;
-import com.tencent.qcloud.core.http.QCloudHttpClient;
-import com.tencent.qcloud.core.http.QCloudHttpRequest;
 import com.tencent.qcloud.core.task.RetryStrategy;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,6 +17,8 @@ import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.EventListener;
@@ -120,7 +121,7 @@ public class HttpUnitTest {
         }
     }
 
-    @Test
+    @Test(expected = QCloudClientException.class)
     public void testSimpleGet() throws MalformedURLException, QCloudClientException, QCloudServiceException {
         String url = "http://www.qq.com";
         HttpResult<String> result = httpClient.resolveRequest(new HttpRequest.Builder<String>()
@@ -128,5 +129,13 @@ public class HttpUnitTest {
                 .method("GET")
                 .build())
                 .executeNow();
+    }
+
+    @Test
+    public void testPattern() {
+        Pattern pattern = Pattern.compile("<Code>(RequestTimeTooSkewed|SignatureDoesNotMatch|ExpiredToken)</Code>");
+        Matcher matcher = pattern.matcher("<Code>RequestTimeTooSkewed</Code>");
+        Assert.assertTrue(matcher.find());
+        Assert.assertEquals("RequestTimeTooSkewed", matcher.group(1));
     }
 }

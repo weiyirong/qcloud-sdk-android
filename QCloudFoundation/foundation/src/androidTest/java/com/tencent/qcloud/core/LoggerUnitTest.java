@@ -28,7 +28,7 @@ public class LoggerUnitTest {
     @Before
     public void setupLogger() {
         Context context = InstrumentationRegistry.getContext();
-        QCloudLogger.addAdapter(new FileLogAdapter(context, "unit_test"));
+        QCloudLogger.addAdapter(FileLogAdapter.getInstance(context, "unit_test"));
     }
 
     @Test

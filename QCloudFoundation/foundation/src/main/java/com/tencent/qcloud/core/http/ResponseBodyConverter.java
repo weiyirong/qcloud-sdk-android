@@ -5,6 +5,7 @@ import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  *
@@ -47,6 +48,14 @@ public abstract class ResponseBodyConverter<T> {
         }
     }
 
+    private static final class InputStreamConverter extends ResponseBodyConverter<InputStream> {
+
+        @Override
+        public InputStream convert(HttpResponse<InputStream> response) throws QCloudClientException, QCloudServiceException {
+            return response.byteStream();
+        }
+    }
+
     public static ResponseBodyConverter<Void> file(String filePath) {
         return file(filePath, -1);
     }
@@ -61,5 +70,9 @@ public abstract class ResponseBodyConverter<T> {
 
     public static ResponseBodyConverter<byte[]> bytes() {
         return new BytesConverter();
+    }
+
+    public static ResponseBodyConverter<InputStream> inputStream() {
+        return new InputStreamConverter();
     }
 }

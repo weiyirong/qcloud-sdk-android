@@ -1,5 +1,6 @@
 package com.tencent.qcloud.core.auth;
 
+import com.tencent.qcloud.core.common.QCloudAuthenticationException;
 import com.tencent.qcloud.core.common.QCloudClientException;
 
 import java.util.concurrent.TimeUnit;
@@ -36,7 +37,7 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
             locked = lock.tryLock(20, TimeUnit.SECONDS);
 
             if (!locked) {
-                throw new QCloudClientException("lock timeout, no credential for sign");
+                throw new QCloudClientException(new QCloudAuthenticationException("lock timeout, no credential for sign"));
             }
 
             QCloudLifecycleCredentials cred = safeGetCredentials();
@@ -49,11 +50,11 @@ public abstract class BasicLifecycleCredentialProvider implements QCloudCredenti
                     if (e instanceof QCloudClientException) {
                         throw e;
                     }
-                    throw new QCloudClientException("fetch credentials error happens", e);
+                    throw new QCloudClientException("fetch credentials error happens", new QCloudAuthenticationException(e.getMessage()));
                 }
             }
         } catch (InterruptedException e) {
-            throw new QCloudClientException("interrupt when try to get credential", e);
+            throw new QCloudClientException("interrupt when try to get credential", new QCloudAuthenticationException(e.getMessage()));
         } finally {
             if (locked) {
                 lock.unlock();

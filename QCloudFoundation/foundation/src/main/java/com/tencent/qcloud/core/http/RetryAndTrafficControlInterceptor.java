@@ -283,8 +283,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                     // stop here, re sign request and try again
                     e = new IOException(new QCloudServiceException("client clock skewed").setErrorCode(clockSkewError));
                     break;
-                } else if (shouldRetry(request, response, attempts, startTime, e, statusCode)) {
-
+                } else if (shouldRetry(request, response, attempts, startTime, e, statusCode) && !task.isCanceled()) {
                     QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s, code is %d", request, e, statusCode);
                 } else {
                     QCloudLogger.i(HTTP_LOG_TAG, "%s ends for %s, code is %d", request, e, statusCode);
@@ -349,6 +348,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
 
     String getClockSkewError(Response response, int statusCode) {
         if (response != null && statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
+            if(response.request().method().toUpperCase().equals("HEAD")) return QCloudServiceException.ERR0R_REQUEST_IS_EXPIRED;
             ResponseBody body = response.body();
             if (body != null) {
                 try {
@@ -395,7 +395,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
             return true;
         }
 
-        return statusCode == HttpURLConnection.HTTP_SERVER_ERROR ||
+        return statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR ||
                 statusCode == HttpURLConnection.HTTP_BAD_GATEWAY ||
                 statusCode == HttpURLConnection.HTTP_UNAVAILABLE ||
                 statusCode == HttpURLConnection.HTTP_GATEWAY_TIMEOUT;

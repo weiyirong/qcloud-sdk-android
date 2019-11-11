@@ -123,7 +123,7 @@ public class MultipartStreamRequestBody extends RequestBody implements ProgressB
        try {
            multipartBody.writeTo(sink);
        }finally {
-           Util.closeQuietly(streamingRequestBody.countingSink);
+           if(streamingRequestBody.countingSink != null)Util.closeQuietly(streamingRequestBody.countingSink);
        }
     }
 
@@ -219,8 +219,9 @@ public class MultipartStreamRequestBody extends RequestBody implements ProgressB
                     bufferedSink.flush();
                 }
             } finally {
-                Util.closeQuietly(inputStream);
-                Util.closeQuietly(source);
+
+               if(inputStream != null) Util.closeQuietly(inputStream);
+               if(source != null) Util.closeQuietly(source);
             }
         }
     }
