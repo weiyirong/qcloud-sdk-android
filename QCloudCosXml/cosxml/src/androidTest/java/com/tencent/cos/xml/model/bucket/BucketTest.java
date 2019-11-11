@@ -33,7 +33,7 @@ public class BucketTest {
     }
 
     @Test public void doesBucketExistTest() throws  Exception{
-        Assert.assertTrue(QServer.cosXml.doesBucketExist("tac-resource-do-not-remove"));
+        Assert.assertTrue(QServer.cosXml.doesBucketExist(QServer.persistBucket));
         Assert.assertFalse(QServer.cosXml.doesBucketExist("android-demo-ap-guangzhou-not-exist"));
     }
 
@@ -43,7 +43,7 @@ public class BucketTest {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
 
 
-        QServer.cosXml.doesBucketExistAsync("tac-resource-do-not-remove", new CosXmlBooleanListener() {
+        QServer.cosXml.doesBucketExistAsync(QServer.persistBucket, new CosXmlBooleanListener() {
             @Override
             public void onSuccess(boolean bool) {
 
