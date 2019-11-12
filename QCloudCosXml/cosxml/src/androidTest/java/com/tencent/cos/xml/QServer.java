@@ -113,4 +113,9 @@ public class QServer {
         }
     }
 
+    public static boolean isForeign() {
+
+        return region.equals("ap-singapore");
+    }
+
 }

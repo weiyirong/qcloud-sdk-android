@@ -197,7 +197,7 @@ public class COSXMLDownloadTaskTest {
 
         Log.d(TAG,  "PUT success");
 
-        final String localDir = InstrumentationRegistry.getContext().getExternalCacheDir().getPath();
+        final String localDir = QServer.localParentDirectory(InstrumentationRegistry.getContext()).getPath();
         final int taskCount = 5;
         List<COSXMLDownloadTask> tasks = new ArrayList<>(taskCount);
 

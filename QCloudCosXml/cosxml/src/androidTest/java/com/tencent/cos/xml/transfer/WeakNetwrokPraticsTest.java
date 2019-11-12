@@ -21,6 +21,7 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -37,6 +38,12 @@ public class WeakNetwrokPraticsTest {
 
     @Test
     public void test_100k() throws Exception{
+
+        if (QServer.isForeign()) {
+            Assert.assertTrue(true);
+            return;
+        }
+
         exception_1 = null;
         countDownLatch_1 = new CountDownLatch(1);
         Context appContext = InstrumentationRegistry.getContext();
@@ -95,6 +102,12 @@ public class WeakNetwrokPraticsTest {
 
     @Test
     public void test_100k_resume() throws Exception{
+
+        if (QServer.isForeign()) {
+            Assert.assertTrue(true);
+            return;
+        }
+
         exception_2 = null;
         countDownLatch_2 = new CountDownLatch(1);
         Context appContext = InstrumentationRegistry.getContext();
