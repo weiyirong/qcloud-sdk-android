@@ -21,6 +21,7 @@ import com.tencent.cos.xml.model.tag.eventstreaming.OutputSerialization;
 import com.tencent.cos.xml.model.tag.eventstreaming.SelectObjectContentEvent;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,8 @@ import java.util.concurrent.CountDownLatch;
 @RunWith(AndroidJUnit4.class)
 public class SelectObjectContentTest {
 
+    private SelectObjectContentEvent lastEvent;
+
     @BeforeClass public static void init() {
 
         Context appContext = InstrumentationRegistry.getContext();
@@ -44,9 +47,14 @@ public class SelectObjectContentTest {
 
     @Test public void selectObjectContentTest() throws Exception {
 
+        if (QServer.region.equals("ap-singapore")) { //
+            Assert.assertTrue(true);
+            return;
+        }
+
         Context context = InstrumentationRegistry.getContext();
 
-        String bucket = "00000-1253653367";
+        String bucket = QServer.persistBucket;
         String key = "select_object_content.json";
         final String expression = "Select * from COSObject";
 
@@ -65,12 +73,13 @@ public class SelectObjectContentTest {
             public void onProcess(SelectObjectContentEvent event) {
                 // event.toString();
                 System.out.println("SelectObjectContentEvent type " + event.getClass().getSimpleName());
+                lastEvent = event;
             }
         });
 
         try {
             SelectObjectContentResult selectObjectContentResult = QServer.cosXml.selectObjectContent(selectObjectContentRequest);
-            QCloudLogger.e("TAG", selectObjectContentResult.toString());
+            Assert.assertTrue(lastEvent instanceof SelectObjectContentEvent.EndEvent);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -79,9 +88,15 @@ public class SelectObjectContentTest {
 
     @Test public void selectObjectContentAsyncTest() throws Exception {
 
-        String bucket = "00000-1253653367";
+        if (QServer.region.equals("ap-singapore")) { //
+            Assert.assertTrue(true);
+            return;
+        }
+
+
+        String bucket = QServer.persistBucket;
         String key = "select_object_content.json";
-        String expression = "Select * from COSObject";
+        final String expression = "Select * from COSObject";
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
 
@@ -94,7 +109,7 @@ public class SelectObjectContentTest {
         selectObjectContentRequest.setSelectObjectContentProgressListener(new SelectObjectContentListener() {
             @Override
             public void onProcess(SelectObjectContentEvent event) {
-                event.toString();
+                 lastEvent = event;
             }
         });
 
@@ -107,12 +122,11 @@ public class SelectObjectContentTest {
 
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-
+                countDownLatch.countDown();
             }
         });
-
-        QCloudLogger.e("TAG", "test");
         countDownLatch.await();
+        Assert.assertTrue(lastEvent instanceof SelectObjectContentEvent.EndEvent);
     }
 
 }

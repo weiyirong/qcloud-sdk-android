@@ -229,18 +229,22 @@ public class BucketTest {
         QServer.init(appContext);
         bucketName = QServer.tempBucket;
 
-//        try {
-//            putBucket();
-//        } catch (CosXmlServiceException e) {
+        try {
+            putBucket();
+        } catch (CosXmlServiceException e) {
 //            if (e.getStatusCode() != 409) {
 //                throw e;
 //            }
-//        }
+            e.printStackTrace();
+        }
 
         getBucket();
         getBucketLocation();
         headBucket();
         putBucketCORS();
+
+        Thread.sleep(1000);
+
         getBucketCORS();
         deleteBucketCORS();
         putBucketACL();
@@ -253,11 +257,12 @@ public class BucketTest {
         try {
             deleteBucket();
         }catch (CosXmlServiceException e){
-            if (e.getStatusCode() != 409) {
-                throw e;
-            }
+//            if (e.getStatusCode() != 409) {
+//                throw e;
+//            }
+            e.printStackTrace();
         }
 
-        deleteAllBucketsOfAppid();
+        // deleteAllBucketsOfAppid();
     }
 }
