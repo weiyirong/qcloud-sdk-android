@@ -241,17 +241,21 @@ public class BucketTest {
         getBucket();
         getBucketLocation();
         headBucket();
+
         putBucketCORS();
-
         Thread.sleep(1000);
-
         getBucketCORS();
         deleteBucketCORS();
+
         putBucketACL();
+        Thread.sleep(1000);
         getBucketACL();
+
         putBucketLifecycle();
+        Thread.sleep(1000);
         getBucketLifecycle();
         deleteBucketLifecycle();
+
         listMultiUploads();
         deleteAllUploadIdOfBucket();
         try {
