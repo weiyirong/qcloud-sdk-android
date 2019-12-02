@@ -22,9 +22,7 @@ public enum TransferState {
      * This state represents a transfer that has been queued, but has not yet
      * started
      * <br>
-     * instead by {@link TransferState#IN_PROGRESS}
      */
-    @Deprecated
     WAITING,
 
     /**
@@ -42,9 +40,7 @@ public enum TransferState {
      * This state represents a transfer that has been resumed and queued for
      * execution, but has not started to actively transfer data.
      * <br>
-     * instead by {@link TransferState#IN_PROGRESS}
      */
-    @Deprecated
     RESUMED_WAITING,
 
     /**

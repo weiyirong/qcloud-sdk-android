@@ -1,22 +1,32 @@
 package com.tencent.cos.xml.transfer;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.tencent.cos.xml.CosXmlServiceConfig;
+
 /**
  * Created by bradyxiao on 2018/9/21.
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
 
-public final class TransferConfig {
+public class TransferConfig {
 
     protected long divisionForCopy;
     protected long sliceSizeForCopy;
     protected long divisionForUpload;
     protected long sliceSizeForUpload;
 
-    private TransferConfig(Builder builder){
+    TransferConfig(Builder builder){
         this.divisionForCopy = builder.divisionForCopy;
         this.sliceSizeForCopy = builder.sliceSizeForCopy;
         this.divisionForUpload = builder.divisionForUpload;
         this.sliceSizeForUpload = builder.sliceSizeForUpload;
+    }
+
+
+    public long getDivisionForCopy() {
+        return divisionForCopy;
     }
 
     public static class Builder{

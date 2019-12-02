@@ -2,6 +2,8 @@ package com.tencent.cos.xml;
 
 
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.text.TextUtils;
 
 import com.tencent.cos.xml.common.VersionInfo;
@@ -15,7 +17,7 @@ import java.util.concurrent.Executor;
  * retry attempts, etc.
  */
 
-public class CosXmlServiceConfig {
+public class CosXmlServiceConfig implements Parcelable {
 
     /**
      * The default protocol to use when connecting to cos Services.
@@ -254,6 +256,39 @@ public class CosXmlServiceConfig {
     public boolean isEnableQuic(){
         return isQuic;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+        dest.writeString(protocol);
+        dest.writeString(region);
+        dest.writeInt(isDebuggable ? 1 : 0);
+    }
+
+    private CosXmlServiceConfig(Parcel in) {
+
+        this(new Builder()
+                .isHttps("https".equals(in.readString()))
+                .setRegion(in.readString())
+                .setDebuggable(in.readInt() == 1));
+
+    }
+
+    public static final Parcelable.Creator<CosXmlServiceConfig> CREATOR
+            = new Parcelable.Creator<CosXmlServiceConfig>() {
+        public CosXmlServiceConfig createFromParcel(Parcel in) {
+            return new CosXmlServiceConfig(in);
+        }
+
+        public CosXmlServiceConfig[] newArray(int size) {
+            return new CosXmlServiceConfig[size];
+        }
+    };
 
     public final static class Builder {
 

@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply from: '../version.gradle'
 
 android {
 
@@ -11,7 +10,7 @@ android {
         targetSdkVersion 27
 
         versionCode sdkVersionCode
-        versionName "5.4.30"
+        versionName "5.4.31"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -88,13 +87,14 @@ if (android.defaultPublishConfig.contains("slim")){
 
 
 // 发布到内部仓库
+// 已经不再需要发布到内部仓库了
 
 //apply plugin: 'maven'
 //uploadArchives {
 //    repositories {
 //        mavenDeployer {
 //            repository(url: 'https://mirrors.tencent.com/repository/maven/cos_terminal/com/tencent/qcloud'){
-//                authentication(userName: 'rickenwang', password: 'e5a1d450d92011e9a1fd6c92bf3ad140')
+//                authentication(userName: 'rickenwang', password: 'xxxxxx')
 //                pom.groupId = 'com.tencent.qcloud'
 //                pom.version = "${version_name}"
 //                pom.artifactId = 'cosxml-lite'

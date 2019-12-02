@@ -46,7 +46,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
     /** 满足分片上传的文件最小长度 */
     protected long multiUploadSizeDivision;
     /** 源文件的本地路径 */
-    private String srcPath;
+    String srcPath;
     /** 源文件的长度 */
     private long fileLength;
 
@@ -278,7 +278,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
     private void listMultiUpload(CosXmlSimpleService cosXmlService){
         listPartsRequest = new ListPartsRequest(bucket, cosPath, uploadId);
-
+        listPartsRequest.setRegion(region);
         listPartsRequest.setRequestHeaders(headers);
 
         if(onSignatureListener != null){
@@ -331,6 +331,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
                 final UploadPartRequest uploadPartRequest = new UploadPartRequest(bucket, cosPath, slicePartStruct.partNumber,
                         srcPath, slicePartStruct.offset, slicePartStruct.sliceSize,  uploadId);
 
+                uploadPartRequest.setRegion(region);
                 uploadPartRequest.setNeedMD5(isNeedMd5);
                 uploadPartRequest.setRequestHeaders(headers);
 
@@ -396,6 +397,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
     private void completeMultiUpload(CosXmlSimpleService cosXmlService){
         completeMultiUploadRequest = new CompleteMultiUploadRequest(bucket, cosPath,
                 uploadId, null);
+        completeMultiUploadRequest.setRegion(region);
         for(Map.Entry<Integer, SlicePartStruct> entry : partStructMap.entrySet()){
             SlicePartStruct slicePartStruct = entry.getValue();
             completeMultiUploadRequest.setPartNumberAndETag(slicePartStruct.partNumber, slicePartStruct.eTag);
@@ -495,6 +497,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
         if(uploadId == null) return;
         AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucket, cosPath,
                 uploadId);
+        abortMultiUploadRequest.setRegion(region);
 
         if(onSignatureListener != null){
             abortMultiUploadRequest.setSign(onSignatureListener.onGetSign(abortMultiUploadRequest));
@@ -554,6 +557,10 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
     public String getUploadId(){
         return uploadId;
+    }
+
+    public void setUploadId(String uploadId) {
+        this.uploadId = uploadId;
     }
 
     /**

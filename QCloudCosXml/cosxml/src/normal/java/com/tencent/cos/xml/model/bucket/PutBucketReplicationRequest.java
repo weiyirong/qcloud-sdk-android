@@ -60,8 +60,8 @@ public class PutBucketReplicationRequest extends BucketRequest {
             ReplicationConfiguration.Destination destination = new ReplicationConfiguration.Destination();
             destination.storageClass = ruleStruct.storageClass;
             StringBuilder bucket = new StringBuilder();
-            bucket.append("qcs:id/0:cos:").append(ruleStruct.region).append(":appid/")
-                    .append(ruleStruct.appid).append(":").append(ruleStruct.bucket);
+            bucket.append("qcs::cos:").append(ruleStruct.region).append("::")
+                    .append(ruleStruct.bucket);
             destination.bucket = bucket.toString();
             rule.destination = destination;
             replicationConfiguration.rules.add(rule);

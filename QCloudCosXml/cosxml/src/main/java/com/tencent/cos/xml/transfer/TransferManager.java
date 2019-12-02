@@ -18,8 +18,8 @@ import java.io.InputStream;
 
 public class TransferManager{
 
-    private CosXmlSimpleService cosXmlService;
-    private TransferConfig transferConfig;
+    protected CosXmlSimpleService cosXmlService;
+    protected TransferConfig transferConfig;
 
     public TransferManager(CosXmlSimpleService cosXmlService, TransferConfig transferConfig){
         if(cosXmlService == null){
@@ -196,5 +196,9 @@ public class TransferManager{
         cosxmlCopyTask.setOnSignatureListener(onSignatureListener);
         cosxmlCopyTask.copy();
         return cosxmlCopyTask;
+    }
+
+    public CosXmlSimpleService getCosXmlService() {
+        return cosXmlService;
     }
 }

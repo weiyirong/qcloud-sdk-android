@@ -5,11 +5,15 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
+import com.tencent.cos.xml.CosXmlService;
 import com.tencent.cos.xml.QServer;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlBooleanListener;
+import com.tencent.cos.xml.model.bucket.GetBucketRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketResult;
 import com.tencent.cos.xml.model.tag.COSMetaData;
+import com.tencent.cos.xml.model.tag.ListBucket;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 
@@ -19,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -50,6 +55,41 @@ public class ObjectTest {
             Assert.assertFalse(false);
         }
 
+    }
+
+    @Test public void listAllObjects() {
+
+        CosXmlService cosXmlService = QServer.cosXml;
+
+        String bucketName = QServer.persistBucket;
+        GetBucketRequest getBucketRequest = new GetBucketRequest(bucketName);
+
+        // prefix 表示列出的 object 的 key 以 prefix 开始
+        getBucketRequest.setPrefix("images/");
+        // delimiter 表示分隔符, 设置为/表示列出当前目录下的object, 设置为空表示列出所有的object
+        getBucketRequest.setDelimiter("/");
+        // 设置最大遍历出多少个对象, 一次listobject最大支持1000
+        getBucketRequest.setMaxKeys(2);
+        GetBucketResult getBucketResult = null;
+        do {
+            try {
+                getBucketResult = cosXmlService.getBucket(getBucketRequest);
+            } catch (CosXmlClientException e) {
+                e.printStackTrace();
+                return;
+            } catch (CosXmlServiceException e) {
+                e.printStackTrace();
+                return;
+            }
+            // common prefix表示表示被delimiter截断的路径, 如delimter设置为/, common prefix则表示所有子目录的路径
+            List<ListBucket.CommonPrefixes> commonPrefixs = getBucketResult.listBucket.commonPrefixesList;
+
+            // object summary表示所有列出的object列表
+            List<ListBucket.Contents> cosObjectSummaries = getBucketResult.listBucket.contentsList;
+
+            String nextMarker = getBucketResult.listBucket.nextMarker;
+            getBucketRequest.setMarker(nextMarker);
+        } while (getBucketResult.listBucket.isTruncated);
     }
 
      public void doesObjectExistAsyncTest() {

@@ -41,6 +41,10 @@ public abstract class ObjectRequest extends CosXmlRequest {
         return config.getUrlPath(bucket, cosPath);
     }
 
+    public String getCosPath() {
+        return cosPath;
+    }
+
     @Override
     public void checkParameters() throws CosXmlClientException {
         if(requestURL != null){

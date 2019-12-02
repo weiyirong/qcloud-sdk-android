@@ -47,7 +47,7 @@ public class SelectObjectContentTest {
 
     @Test public void selectObjectContentTest() throws Exception {
 
-        if (QServer.region.equals("ap-singapore")) { //
+        if (QServer.isForeign()) { //
             Assert.assertTrue(true);
             return;
         }
@@ -88,7 +88,7 @@ public class SelectObjectContentTest {
 
     @Test public void selectObjectContentAsyncTest() throws Exception {
 
-        if (QServer.region.equals("ap-singapore")) { //
+        if (QServer.isForeign()) { //
             Assert.assertTrue(true);
             return;
         }

@@ -151,6 +151,7 @@ public class MTAProxy {
 
     private boolean isRequestNeedReport(String requestClassName) {
         return Arrays.asList(
+                "HeadObjectRequest",
                 "PutObjectRequest",
                 "GetObjectRequest",
                 "UploadPartRequest",
