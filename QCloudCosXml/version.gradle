@@ -1,6 +1,6 @@
 
 ext {
 
-    sdkVersionCode = 50430
-    sdkVersionName = '5.4.30'
+    sdkVersionCode = 50431
+    sdkVersionName = '5.4.31'
 }
