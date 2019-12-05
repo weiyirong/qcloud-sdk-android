@@ -1,5 +1,7 @@
 package com.tencent.cos.xml.transfer;
 
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
 
@@ -19,6 +21,7 @@ import com.tencent.cos.xml.model.tag.ListInventoryConfiguration;
 import com.tencent.cos.xml.model.tag.ListMultipartUploads;
 import com.tencent.cos.xml.model.tag.LocationConstraint;
 import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
+import com.tencent.cos.xml.model.tag.Tagging;
 import com.tencent.cos.xml.model.tag.VersioningConfiguration;
 import com.tencent.cos.xml.model.tag.WebsiteConfiguration;
 
@@ -352,6 +355,54 @@ public class XmlParser extends XmlSlimParser {
                         result.status = xmlPullParser.getText();
                     }
                     break;
+            }
+            eventType = xmlPullParser.next();
+        }
+    }
+
+    /**
+     * 需满足以下条件，否则解析错误
+     *
+     * 1. 返回的数据中只能有一个 TagSet 标签
+     */
+    public static void parseTagging(InputStream inputStream, Tagging tagging) throws XmlPullParserException, IOException {
+        XmlPullParser xmlPullParser =  Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        Tagging.TagSet tagSet = null;
+        Tagging.Tag tag = null;
+        String tagKey = null;
+        String tagValue = null;
+        String tagName;
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            switch (eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if ("TagSet".equalsIgnoreCase(tagName)) { // 开始解析 TagSet
+                        tagSet = new Tagging.TagSet();
+                    } else if ("Tag".equalsIgnoreCase(tagName)) {
+                        tag = new Tagging.Tag();
+                    } else if ("Key".equalsIgnoreCase(tagName)) {
+                        xmlPullParser.next();
+                        tagKey = xmlPullParser.getText();
+                    } else if ("Value".equalsIgnoreCase(tagName)) {
+                        xmlPullParser.next();
+                        tagValue = xmlPullParser.getText();
+                    }
+                    break;
+
+                case XmlPullParser.END_TAG:
+                    tagName = xmlPullParser.getName();
+                    if ("TagSet".equalsIgnoreCase(tagName)) {
+                        tagging.tagSet = tagSet;
+                        tagSet = null;
+                    } else if ("Tag".equalsIgnoreCase(tagName)) {
+                        if (tagSet != null) tagSet.addTag(tag);
+                    } else if ("Key".equalsIgnoreCase(tagName)) {
+                        if (tag != null) tag.key = tagKey;
+                    } else if ("Value".equalsIgnoreCase(tagName)) {
+                        if (tag != null) tag.value = tagValue;
+                    }
             }
             eventType = xmlPullParser.next();
         }
@@ -1014,7 +1065,7 @@ public class XmlParser extends XmlSlimParser {
                     }
                     break;
             }
-            xmlPullParser.next();
+            eventType = xmlPullParser.next();
         }
     }
 

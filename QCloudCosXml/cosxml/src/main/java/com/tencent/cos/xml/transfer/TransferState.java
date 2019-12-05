@@ -18,6 +18,9 @@ import java.util.Map;
 
 public enum TransferState {
 
+
+    CONSTRAINED,
+
     /**
      * This state represents a transfer that has been queued, but has not yet
      * started

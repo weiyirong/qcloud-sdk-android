@@ -26,6 +26,7 @@ final class TaskStateMonitor implements Runnable{
     public static final int MESSAGE_TASK_MANUAL = 2;
     public static final int MESSAGE_RELEASE_LOOP = 3;
     public static final int MESSAGE_TASK_INIT = 4;
+    public static final int MESSAGE_TASK_CONSTRAINT = 5;
 
     private TaskStateMonitor(){
         executorService = Executors.newSingleThreadExecutor();
@@ -93,6 +94,10 @@ final class TaskStateMonitor implements Runnable{
                     case MESSAGE_TASK_INIT:
                         StructMsg initMsg = (StructMsg) msg.obj;
                         stateTransform(initMsg.cosxmlTask,initMsg.transferState, initMsg.exception, initMsg.result, true);
+                        break;
+                    case MESSAGE_TASK_CONSTRAINT:
+                        StructMsg constraintMsg = (StructMsg) msg.obj;
+                        stateTransform(constraintMsg.cosxmlTask, constraintMsg.transferState, constraintMsg.exception, constraintMsg.result,false);
                         break;
                     case MESSAGE_RELEASE_LOOP:
                         releaseLooper();

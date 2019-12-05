@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class PutBucketInventoryRequest extends BucketRequest {
 
-    private static Pattern pattern = Pattern.compile("[^a-zA-Z0-9-_.]+");
+    private static Pattern pattern = Pattern.compile("[a-zA-Z0-9-_.]+");
     private InventoryConfiguration inventoryConfiguration;
 
 
@@ -39,7 +39,7 @@ public class PutBucketInventoryRequest extends BucketRequest {
         this(null);
     }
 
-    public void setInventoryId(String inventoryId) throws CosXmlClientException{
+    public void setInventoryId(String inventoryId) {
         inventoryConfiguration.id = inventoryId;
     }
 

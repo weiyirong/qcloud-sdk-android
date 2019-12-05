@@ -21,7 +21,8 @@ public enum ClientErrorCode {
     POOR_NETWORK(20003, "NetworkError"),
 
     USER_CANCELLED(30000, "UserCancelled"),
-    ALREADY_FINISHED(30001, "AlreadyFinished");
+    ALREADY_FINISHED(30001, "AlreadyFinished"),
+    DUPLICATE_TASK(30002, "DuplicateTask");
 
     private int code;
     private String errorMsg;

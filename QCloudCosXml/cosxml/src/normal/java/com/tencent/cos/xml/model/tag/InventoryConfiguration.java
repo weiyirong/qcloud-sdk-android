@@ -6,6 +6,10 @@ import java.util.Set;
 
 public class InventoryConfiguration {
 
+    public static final String SCHEDULE_FREQUENCY_DAILY = "Daily";
+    public static final String SCHEDULE_FREQUENCY_WEEKLY = "Weekly";
+
+
     /** 清单的名称，与请求参数中的 id 对应 */
     public String id;
 
@@ -152,7 +156,7 @@ public class InventoryConfiguration {
 
     public enum IncludedObjectVersions{
         /** 清单中将会包含所有对象版本, 并在清单中增加 VersionId，IsLatest，DeleteMarker 这几个字段 */
-        ALL("ALL"),
+        ALL("All"),
         /** 清单中不包含对象版本信息 */
         CURRENT("Current");
 

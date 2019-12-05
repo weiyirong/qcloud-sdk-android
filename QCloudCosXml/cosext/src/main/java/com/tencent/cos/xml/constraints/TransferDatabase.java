@@ -17,7 +17,7 @@ import androidx.work.impl.model.WorkTypeConverters;
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Database(entities = {TransferSpec.class}, exportSchema = false, version = 1)
-@TypeConverters(value = {TransferStatusConverters.class, WorkTypeConverters.class})
+@TypeConverters(value = {TransferStateConverters.class, WorkTypeConverters.class})
 public abstract class TransferDatabase extends RoomDatabase {
 
     private static final String DB_NAME = "com.tencent.cos.xml.constraints.transfer.db";

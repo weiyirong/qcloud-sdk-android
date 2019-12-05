@@ -15,6 +15,8 @@ import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketResult;
+import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingRequest;
+import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteResult;
 import com.tencent.cos.xml.model.bucket.GetBucketACLRequest;
@@ -35,6 +37,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketResult;
+import com.tencent.cos.xml.model.bucket.GetBucketTaggingRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.GetBucketWebsiteRequest;
@@ -63,6 +67,8 @@ import com.tencent.cos.xml.model.bucket.PutBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.PutBucketRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketResult;
+import com.tencent.cos.xml.model.bucket.PutBucketTaggingRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.PutBucketWebsiteRequest;
@@ -2886,7 +2892,19 @@ public interface CosXml extends SimpleCosXml {
 
     void putBucketLoggingAsync(PutBucketLoggingRequest request, CosXmlResultListener cosXmlResultListener);
 
-    GetBucketLoggingResult getBucketLogging(GetBucketLocationRequest request)throws CosXmlClientException, CosXmlServiceException;
+    PutBucketTaggingResult putBucketTagging(PutBucketTaggingRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void putBucketTaggingAsync(PutBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener);
+
+    GetBucketTaggingResult getBucketTagging(GetBucketTaggingRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void getBucketTaggingAsync(GetBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener);
+
+    DeleteBucketTaggingResult deleteBucketTagging(DeleteBucketTaggingRequest request)throws CosXmlClientException, CosXmlServiceException;
+
+    void deleteBucketTaggingAsync(DeleteBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener);
+
+    GetBucketLoggingResult getBucketLogging(GetBucketLoggingRequest request)throws CosXmlClientException, CosXmlServiceException;
 
     void getBucketLoggingAsync(GetBucketLoggingRequest request, CosXmlResultListener cosXmlResultListener);
 
@@ -2900,7 +2918,7 @@ public interface CosXml extends SimpleCosXml {
 
     DeleteBucketInventoryResult deleteBucketInventory(DeleteBucketInventoryRequest request) throws CosXmlClientException, CosXmlServiceException;
 
-    void deleteInventoryAsync(DeleteBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener);
+    void deleteBucketInventoryAsync(DeleteBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener);
 
     ListBucketInventoryResult listBucketInventory(ListBucketInventoryRequest request) throws CosXmlClientException, CosXmlServiceException;
 

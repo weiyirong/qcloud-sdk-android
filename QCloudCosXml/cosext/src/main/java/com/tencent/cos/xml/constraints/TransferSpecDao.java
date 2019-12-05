@@ -6,7 +6,7 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.work.NetworkType;
 
-import com.tencent.cos.xml.transfer.TransferStatus;
+import com.tencent.cos.xml.transfer.TransferState;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ public interface TransferSpecDao {
     List<TransferSpec> getTransferSpecs(List<String> ids);
 
     @Query("SELECT state FROM transferspec WHERE id=:id")
-    LiveData<TransferStatus> getTransferSpecsStateLiveData(String id);
+    LiveData<TransferState> getTransferSpecsStateLiveData(String id);
 
     @Query("SELECT * FROM transferspec WHERE id=:id")
     TransferSpec getTransferSpecs(String id);
@@ -55,7 +55,7 @@ public interface TransferSpecDao {
     void updateTransferSpecTransferProgress(String id, long complete, long target);
 
     @Query("UPDATE transferspec SET state=:state WHERE id=:id")
-    void updateTransferSpecTransferStatus(String id, TransferStatus state);
+    void updateTransferSpecTransferStatus(String id, TransferState state);
 
     @Query("UPDATE transferspec SET uploadId=:uploadId WHERE id=:id")
     void updateTransferSpecUploadId(String id, String uploadId);
@@ -71,4 +71,7 @@ public interface TransferSpecDao {
 
     @Query("UPDATE transferspec SET required_network_type=:networkType")
     void updateAllTransferSpecsNetworkConstraints(NetworkType networkType);
+
+    @Query("DELETE FROM transferspec WHERE id=:id")
+    void deleteTransferSpec(String id);
 }

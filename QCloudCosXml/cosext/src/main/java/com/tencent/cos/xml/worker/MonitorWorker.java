@@ -4,7 +4,6 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
-import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
@@ -15,6 +14,7 @@ import androidx.work.WorkerParameters;
 import com.tencent.cos.xml.constraints.TransferDatabase;
 import com.tencent.cos.xml.constraints.TransferSpec;
 import com.tencent.cos.xml.constraints.TransferSpecDao;
+import com.tencent.cos.xml.transfer.UploadWorker;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import java.util.List;

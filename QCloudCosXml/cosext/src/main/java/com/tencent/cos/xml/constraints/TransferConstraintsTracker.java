@@ -7,6 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.work.Logger;
 import androidx.work.impl.constraints.WorkConstraintsCallback;
+import androidx.work.impl.constraints.WorkConstraintsTracker;
+import androidx.work.impl.constraints.trackers.ConstraintTracker;
 import androidx.work.impl.utils.taskexecutor.TaskExecutor;
 
 import com.tencent.cos.xml.constraints.controller.ConstraintController;

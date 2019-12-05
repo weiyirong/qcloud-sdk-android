@@ -164,6 +164,17 @@ public final class COSXMLUploadTask extends COSXMLTask {
         run();
     }
 
+    private void dispatchProgressChanage(long complete, long target) {
+
+        if (cosXmlProgressListener != null) {
+            cosXmlProgressListener.onProgress(complete, target);
+        }
+
+        if (internalProgressListener != null) {
+            internalProgressListener.onProgress(complete, target);
+        }
+    }
+
     private void simpleUpload(CosXmlSimpleService cosXmlService){
         if(bytes != null){
             putObjectRequest = new PutObjectRequest(bucket, cosPath, bytes);
@@ -193,9 +204,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
         putObjectRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
-                if(cosXmlProgressListener != null){
-                    cosXmlProgressListener.onProgress(complete, target);
-                }
+                dispatchProgressChanage(complete, target);
             }
         });
 
@@ -349,9 +358,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
                         try {
                             long dataLen = ALREADY_SEND_DATA_LEN.addAndGet(complete - uploadPartRequestLongMap.get(uploadPartRequest));
                             uploadPartRequestLongMap.put(uploadPartRequest, complete);
-                            if(cosXmlProgressListener != null){
-                                cosXmlProgressListener.onProgress(dataLen, fileLength);
-                            }
+                            dispatchProgressChanage(dataLen, fileLength);
                         }catch (Exception e){
                             //cause by cancel or pause
                         }
@@ -387,9 +394,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             }
         }
         if(isUploadFinished && !IS_EXIT.get()){
-            if(cosXmlProgressListener != null){
-                cosXmlProgressListener.onProgress(fileLength, fileLength);
-            }
+            dispatchProgressChanage(fileLength, fileLength);
             multiUploadsStateListenerHandler.onUploadParts();
         }
     }
@@ -688,6 +693,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
     protected void run() {
         //bytes or inputStream using simple upload method
+
+
+
         if(bytes != null || inputStream != null){
             simpleUpload(cosXmlService);
             return;

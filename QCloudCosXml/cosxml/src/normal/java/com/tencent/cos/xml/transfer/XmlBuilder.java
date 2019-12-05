@@ -9,6 +9,7 @@ import com.tencent.cos.xml.model.tag.InventoryConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
 import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
 import com.tencent.cos.xml.model.tag.RestoreConfigure;
+import com.tencent.cos.xml.model.tag.Tagging;
 import com.tencent.cos.xml.model.tag.VersioningConfiguration;
 import com.tencent.cos.xml.model.tag.WebsiteConfiguration;
 import com.tencent.cos.xml.model.tag.eventstreaming.CSVInput;
@@ -23,6 +24,7 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Map;
 
 /**
  * Created by bradyxiao on 2017/11/26.
@@ -272,6 +274,35 @@ public class XmlBuilder extends XmlSlimBuilder {
         return removeXMLHeader(xmlContent.toString());
     }
 
+    public static String buildBucketTagging(Tagging tagging) throws XmlPullParserException, IOException {
+
+        if (tagging == null) {
+            return null;
+        }
+
+        StringWriter xmlContent = new StringWriter();
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
+        xmlSerializer.setOutput(xmlContent);
+        xmlSerializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+        xmlSerializer.startDocument("UTF-8", null);
+
+        xmlSerializer.startTag("", "Tagging");
+        xmlSerializer.startTag("", "TagSet");
+        if (!tagging.tagSet.tags.isEmpty()) {
+            for (Tagging.Tag tag : tagging.tagSet.tags) {
+                xmlSerializer.startTag("", "Tag");
+                addElement(xmlSerializer, "Key", tag.key);
+                addElement(xmlSerializer, "Value", tag.value);
+                xmlSerializer.endTag("", "Tag");
+            }
+        }
+        xmlSerializer.endTag("", "TagSet");
+        xmlSerializer.endTag("", "Tagging");
+        xmlSerializer.endDocument();
+        return removeXMLHeader(xmlContent.toString());
+    }
+
     public static String buildWebsiteConfiguration(WebsiteConfiguration websiteConfiguration) throws XmlPullParserException, IOException {
         if(websiteConfiguration == null)return null;
         StringWriter xmlContent = new StringWriter();
@@ -339,7 +370,7 @@ public class XmlBuilder extends XmlSlimBuilder {
         xmlSerializer.startDocument("UTF-8", null);
         xmlSerializer.startTag("", "InventoryConfiguration");
         if(inventoryConfiguration.id != null)addElement(xmlSerializer, "Id", inventoryConfiguration.id);
-        addElement(xmlSerializer, "IsEnabled", inventoryConfiguration.isEnabled ? "True" : "False");
+        addElement(xmlSerializer, "IsEnabled", inventoryConfiguration.isEnabled ? "true" : "false");
         if(inventoryConfiguration.destination != null){
             xmlSerializer.startTag("", "Destination");
             if(inventoryConfiguration.destination.cosBucketDestination != null){
@@ -373,7 +404,7 @@ public class XmlBuilder extends XmlSlimBuilder {
             xmlSerializer.endTag("", "Filter");
         }
         if(inventoryConfiguration.includedObjectVersions != null){
-            addElement(xmlSerializer, "IncludeObjectVersions", inventoryConfiguration.includedObjectVersions);
+            addElement(xmlSerializer, "IncludedObjectVersions", inventoryConfiguration.includedObjectVersions);
         }
         if(inventoryConfiguration.optionalFields != null && inventoryConfiguration.optionalFields.fields != null){
             xmlSerializer.startTag("", "OptionalFields");

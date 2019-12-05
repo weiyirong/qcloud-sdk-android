@@ -20,7 +20,7 @@ import com.tencent.cos.xml.worker.MonitorWorker;
 @SuppressLint("RestrictedApi")
 public class TransferWorkManager {
 
-    private TransferSchedule transferSchedule;
+    private TransferScheduler transferScheduler;
 
     private CosXmlService cosXmlService;
 
@@ -37,13 +37,12 @@ public class TransferWorkManager {
         this.serviceConfig = serviceConfig;
         this.transferConfig = transferConfig;
         this.credentialProvider = credentialProvider;
-        transferSchedule = TransferSchedule.getInstance(context);
+        transferScheduler = TransferScheduler.getInstance(context);
         cosXmlService = new CosXmlService(context, serviceConfig, credentialProvider);
         MonitorWorker.startMonitor(context);
     }
 
-
-    public String upload(String bucket, String cosKey, String filePath) {
+    public COSXMLUploadTask upload(String bucket, String cosKey, String filePath) {
 
         return this.upload(new UploadRequest.Builder(bucket, cosKey)
                 .setRegion(serviceConfig.getRegion())
@@ -58,7 +57,7 @@ public class TransferWorkManager {
      *
      * @return uploadRequest 对应的 id
      */
-    public String upload(UploadRequest uploadRequest) {
+    public COSXMLUploadTask upload(UploadRequest uploadRequest) {
 
         COSXMLUploadTask cosxmlUploadTask = new COSXMLUploadTask(cosXmlService, uploadRequest.getRegion(),
                 uploadRequest.getBucket(), uploadRequest.getCosKey(), uploadRequest.getFilePath(), null);
@@ -66,8 +65,9 @@ public class TransferWorkManager {
         cosxmlUploadTask.multiUploadSizeDivision = transferConfig.divisionForUpload; // 分片上传的界限
         cosxmlUploadTask.sliceSize = transferConfig.sliceSizeForUpload; // 分片上传的分片大小
         // cosxmlUploadTask.setOnSignatureListener(onSignatureListener);
-        transferSchedule.schedule(uploadRequest, cosxmlUploadTask, this);
-        return uploadRequest.getId();
+        transferScheduler.schedule(uploadRequest, cosxmlUploadTask, this);
+
+        return cosxmlUploadTask;
     }
 
 

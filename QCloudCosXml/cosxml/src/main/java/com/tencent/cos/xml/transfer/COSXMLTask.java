@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.tencent.cos.xml.transfer.TaskStateMonitor.MESSAGE_TASK_CONSTRAINT;
 import static com.tencent.cos.xml.transfer.TaskStateMonitor.MESSAGE_TASK_INIT;
 import static com.tencent.cos.xml.transfer.TaskStateMonitor.MESSAGE_TASK_MANUAL;
 
@@ -56,9 +57,10 @@ public abstract class COSXMLTask {
     protected TransferStateListener transferStateListener;
 
     protected TransferStateListener internalStateListener;
+    protected CosXmlProgressListener internalProgressListener;
 
     /** cosxml task state during the whole lifecycle */
-    protected volatile TransferState taskState  = TransferState.WAITING;
+    volatile TransferState taskState  = TransferState.WAITING;
 
     /** 退出：pause, cancel, failed*/
     protected AtomicBoolean IS_EXIT = new AtomicBoolean(false);
@@ -116,6 +118,19 @@ public abstract class COSXMLTask {
     protected void internalCancel(){}
 
     protected void internalResume(){}
+
+    /**
+     * 限制条件被满足，状态应该由 {@link TransferState#CONSTRAINED} 切换到 {@link TransferState#RESUMED_WAITING}
+     */
+    void constraintSatisfied() {
+
+        monitor.sendStateMessage(this, TransferState.RESUMED_WAITING,null,null, MESSAGE_TASK_CONSTRAINT);
+    }
+
+    void constraintUnSatisfied() {
+
+        monitor.sendStateMessage(this, TransferState.CONSTRAINED, null, null, MESSAGE_TASK_CONSTRAINT);
+    }
 
     /**
      * 异步的，发送通知，置位
@@ -188,7 +203,7 @@ public abstract class COSXMLTask {
                 if(cosXmlResultListener != null){
                     cosXmlResultListener.onSuccess(buildCOSXMLTaskRequest(), result);
                 }
-            }else if(newTaskState != null){
+            }else if (newTaskState != null){
                 dispatchStateChange(taskState);
             }
             return;
@@ -255,12 +270,21 @@ public abstract class COSXMLTask {
                 break;
             case RESUMED_WAITING:
                 if(taskState == TransferState.PAUSED
-                        || taskState == TransferState.FAILED){
+                        || taskState == TransferState.FAILED || taskState == TransferState.CONSTRAINED){
                     taskState = TransferState.RESUMED_WAITING;
                     dispatchStateChange(taskState);
                     internalResume();
                 }
                 break;
+
+            case CONSTRAINED:
+                if (taskState == TransferState.WAITING || taskState == TransferState.RESUMED_WAITING
+                  || taskState == TransferState.IN_PROGRESS) {
+                    taskState = TransferState.CONSTRAINED;
+                    dispatchStateChange(taskState);
+                    internalPause();
+                }
+
             default:
                 throw new IllegalStateException("invalid state: " + newTaskState);
         }

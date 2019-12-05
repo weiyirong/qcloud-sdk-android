@@ -7,8 +7,8 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
-import com.tencent.cos.xml.transfer.TransferRequest;
-import com.tencent.cos.xml.transfer.TransferStatus;
+import com.tencent.cos.xml.transfer.DownloadRequest;
+import com.tencent.cos.xml.transfer.TransferState;
 import com.tencent.cos.xml.transfer.UploadRequest;
 
 /**
@@ -51,7 +51,7 @@ public class TransferSpec {
     public boolean isUpload; // upload or download
 
     @NonNull
-    public TransferStatus state;  // 任务的传输状态
+    public TransferState state = TransferState.UNKNOWN;  // 任务的传输状态
 
     @NonNull
     public long complete;
@@ -76,9 +76,17 @@ public class TransferSpec {
         this.headers = headers;
         this.isUpload = isUpload;
 
-        state = TransferStatus.UNKNOWN;
+        state = TransferState.UNKNOWN;
     }
 
+
+    @Ignore
+    public TransferSpec(TransferSpec transferSpec) {
+
+        this(transferSpec.id, transferSpec.region, transferSpec.bucket, transferSpec.key, transferSpec.filePath, transferSpec.headers, transferSpec.isUpload);
+        uploadId = transferSpec.uploadId;
+
+    }
 
     /**
      * @hide
@@ -99,6 +107,7 @@ public class TransferSpec {
         this.constraints = uploadRequest.getConstraints();
     }
 
+    public TransferSpec(DownloadRequest downloadRequest) {}
 
     public void setServiceEgg(@NonNull byte[] serviceEgg) {
         this.transferServiceEgg = new String(serviceEgg);

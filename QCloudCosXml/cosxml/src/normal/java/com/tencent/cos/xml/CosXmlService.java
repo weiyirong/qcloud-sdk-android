@@ -20,6 +20,8 @@ import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketResult;
+import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingRequest;
+import com.tencent.cos.xml.model.bucket.DeleteBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteRequest;
 import com.tencent.cos.xml.model.bucket.DeleteBucketWebsiteResult;
 import com.tencent.cos.xml.model.bucket.GetBucketACLRequest;
@@ -40,6 +42,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketResult;
+import com.tencent.cos.xml.model.bucket.GetBucketTaggingRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.GetBucketWebsiteRequest;
@@ -68,6 +72,8 @@ import com.tencent.cos.xml.model.bucket.PutBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.PutBucketRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketResult;
+import com.tencent.cos.xml.model.bucket.PutBucketTaggingRequest;
+import com.tencent.cos.xml.model.bucket.PutBucketTaggingResult;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningRequest;
 import com.tencent.cos.xml.model.bucket.PutBucketVersioningResult;
 import com.tencent.cos.xml.model.bucket.PutBucketWebsiteRequest;
@@ -1126,7 +1132,37 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     }
 
     @Override
-    public GetBucketLoggingResult getBucketLogging(GetBucketLocationRequest request) throws CosXmlClientException, CosXmlServiceException {
+    public PutBucketTaggingResult putBucketTagging(PutBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new PutBucketTaggingResult());
+    }
+
+    @Override
+    public void putBucketTaggingAsync(PutBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new PutBucketTaggingResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public GetBucketTaggingResult getBucketTagging(GetBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new GetBucketTaggingResult());
+    }
+
+    @Override
+    public void getBucketTaggingAsync(GetBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new GetBucketTaggingResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public DeleteBucketTaggingResult deleteBucketTagging(DeleteBucketTaggingRequest request) throws CosXmlClientException, CosXmlServiceException {
+        return execute(request, new DeleteBucketTaggingResult());
+    }
+
+    @Override
+    public void deleteBucketTaggingAsync(DeleteBucketTaggingRequest request, CosXmlResultListener cosXmlResultListener) {
+        schedule(request, new DeleteBucketTaggingResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public GetBucketLoggingResult getBucketLogging(GetBucketLoggingRequest request) throws CosXmlClientException, CosXmlServiceException {
         return execute(request, new GetBucketLoggingResult());
     }
 
@@ -1161,7 +1197,7 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     }
 
     @Override
-    public void deleteInventoryAsync(DeleteBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener) {
+    public void deleteBucketInventoryAsync(DeleteBucketInventoryRequest request, CosXmlResultListener cosXmlResultListener) {
         schedule(request, new DeleteBucketInventoryResult(), cosXmlResultListener);
     }
 
