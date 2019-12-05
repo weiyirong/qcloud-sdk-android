@@ -281,7 +281,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                         HttpConfiguration.calculateGlobalTimeOffset(serverDate, new Date());
                     }
                     // stop here, re sign request and try again
-                    e = new IOException(new QCloudServiceException("client clock skewed").setErrorCode(clockSkewError));
+                    // e = new IOException(new QCloudServiceException("client clock skewed").setErrorCode(clockSkewError));
                     break;
                 } else if (shouldRetry(request, response, attempts, startTime, e, statusCode) && !task.isCanceled()) {
                     QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s, code is %d", request, e, statusCode);

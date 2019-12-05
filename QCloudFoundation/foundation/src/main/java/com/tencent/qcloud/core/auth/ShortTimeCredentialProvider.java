@@ -40,4 +40,16 @@ public class ShortTimeCredentialProvider extends BasicLifecycleCredentialProvide
 
         return null;
     }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public String getSecretId() {
+        return secretId;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
 }
