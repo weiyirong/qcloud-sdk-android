@@ -17,7 +17,7 @@ public class RetryStrategy {
     private static final int DEFAULT_INIT_BACKOFF = 1000;
 
     // 普通任务最少重试次数
-    private static final int DEFAULT_ATTEMPTS = 3;
+    private static final int DEFAULT_ATTEMPTS = 2;
 
     // 普通任务最长重试间隔
     private static final int DEFAULT_MAX_BACKOFF = 2000;

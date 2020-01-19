@@ -98,15 +98,15 @@ public abstract class COSXMLTask {
     }
 
     protected void getHttpMetrics(CosXmlRequest cosXmlRequest, final String requestName){
-        if(onGetHttpTaskMetrics != null){
-            cosXmlRequest.attachMetrics(new HttpTaskMetrics(){
-                @Override
-                public void onDataReady() {
-                    super.onDataReady();
+        cosXmlRequest.attachMetrics(new HttpTaskMetrics(){
+            @Override
+            public void onDataReady() {
+                super.onDataReady();
+                if(onGetHttpTaskMetrics != null){
                     onGetHttpTaskMetrics.onGetHttpMetrics(requestName, this);
                 }
-            });
-        }
+            }
+        });
     }
 
     protected void internalCompleted(){}

@@ -30,7 +30,7 @@ public class TaskExecutors {
         COMMAND_EXECUTOR = new ThreadPoolExecutor(5, 5, 5L,
                 TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(Integer.MAX_VALUE),
                 new TaskThreadFactory("Command-", 8));
-        UPLOAD_EXECUTOR = new ThreadPoolExecutor(2, 2, 5L,
+        UPLOAD_EXECUTOR = new ThreadPoolExecutor(1, 1, 5L,
                 TimeUnit.SECONDS, new PriorityBlockingQueue<Runnable>(),
                 new TaskThreadFactory("Upload-", 3));
         DOWNLOAD_EXECUTOR = new ThreadPoolExecutor(3, 3, 5L,

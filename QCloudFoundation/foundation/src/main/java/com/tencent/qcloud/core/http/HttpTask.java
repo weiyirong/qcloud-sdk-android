@@ -1,8 +1,6 @@
 package com.tencent.qcloud.core.http;
 
 
-import android.util.Log;
-
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.auth.QCloudCredentials;
 import com.tencent.qcloud.core.auth.QCloudSigner;
@@ -16,9 +14,6 @@ import com.tencent.qcloud.core.task.QCloudTask;
 import com.tencent.qcloud.core.task.TaskExecutors;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,10 +21,6 @@ import bolts.CancellationTokenSource;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okio.Buffer;
-import okio.BufferedSink;
-import okio.ByteString;
-import okio.Source;
-import okio.Timeout;
 
 /**
  * Created by wjielai on 2017/11/27.
@@ -102,18 +93,22 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         return this;
     }
 
-    boolean isUploadTask() {
+    public boolean isUploadTask() {
         if (httpRequest.getRequestBody() instanceof StreamingRequestBody) {
             return ((StreamingRequestBody) httpRequest.getRequestBody()).isLargeData();
         }
         return false;
     }
 
-    boolean isDownloadTask() {
+    public boolean isDownloadTask() {
         return httpRequest.getResponseBodyConverter() instanceof ProgressBody;
     }
 
-    double getAverageStreamingSpeed(long networkMillsTook) {
+    public HttpRequest<T> request() {
+        return httpRequest;
+    }
+
+    public long getTransferBodySize() {
         ProgressBody body = null;
 
         if (httpRequest.getRequestBody() instanceof ProgressBody) {
@@ -122,7 +117,7 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
             body = (ProgressBody) httpRequest.getResponseBodyConverter();
         }
         if (body != null) {
-            return ((double) body.getBytesTransferred() / 1024) / ((double) networkMillsTook / 1000);
+            return body.getBytesTransferred();
         }
         return 0;
     }
@@ -236,7 +231,7 @@ public final class HttpTask<T> extends QCloudTask<HttpResult<T>> {
         }
     }
 
-    void convertResponse(Response response) throws QCloudClientException, QCloudServiceException {
+    public void convertResponse(Response response) throws QCloudClientException, QCloudServiceException {
         httpResult = networkProxy.convertResponse(httpRequest, response);
     }
 

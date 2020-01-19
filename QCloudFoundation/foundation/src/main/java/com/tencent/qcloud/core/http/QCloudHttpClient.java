@@ -30,7 +30,7 @@ import okhttp3.*;
 
 public final class QCloudHttpClient {
 
-    static final String HTTP_LOG_TAG = "QCloudHttp";
+    public static final String HTTP_LOG_TAG = "QCloudHttp";
 
    // private NetworkClient networkClient;
     private String networkClientType = OkHttpClientImpl.class.getName();

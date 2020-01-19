@@ -32,7 +32,7 @@ public class TransferConfig {
     public static class Builder{
         private long divisionForCopy = 5242880; // 5M
         private long sliceSizeForCopy = 5242880; //5M
-        private long divisionForUpload = 2097152; //2M
+        private long divisionForUpload = 1048576; //1M
         private long sliceSizeForUpload = 1048576; // 1M
 
         public Builder(){

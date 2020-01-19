@@ -22,17 +22,17 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
+import com.tencent.qcloud.core.http.interceptor.CircuitBreakerDeniedException;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -76,7 +76,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
     private Map<Integer, SlicePartStruct> partStructMap;
     private AtomicInteger UPLOAD_PART_COUNT;
     private AtomicLong ALREADY_SEND_DATA_LEN;
-    private Object SYNC_UPLOAD_PART = new Object();
+    private final Object SYNC_UPLOAD_PART = new Object();
 
     private MultiUploadsStateListener multiUploadsStateListenerHandler = new MultiUploadsStateListener() {
         @Override
@@ -328,7 +328,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
         });
     }
 
-    private void multiUploadPart(CosXmlSimpleService cosXmlService){
+    private void multiUploadPart(final CosXmlSimpleService cosXmlService){
         //是否已上传完
         boolean isUploadFinished = true;
         // 循环进行
@@ -337,60 +337,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             //是否已经failed了，则就不要在继续了
             if(!slicePartStruct.isAlreadyUpload && !IS_EXIT.get()){
                 isUploadFinished = false;
-                final UploadPartRequest uploadPartRequest = new UploadPartRequest(bucket, cosPath, slicePartStruct.partNumber,
-                        srcPath, slicePartStruct.offset, slicePartStruct.sliceSize,  uploadId);
-
-                uploadPartRequest.setRegion(region);
-                uploadPartRequest.setNeedMD5(isNeedMd5);
-                uploadPartRequest.setRequestHeaders(headers);
-
-                if(onSignatureListener != null){
-                    uploadPartRequest.setSign(onSignatureListener.onGetSign(uploadPartRequest));
-                }
-
-                getHttpMetrics(uploadPartRequest, "UploadPartRequest");
-
-                uploadPartRequestLongMap.put(uploadPartRequest, 0L);
-                uploadPartRequest.setProgressListener(new CosXmlProgressListener() {
-                    @Override
-                    public void onProgress(long complete, long target) {
-                        if(IS_EXIT.get())return;//已经上报失败了
-                        try {
-                            long dataLen = ALREADY_SEND_DATA_LEN.addAndGet(complete - uploadPartRequestLongMap.get(uploadPartRequest));
-                            uploadPartRequestLongMap.put(uploadPartRequest, complete);
-                            dispatchProgressChanage(dataLen, fileLength);
-                        }catch (Exception e){
-                            //cause by cancel or pause
-                        }
-                    }
-                });
-                cosXmlService.uploadPartAsync(uploadPartRequest, new CosXmlResultListener() {
-                    @Override
-                    public void onSuccess(CosXmlRequest request, CosXmlResult result) {
-                        if(request != uploadPartRequest){
-                            return;
-                        }
-                        if(IS_EXIT.get())return;
-                        slicePartStruct.eTag = ((UploadPartResult)result).eTag;
-                        slicePartStruct.isAlreadyUpload = true;
-                        synchronized (SYNC_UPLOAD_PART){
-                            UPLOAD_PART_COUNT.decrementAndGet();
-                            if(UPLOAD_PART_COUNT.get() == 0){
-                                multiUploadsStateListenerHandler.onUploadParts();
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
-                        if(request != uploadPartRequest){
-                            return;
-                        }
-                        if(IS_EXIT.get())return;//已经上报失败了
-                        IS_EXIT.set(true);
-                        multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
-                    }
-                });
+                uploadAPart(cosXmlService, slicePartStruct);
             }
         }
         if(isUploadFinished && !IS_EXIT.get()){
@@ -399,7 +346,69 @@ public final class COSXMLUploadTask extends COSXMLTask {
         }
     }
 
-    private void completeMultiUpload(CosXmlSimpleService cosXmlService){
+    private void uploadAPart(final CosXmlSimpleService cosXmlService, final SlicePartStruct slicePartStruct) {
+        final UploadPartRequest uploadPartRequest = new UploadPartRequest(bucket, cosPath, slicePartStruct.partNumber,
+                srcPath, slicePartStruct.offset, slicePartStruct.sliceSize,  uploadId);
+
+        uploadPartRequest.setRegion(region);
+        uploadPartRequest.setNeedMD5(isNeedMd5);
+        uploadPartRequest.setRequestHeaders(headers);
+
+        if(onSignatureListener != null){
+            uploadPartRequest.setSign(onSignatureListener.onGetSign(uploadPartRequest));
+        }
+
+        getHttpMetrics(uploadPartRequest, "UploadPartRequest");
+
+        uploadPartRequestLongMap.put(uploadPartRequest, 0L);
+        uploadPartRequest.setProgressListener(new CosXmlProgressListener() {
+            @Override
+            public void onProgress(long complete, long target) {
+                if(IS_EXIT.get())return;//已经上报失败了
+                try {
+                    long dataLen = ALREADY_SEND_DATA_LEN.addAndGet(complete - uploadPartRequestLongMap.get(uploadPartRequest));
+                    uploadPartRequestLongMap.put(uploadPartRequest, complete);
+                    dispatchProgressChanage(dataLen, fileLength);
+                }catch (Exception e){
+                    //cause by cancel or pause
+                }
+            }
+        });
+
+        cosXmlService.uploadPartAsync(uploadPartRequest, new CosXmlResultListener() {
+            @Override
+            public void onSuccess(CosXmlRequest request, CosXmlResult result) {
+                if(request != uploadPartRequest){
+                    return;
+                }
+                if(IS_EXIT.get())return;
+                slicePartStruct.eTag = ((UploadPartResult)result).eTag;
+                slicePartStruct.isAlreadyUpload = true;
+                synchronized (SYNC_UPLOAD_PART){
+                    UPLOAD_PART_COUNT.decrementAndGet();
+                    if(UPLOAD_PART_COUNT.get() == 0){
+                        multiUploadsStateListenerHandler.onUploadParts();
+                    }
+                }
+            }
+
+            @Override
+            public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
+                if(request != uploadPartRequest){
+                    return;
+                }
+                if(IS_EXIT.get())return;//已经上报失败了
+                if (exception.getCause() != null && exception.getCause().getCause() instanceof CircuitBreakerDeniedException) {
+                    IS_EXIT.set(true);
+                    multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
+                } else {
+                    uploadAPart(cosXmlService, slicePartStruct);
+                }
+            }
+        });
+    }
+
+    private void completeMultiUpload(final CosXmlSimpleService cosXmlService){
         completeMultiUploadRequest = new CompleteMultiUploadRequest(bucket, cosPath,
                 uploadId, null);
         completeMultiUploadRequest.setRegion(region);
