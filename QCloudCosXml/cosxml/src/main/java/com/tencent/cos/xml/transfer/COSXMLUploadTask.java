@@ -61,6 +61,8 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
     /** 分片上传*/
     private boolean isSliceUpload = false;
+    /** 大文件上传*/
+    private boolean isLargeFileUpload = false;
     /** 分片大小 */
     protected long sliceSize;
     /** 分片上传 UploadId 属性 */
@@ -398,7 +400,8 @@ public final class COSXMLUploadTask extends COSXMLTask {
                     return;
                 }
                 if(IS_EXIT.get())return;//已经上报失败了
-                if (exception.getCause() != null && exception.getCause().getCause() instanceof CircuitBreakerDeniedException) {
+                if (!isLargeFileUpload || (exception.getCause() != null &&
+                        exception.getCause().getCause() instanceof CircuitBreakerDeniedException)) {
                     IS_EXIT.set(true);
                     multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
                 } else {
@@ -714,6 +717,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             simpleUpload(cosXmlService);
         }else {
             isSliceUpload = true;
+            isLargeFileUpload = fileLength > 20 * 1024 * 1024;
             UPLOAD_PART_COUNT = new AtomicInteger(0); //用于计算分片数
             ALREADY_SEND_DATA_LEN = new AtomicLong(0); //分片上传进度计数
             partStructMap = new LinkedHashMap<>(); //必须有序

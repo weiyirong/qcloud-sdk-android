@@ -3,8 +3,6 @@ package com.tencent.cos.xml;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
-import android.util.TimeUtils;
 
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
@@ -20,7 +18,6 @@ import com.tencent.cos.xml.transfer.TransferState;
 import com.tencent.cos.xml.transfer.TransferStateListener;
 import com.tencent.qcloud.core.auth.ShortTimeCredentialProvider;
 import com.tencent.qcloud.core.http.HttpTaskMetrics;
-import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 
 import org.junit.After;
@@ -36,9 +33,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.Request;
-import okhttp3.Response;
 
 import static com.tencent.cos.xml.QServer.appid;
 import static com.tencent.cos.xml.QServer.region;
@@ -59,7 +53,7 @@ public class NetworkPerfTest {
     private Context mContext;
     private String bucket = "android-ut-persist-bucket";
 
-    private final int everyTest = 5;
+    private final int everyTest = 3;
     private final boolean isSerial = true;
 
     private static class PerfStat {
@@ -132,13 +126,13 @@ public class NetworkPerfTest {
     }
 
     private Long[] sizeSelections = new Long[] {
-//            1024L * 1024,
-//            1024L * 1024 * 5,
+            1024L * 1024,
+            1024L * 1024 * 5,
             1024L * 1024 * 50,
 //            1024L * 1024 * 100,
-//            1024L * 1024 * 200
+            1024L * 1024 * 200
     };
-    private long sliceSize = 4 * 1024 * 1024;
+    private long sliceSize = 1 * 1024 * 1024;
 
     @Before
     public void setup() throws IOException {

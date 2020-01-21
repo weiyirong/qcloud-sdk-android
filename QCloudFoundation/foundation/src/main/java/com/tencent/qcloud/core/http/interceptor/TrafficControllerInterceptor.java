@@ -7,10 +7,14 @@ import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.TaskManager;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
+import java.io.InterruptedIOException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.net.ssl.SSLException;
 
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -46,18 +50,15 @@ public class TrafficControllerInterceptor implements Interceptor {
      */
     private abstract static class TrafficStrategy {
 
-        private final int[] historySpeed = new int[5];
-        private int current = 0;
         private final int maxConcurrent;
         private final String name;
 
-        static final int MIN_FAST_SPEED = 300;
-        // 当连续多次出现timeout异常时，切换为流量管控模式
-        static final int MIN_TIMEOUT_COUNT = 2;
+        static final int SINGLE_THREAD_SAFE_SPEED = 100; // 单请求安全速度 100KB/S
+        static final long BOOST_MODE_DURATION = TimeUnit.SECONDS.toNanos(3);
 
         private ResizableSemaphore controller;
         private AtomicInteger concurrent;
-        private AtomicInteger historyConsecutiveTimeoutError = new AtomicInteger(0);
+        private long boostModeExhaustedTime; // 多线程模式结束时间
 
         TrafficStrategy(String name, int concurrent, int maxConcurrent) {
             this.name = name;
@@ -72,30 +73,27 @@ public class TrafficControllerInterceptor implements Interceptor {
         }
 
         void reportTimeOut(Request request) {
-            if (historyConsecutiveTimeoutError.get() < 0) {
-                historyConsecutiveTimeoutError.set(1);
-            } else {
-                historyConsecutiveTimeoutError.incrementAndGet();
-            }
-            if (historyConsecutiveTimeoutError.get() >= MIN_TIMEOUT_COUNT) {
-                adjustConcurrentAndRelease(1);
-            } else {
-                controller.release();
-            }
+            // 出现超时直接降到单线程
+            adjustConcurrent(1, true);
         }
 
-        synchronized void reportSpeed(Request request, double averageSpeed) {
-            historyConsecutiveTimeoutError.decrementAndGet();
+        void reportSpeed(Request request, double averageSpeed) {
             if (averageSpeed > 0) {
                 QCloudLogger.d(HTTP_LOG_TAG, name + " %s streaming speed is %1.3f KBps", request, averageSpeed);
-                int average = updateAverageSpeed(averageSpeed);
 
                 // 根据最新的平均速度切换并行任务个数
                 int concurrent = this.concurrent.get();
-                if (average > (concurrent + 1) * MIN_FAST_SPEED && concurrent < maxConcurrent) {
-                    adjustConcurrentAndRelease(concurrent + 1);
-                } else if (average > 0 && average < (concurrent - 1) * MIN_FAST_SPEED && concurrent > 1) {
-                    adjustConcurrentAndRelease(concurrent - 1);
+                if (averageSpeed > 2.4 * SINGLE_THREAD_SAFE_SPEED && concurrent < maxConcurrent) {
+                    // 达到安全速度2.4倍时，增加线程数
+                    boostModeExhaustedTime = System.nanoTime() + BOOST_MODE_DURATION;
+                    adjustConcurrent(concurrent + 1, true);
+                } else if (averageSpeed > 1.2 * SINGLE_THREAD_SAFE_SPEED && boostModeExhaustedTime > 0) {
+                    // 延续多线程模式
+                    boostModeExhaustedTime = System.nanoTime() + BOOST_MODE_DURATION;
+                    controller.release();
+                } else if (averageSpeed > 0 && concurrent > 1 && averageSpeed < 0.7 * SINGLE_THREAD_SAFE_SPEED) {
+                    // 低于安全速度的 70% 时，降低线程数
+                    adjustConcurrent(concurrent - 1, true);
                 } else {
                     controller.release();
                 }
@@ -106,55 +104,36 @@ public class TrafficControllerInterceptor implements Interceptor {
 
         void waitForPermit() {
             try {
+                if (concurrent.get() > 1 && System.nanoTime() > boostModeExhaustedTime) {
+                    adjustConcurrent(1, false);
+                }
                 controller.acquire();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
-        private int updateAverageSpeed(double averageSpeed) {
-            synchronized (historySpeed) {
-                historySpeed[current] = (int) Math.floor(averageSpeed);
-                current = (current + 1) % historySpeed.length;
-
-                int sum = 0;
-                boolean notEnoughData = false;
-                for (int speed : historySpeed) {
-                    if (speed == 0) {
-                        notEnoughData = true;
-                        break;
-                    }
-                    sum += speed;
-                }
-                return notEnoughData ? 0 : sum / historySpeed.length;
-            }
-        }
-
-        private void clearAverageSpeed() {
-            synchronized (historySpeed) {
-                for (int i = 0; i < historySpeed.length; i++) {
-                    historySpeed[i] = 0;
-                }
-            }
-        }
-
-        private synchronized void adjustConcurrentAndRelease(int expect) {
+        private synchronized void adjustConcurrent(int expect, boolean release) {
             int current = concurrent.get();
             int delta = expect - current;
             if (delta == 0) {
-                controller.release();
+                if (release) {
+                    controller.release();
+                }
             } else {
                 concurrent.set(expect);
                 if (delta > 0) {
-                    controller.release(1 + delta);
-                    clearAverageSpeed();
+                    if (release) {
+                        controller.release(1 + delta);
+                    }
                 } else {
                     delta *= -1;
                     controller.reducePermits(delta);
-                    controller.release();
-                    clearAverageSpeed();
+                    if (release) {
+                        controller.release();
+                    }
                 }
-                QCloudLogger.i(HTTP_LOG_TAG, name + " adjust concurrent to " + expect);
+                QCloudLogger.i(HTTP_LOG_TAG, name + "set concurrent to " + expect);
             }
         }
     }
@@ -224,7 +203,10 @@ public class TrafficControllerInterceptor implements Interceptor {
         }
 
         if (strategy != null) {
-            if (e instanceof SocketTimeoutException) {
+            if (e instanceof InterruptedIOException ||
+                    e instanceof UnknownHostException ||
+                    e instanceof SSLException ||
+                    e instanceof SocketException) {
                 strategy.reportTimeOut(request);
             } else {
                 strategy.reportException(request, e);
