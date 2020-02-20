@@ -7,6 +7,7 @@ import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
 import com.tencent.cos.xml.utils.FileUtils;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
+import com.tencent.qcloud.core.task.QCloudTask;
 
 import java.io.File;
 import java.io.InputStream;
@@ -22,7 +23,7 @@ import java.util.Map;
  * </p>
  * 关于上传某个分块接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7750">https://cloud.tencent.com/document/product/436/7750.</a><br>
  */
-final public class UploadPartRequest extends BaseMultipartUploadRequest {
+final public class UploadPartRequest extends BaseMultipartUploadRequest implements TransferRequest {
     private int partNumber;
     private String uploadId;
     private String srcPath;
@@ -236,5 +237,10 @@ final public class UploadPartRequest extends BaseMultipartUploadRequest {
 
     public CosXmlProgressListener getProgressListener() {
         return progressListener;
+    }
+
+    @Override
+    public void setTrafficLimit(long limit) {
+        addHeader("x-cos-traffic-limit", String.valueOf(limit));
     }
 }

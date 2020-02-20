@@ -53,3 +53,4 @@ project.extensions.add('packageName', 'QCloudCosXmlExt')
 project.extensions.add('artifactProduct', 'normal')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml-ext android sdk')
 
+apply from: '../../publish.gradle'

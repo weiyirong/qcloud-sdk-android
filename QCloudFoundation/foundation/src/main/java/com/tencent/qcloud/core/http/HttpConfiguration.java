@@ -26,8 +26,10 @@ public class HttpConfiguration {
     private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
     private static ThreadLocal<SimpleDateFormat> gmtFormatters = new ThreadLocal<>();
 
-    public static void calculateGlobalTimeOffset(String sDate, Date deviceDate) {
+    public static long calculateGlobalTimeOffset(String sDate, Date deviceDate) {
+        long offset = GLOBAL_TIME_OFFSET.get();
         calculateGlobalTimeOffset(sDate, deviceDate, 0);
+        return Math.abs(offset - GLOBAL_TIME_OFFSET.get());
     }
 
     public static void calculateGlobalTimeOffset(String sDate, Date deviceDate, int minOffset) {

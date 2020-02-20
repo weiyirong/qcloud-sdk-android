@@ -1,12 +1,12 @@
 package com.tencent.qcloud.core.http;
 
-import android.util.Log;
 
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.RetryStrategy;
 import com.tencent.qcloud.core.task.TaskManager;
+import com.tencent.qcloud.core.util.QCloudUtils;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -16,6 +16,11 @@ import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,8 +50,15 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
     private TrafficStrategy downloadTrafficStrategy = new AggressiveTrafficStrategy("DownloadStrategy-", 3);
 
     private RetryStrategy retryStrategy;
+    private RetryStrategy.WeightAndReliableAddition additionComputer = new RetryStrategy.WeightAndReliableAddition();
+
+    private volatile static Map<String, HostReliable> hostReliables = new HashMap<>();
+
+
+    private final static Object mRetryStrategyLock = new Object();
 
     private static final int MIN_CLOCK_SKEWED_OFFSET = 600;
+    private static final int NETWORK_DETECT_RETRY_DELAY = 3000; // ms
 
     private static class ResizableSemaphore extends Semaphore {
 
@@ -57,6 +69,57 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
         @Override
         protected void reducePermits(int reduction) {
             super.reducePermits(reduction);
+        }
+    }
+
+    // 线程安全
+    private static class HostReliable {
+
+        private final int maxReliable = 4;
+        private final int minReliable = 0;
+        private static final int defaultReliable = 2;
+        private final long resetPeriod = 1000 * 60 * 5;
+
+        private final String host;
+        private int reliable;
+
+        private HostReliable(String host) {
+
+            this.host = host;
+            reliable = defaultReliable;
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+
+                }
+            };
+            new Timer(host + "reliable").schedule(timerTask, resetPeriod, resetPeriod);
+        }
+
+        synchronized private void increaseReliable() {
+
+            if (reliable < maxReliable) {
+                reliable += 1;
+            }
+        }
+
+        synchronized private void decreaseReliable() {
+
+            if (reliable > minReliable) {
+                reliable -= 1;
+            }
+        }
+
+        synchronized private int getReliable() {
+            return reliable;
+        }
+
+        synchronized private void zeroReliable() {
+            reliable = 0;
+        }
+
+        synchronized private void resetReliable() {
+            reliable = defaultReliable;
         }
     }
 
@@ -230,12 +293,28 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
 
             // wait for retry
             if (attempts > 0) {
+
                 long delay = retryStrategy.getNextDelay(attempts);
                 try {
                     if (delay > waitTook + 500) {
                         TimeUnit.MILLISECONDS.sleep(delay - waitTook);
                     }
                 } catch (InterruptedException ex) {
+                }
+
+                // avoid useless retry
+                if (!QCloudUtils.isNetworkConnected()) {
+
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(NETWORK_DETECT_RETRY_DELAY);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+
+                    if (!QCloudUtils.isNetworkConnected()) {
+                        e = new IOException(new QCloudClientException("NetworkNotConnected"));
+                        break;
+                    }
                 }
             }
             QCloudLogger.i(HTTP_LOG_TAG, "%s start to testExecute, attempts is %d", request, attempts);
@@ -270,6 +349,8 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 if (serverDate != null) {
                     HttpConfiguration.calculateGlobalTimeOffset(serverDate, new Date(), MIN_CLOCK_SKEWED_OFFSET);
                 }
+                // access success
+                increaseHostReliable(request.url().host());
                 break;
             }
 
@@ -277,13 +358,14 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 String clockSkewError = getClockSkewError(response, statusCode);
                 if (clockSkewError != null) {
                     QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s", request, clockSkewError);
-                    if (serverDate != null) {
-                        HttpConfiguration.calculateGlobalTimeOffset(serverDate, new Date());
+                    long minTimeOffsetDeltaInMill = 2; // 2s 内的校准偏移不会重试
+                    if (serverDate != null && HttpConfiguration
+                            .calculateGlobalTimeOffset(serverDate, new Date()) > minTimeOffsetDeltaInMill) {
+                        // stop here, re sign request and try again
+                        e = new IOException(new QCloudServiceException("client clock skewed").setErrorCode(clockSkewError));
                     }
-                    // stop here, re sign request and try again
-                    // e = new IOException(new QCloudServiceException("client clock skewed").setErrorCode(clockSkewError));
                     break;
-                } else if (shouldRetry(request, response, attempts, startTime, e, statusCode) && !task.isCanceled()) {
+                } else if (shouldRetry(request, response, attempts, task.getWeight(), startTime, e, statusCode) && !task.isCanceled()) {
                     QCloudLogger.i(HTTP_LOG_TAG, "%s failed for %s, code is %d", request, e, statusCode);
                 } else {
                     QCloudLogger.i(HTTP_LOG_TAG, "%s ends for %s, code is %d", request, e, statusCode);
@@ -300,6 +382,8 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
             }
         }
         if (e != null) {
+            // access failed
+            decreaseHostAccess(request.url().host());
             throw e;
         }
         return response;
@@ -377,12 +461,53 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
         return null;
     }
 
-    private boolean shouldRetry(Request request, Response response, int attempts, long startTime, IOException e, int statusCode) {
+
+    // @UnThreadSafe
+    private void increaseHostReliable(String host) {
+
+        HostReliable hostReliable = hostReliables.get(host);
+
+        if (hostReliable != null) {
+            hostReliable.increaseReliable();
+        } else {
+            hostReliables.put(host, new HostReliable(host));
+        }
+    }
+
+    // @UnThreadSafe
+    private void decreaseHostAccess(String host) {
+
+        HostReliable hostReliable = hostReliables.get(host);
+        if (hostReliable != null) {
+            hostReliable.decreaseReliable();
+        } else {
+            hostReliables.put(host, new HostReliable(host));
+        }
+    }
+
+    // @UnThreadSafe
+    private int getHostReliable(String host) {
+
+        HostReliable hostReliable = hostReliables.get(host);
+        if (hostReliable != null) {
+            return hostReliable.getReliable();
+        } else {
+            return HostReliable.defaultReliable;
+        }
+    }
+
+
+    private boolean shouldRetry(Request request, Response response, int attempts, int weight, long startTime, IOException e, int statusCode) {
         if (isUserCancelled(e)) {
             return false;
         }
 
-        if (!retryStrategy.shouldRetry(attempts, System.nanoTime() - startTime)) {
+        int reliable = getHostReliable(request.url().host());
+        int retryAddition = additionComputer.getRetryAddition(weight, reliable);
+        QCloudLogger.i(HTTP_LOG_TAG, String.format(Locale.ENGLISH, "attempts = %d, weight = %d, reliable = %d, addition = %d",
+                attempts, weight, reliable, retryAddition));
+
+        if (!retryStrategy.shouldRetry(attempts, System.nanoTime() - startTime, retryAddition)) {
             return false;
         }
 

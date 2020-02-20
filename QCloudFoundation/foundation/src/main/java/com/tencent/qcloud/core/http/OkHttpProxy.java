@@ -1,6 +1,7 @@
 package com.tencent.qcloud.core.http;
 
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.tencent.qcloud.core.BuildConfig;
@@ -14,6 +15,8 @@ import okhttp3.internal.Util;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.util.List;
 
 public class OkHttpProxy<T> extends NetworkProxy<T> {
 
@@ -68,6 +71,7 @@ public class OkHttpProxy<T> extends NetworkProxy<T> {
                 if (httpResult == null) {
                     httpResult = convertResponse(httpRequest, response);
                 }
+
             } else {
                 serviceException = new QCloudServiceException("http response is null");
             }
@@ -93,8 +97,24 @@ public class OkHttpProxy<T> extends NetworkProxy<T> {
         } else if (serviceException != null) {
             throw serviceException;
         } else {
+            if (isCosResponse(response)) {
+                recordDns(httpRequest.host(), eventListener);
+            }
             return httpResult;
         }
+    }
+
+    private void recordDns(String host, CallMetricsListener eventListener) {
+
+        List<InetAddress> dnsRecord = null;
+        if (eventListener != null && (dnsRecord = eventListener.dumpDns()) != null) {
+            DnsRepository.getInstance().insertDnsRecordCache(host, dnsRecord);
+        }
+    }
+
+    private boolean isCosResponse(Response response) {
+
+        return response != null && "tencent-cos".equalsIgnoreCase(response.header("Server"));
     }
 
     @Override

@@ -30,7 +30,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'com.qq.mta:mta:3.4.7-Release'
+    implementation 'com.qq.mta:mta:3.4.7-release'
     implementation 'com.tencent.mid:mid:4.06-Release'
 }
 
@@ -40,3 +40,4 @@ project.extensions.add('packageType', 'aar')
 project.extensions.add('packageName', 'MTAUtils')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk mtaUtils')
 
+apply from: '../../publish.gradle'

@@ -10,6 +10,7 @@ import com.tencent.cos.xml.common.VersionInfo;
 import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
 import com.tencent.qcloud.core.task.RetryStrategy;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
@@ -55,6 +56,8 @@ public class CosXmlServiceConfig implements Parcelable {
     private Executor executor;
 
     private boolean isQuic;
+
+    private List<String> prefetchHosts;
 
     public CosXmlServiceConfig(Builder builder) {
         this.protocol = builder.protocol;
@@ -131,6 +134,7 @@ public class CosXmlServiceConfig implements Parcelable {
 
     public String getHost(String bucket, String region,
                           String appId, boolean isSupportAccelerate, boolean isHeader){
+
         if (!isHeader && !TextUtils.isEmpty(host)) {
             return host;
         }

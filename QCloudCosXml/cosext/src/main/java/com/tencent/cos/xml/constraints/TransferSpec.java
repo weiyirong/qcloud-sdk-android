@@ -11,6 +11,8 @@ import com.tencent.cos.xml.transfer.DownloadRequest;
 import com.tencent.cos.xml.transfer.TransferState;
 import com.tencent.cos.xml.transfer.UploadRequest;
 
+import java.util.UUID;
+
 /**
  * Created by rickenwang on 2019-11-25.
  * <p>
@@ -53,9 +55,11 @@ public class TransferSpec {
     @NonNull
     public TransferState state = TransferState.UNKNOWN;  // 任务的传输状态
 
+    @Deprecated
     @NonNull
     public long complete;
 
+    @Deprecated
     @NonNull
     public long target;
 
@@ -98,7 +102,7 @@ public class TransferSpec {
     @Ignore
     public TransferSpec(UploadRequest uploadRequest) {
 
-        this(uploadRequest.getId(),
+        this(UUID.randomUUID().toString(),
                 uploadRequest.getRegion(),
                 uploadRequest.getBucket(),
                 uploadRequest.getCosKey(),

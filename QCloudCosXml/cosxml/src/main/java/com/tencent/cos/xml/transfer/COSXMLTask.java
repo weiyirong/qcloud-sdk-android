@@ -313,4 +313,8 @@ public abstract class COSXMLTask {
     void setInternalStateListener(TransferStateListener internalStateListener) {
         this.internalStateListener = internalStateListener;
     }
+
+    void setInternalProgressListener(CosXmlProgressListener internalProgressListener) {
+        this.internalProgressListener = internalProgressListener;
+    }
 }

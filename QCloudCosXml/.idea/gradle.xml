@@ -6,20 +6,11 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT" />
         </compositeConfiguration>
-        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="distributionType" value="LOCAL" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/cosxml" />
-            <option value="$PROJECT_DIR$/logutils" />
-            <option value="$PROJECT_DIR$/mtaUtils" />
-            <option value="$PROJECT_DIR$/myapplication" />
-            <option value="$PROJECT_DIR$/../QCloudFoundation/foundation" />
-            <option value="$PROJECT_DIR$/../QCloudFoundation/quic" />
-          </set>
-        </option>
+        <option name="gradleHome" value="$USER_HOME$/.gradle/wrapper/dists/gradle-5.5-all" />
         <option name="resolveModulePerSourceSet" value="false" />
+        <option name="useQualifiedModuleNames" value="true" />
       </GradleProjectSettings>
     </option>
   </component>

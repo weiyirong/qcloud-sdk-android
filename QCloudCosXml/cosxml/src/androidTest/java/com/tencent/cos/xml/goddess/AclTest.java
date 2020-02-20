@@ -53,9 +53,7 @@ public class AclTest extends BaseCosXmlServiceTest {
         PutBucketACLResult putBucketACLResult = null;
         try {
             putBucketACLResult = cosXmlService.putBucketACL(putBucketACLRequest);
-        } catch (CosXmlClientException e) {
-            e.printStackTrace();
-        } catch (CosXmlServiceException e) {
+        } catch (CosXmlClientException | CosXmlServiceException e) {
             e.printStackTrace();
         }
         Assert.assertNotNull(putBucketACLResult);

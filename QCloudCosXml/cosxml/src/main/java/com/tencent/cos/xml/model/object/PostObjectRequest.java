@@ -32,7 +32,7 @@ import java.util.Set;
  * Created by bradyxiao on 2018/6/11.
  */
 
-public class PostObjectRequest extends ObjectRequest {
+public class PostObjectRequest extends ObjectRequest implements TransferRequest {
 
     private FormStruct formStruct = new FormStruct();
     private CosXmlProgressListener progressListener;
@@ -210,6 +210,11 @@ public class PostObjectRequest extends ObjectRequest {
 
     public void setPolicy(Policy policy) {
         formStruct.policy = policy;
+    }
+
+    @Override
+    public void setTrafficLimit(long limit) {
+        addHeader("x-cos-traffic-limit", String.valueOf(limit));
     }
 
     private static class PostCosXmlSignSourceProvider extends COSXmlSignSourceProvider {

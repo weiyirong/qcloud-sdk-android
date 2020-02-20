@@ -46,6 +46,10 @@ public abstract class QCloudTask<T> implements Callable<T> {
     protected static final int PRIORITY_NORMAL = 2;
     public static final int PRIORITY_HIGH = 3;
 
+    public static final int WEIGHT_LOW = 0;
+    public static final int WEIGHT_NORMAL = 1;
+    public static final int WEIGHT_HIGH = 2;
+
     private final String identifier;
     private final Object tag;
 
@@ -55,12 +59,16 @@ public abstract class QCloudTask<T> implements Callable<T> {
     private CancellationTokenSource mCancellationTokenSource;
     private int mState;
 
+    private int weight = WEIGHT_LOW; //
+
     private Executor observerExecutor;
     private Executor workerExecutor;
 
     private Set<QCloudResultListener<T>> mResultListeners = new HashSet<>(2);
     private Set<QCloudProgressListener> mProgressListeners = new HashSet<>(2);
     private Set<QCloudTaskStateListener> mStateListeners = new HashSet<>(2);
+
+    private OnRequestWeightListener onRequestWeightListener;
 
     public QCloudTask(String identifier, Object tag) {
         this.identifier = identifier;
@@ -396,6 +404,15 @@ public abstract class QCloudTask<T> implements Callable<T> {
         return tag;
     }
 
+    public int getWeight() {
+        return onRequestWeightListener != null ? onRequestWeightListener.onWeight() :
+                WEIGHT_LOW;
+    }
+
+    public void setOnRequestWeightListener(OnRequestWeightListener onRequestWeightListener) {
+        this.onRequestWeightListener = onRequestWeightListener;
+    }
+
     private static class AtomTask<TResult> implements Runnable, Comparable<Runnable> {
 
         private bolts.TaskCompletionSource<TResult> tcs;
@@ -443,5 +460,9 @@ public abstract class QCloudTask<T> implements Callable<T> {
 
             return 0;
         }
+    }
+
+    public interface OnRequestWeightListener {
+        int onWeight();
     }
 }

@@ -39,7 +39,8 @@ public class TransferWorkManager {
         this.credentialProvider = credentialProvider;
         transferScheduler = TransferScheduler.getInstance(context);
         cosXmlService = new CosXmlService(context, serviceConfig, credentialProvider);
-        MonitorWorker.startMonitor(context);
+        // MonitorWorker.startMonitor(context);
+        ServiceAliveTracker.start(context);
     }
 
     public COSXMLUploadTask upload(String bucket, String cosKey, String filePath) {

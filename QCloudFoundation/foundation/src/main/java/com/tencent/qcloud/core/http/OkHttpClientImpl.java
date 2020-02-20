@@ -6,6 +6,9 @@ import okhttp3.OkHttpClient;
 
 import javax.net.ssl.HostnameVerifier;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class OkHttpClientImpl extends NetworkClient {
@@ -20,7 +23,7 @@ public class OkHttpClientImpl extends NetworkClient {
     private OkHttpClient okHttpClient;
 
     @Override
-    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, Dns dns, HttpLogger httpLogger) {
+    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, final Dns dns, HttpLogger httpLogger) {
         super.init(b, hostnameVerifier, dns, httpLogger);
         HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor(httpLogger);
         logInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);

@@ -13,6 +13,7 @@ import com.tencent.qcloud.core.http.HttpConstants;
 import com.tencent.qcloud.core.http.HttpTask;
 import com.tencent.qcloud.core.http.HttpTaskMetrics;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
+import com.tencent.qcloud.core.task.QCloudTask;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,6 +47,8 @@ public abstract class CosXmlRequest{
     protected String bucket;
     protected String requestURL;
     protected String region;
+
+    private OnRequestWeightListener onRequestWeightListener;
 
     protected QCloudTaskStateListener qCloudTaskStateListener;
 
@@ -156,7 +159,7 @@ public abstract class CosXmlRequest{
         requestHeaders.put(key, values);
     }
 
-    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException{
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
         return getHost(config, isSupportAccelerate, false);
     }
 
@@ -281,4 +284,16 @@ public abstract class CosXmlRequest{
        return -1;
     }
 
+    public int getWeight() {
+        return onRequestWeightListener != null ? onRequestWeightListener.onWeight() :
+                QCloudTask.WEIGHT_LOW;
+    }
+
+    public void setOnRequestWeightListener(OnRequestWeightListener onRequestWeightListener) {
+        this.onRequestWeightListener = onRequestWeightListener;
+    }
+
+    public interface OnRequestWeightListener {
+        int onWeight();
+    }
 }

@@ -22,7 +22,7 @@ import java.net.URL;
  * https://cloud.tencent.com/document/product/436/7749.</a><br>
  * </p>
  */
-public class PutObjectRequest extends ObjectRequest {
+public class PutObjectRequest extends ObjectRequest implements TransferRequest {
     private String srcPath;
     private byte[] data;
     private InputStream inputStream;
@@ -364,4 +364,8 @@ public class PutObjectRequest extends ObjectRequest {
         addHeader(COSRequestHeaderKey.X_COS_STORAGE_CLASS_, stroageClass.getStorageClass());
     }
 
+    @Override
+    public void setTrafficLimit(long limit) {
+        addHeader("x-cos-traffic-limit", String.valueOf(limit));
+    }
 }

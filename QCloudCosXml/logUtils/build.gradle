@@ -38,4 +38,4 @@ project.extensions.add('packageType', 'aar')
 project.extensions.add('packageName', 'LogUtils')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk logUtils')
 
-
+apply from: '../../publish.gradle'
