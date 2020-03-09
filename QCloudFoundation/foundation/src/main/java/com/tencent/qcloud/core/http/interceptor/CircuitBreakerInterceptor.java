@@ -2,7 +2,6 @@ package com.tencent.qcloud.core.http.interceptor;
 
 import com.tencent.qcloud.core.http.HttpRequest;
 import com.tencent.qcloud.core.http.HttpTask;
-import com.tencent.qcloud.core.http.QCloudHttpClient;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.TaskManager;
 
@@ -59,6 +58,7 @@ public class CircuitBreakerInterceptor implements Interceptor {
     private static final int THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_FAIL = 5; // 连续失败进入 OPEN 状态
     private static final int THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_SUCCESS = 3; // 连续成功 进入 CLOSED 状态
     private static final long TIMEOUT_FOR_OPEN_STATE = 3000; // 3000ms
+    private static final long TIMEOUT_FOR_RESET_STATE = 60000; // 60000ms
 
     @Override
     public Response intercept(Chain chain) throws IOException {

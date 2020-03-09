@@ -51,10 +51,19 @@ public class NetworkPerfTest {
     private static final String TAG = "NetworkPerfTest";
 
     private Context mContext;
-    private String bucket = "android-ut-persist-bucket";
+    private String bucket = "android-ut-persist-bucket-1253653367";
 
-    private final int everyTest = 3;
+    private final int everyTest = 1;
     private final boolean isSerial = true;
+
+    private Long[] sizeSelections = new Long[] {
+            1024L * 1024,
+            1024L * 1024 * 5,
+            1024L * 1024 * 50,
+//            1024L * 1024 * 100,
+//            1024L * 1024 * 200
+    };
+    private long sliceSize = 1 * 1024 * 1024;
 
     private static class PerfStat {
         public List<Result> stats = new ArrayList<>();
@@ -125,15 +134,6 @@ public class NetworkPerfTest {
         }
     }
 
-    private Long[] sizeSelections = new Long[] {
-            1024L * 1024,
-            1024L * 1024 * 5,
-            1024L * 1024 * 50,
-//            1024L * 1024 * 100,
-            1024L * 1024 * 200
-    };
-    private long sliceSize = 1 * 1024 * 1024;
-
     @Before
     public void setup() throws IOException {
         mContext = InstrumentationRegistry.getContext();
@@ -147,11 +147,12 @@ public class NetworkPerfTest {
                             final CountDownLatch signal, final Object lock, final PerfStat perfStat) {
         CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
                 .isHttps(true)
-                .setAppidAndRegion(appid, region)
+                .setRegion("ap-guangzhou")
                 .setDebuggable(true)
                 .builder();
         CosXmlService mService = new CosXmlService(mContext, cosXmlServiceConfig,
-                new ShortTimeCredentialProvider(secretId,secretKey,600) );
+                new ShortTimeCredentialProvider("AKID2CiCdrYIRVKdTtpRGGBrUO4dyCfFvFuH",
+                        "KqcGk7RFclgMnzNhrfDfZF5fAYC8f0Qf",600) );
         TransferManager transferManager = new TransferManager(mService,
                 new TransferConfig.Builder()
                         .setSliceSizeForUpload(sliceSize)
