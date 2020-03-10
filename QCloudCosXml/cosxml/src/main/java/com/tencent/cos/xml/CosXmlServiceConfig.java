@@ -308,8 +308,8 @@ public class CosXmlServiceConfig implements Parcelable {
         private RetryStrategy retryStrategy;
         private QCloudHttpRetryHandler qCloudHttpRetryHandler;
 
-        private int connectionTimeout = 15 * 1000;  //in milliseconds
-        private int socketTimeout = 15 * 1000;  //in milliseconds
+        private int connectionTimeout = 10 * 1000;  //in milliseconds
+        private int socketTimeout = 10 * 1000;  //in milliseconds
 
         private Executor executor;
 

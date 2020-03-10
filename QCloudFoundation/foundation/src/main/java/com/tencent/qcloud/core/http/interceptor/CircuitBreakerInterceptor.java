@@ -45,7 +45,7 @@ public class CircuitBreakerInterceptor implements Interceptor {
 
         String getResourceId(HttpTask task) {
             HttpRequest request =  task.request();
-            return request.url().getHost() + "/" + request.url().getPath();
+            return request.method() + request.url().getHost() + "/" + request.url().getPath();
         }
     }
 
@@ -53,12 +53,13 @@ public class CircuitBreakerInterceptor implements Interceptor {
     private AtomicInteger successCount = new AtomicInteger(0); // 连续成功次数
     private State state = State.CLOSED; // 状态
     private long entryOpenStateTimestamp; // 进入 OPEN 状态时间
+    private long recentErrorTimestamp; // 最近失败时间
     private FootprintWriter footprintWriter = new FootprintWriter(); // 任务记录器
 
     private static final int THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_FAIL = 5; // 连续失败进入 OPEN 状态
     private static final int THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_SUCCESS = 3; // 连续成功 进入 CLOSED 状态
     private static final long TIMEOUT_FOR_OPEN_STATE = 3000; // 3000ms
-    private static final long TIMEOUT_FOR_RESET_STATE = 60000; // 60000ms
+    private static final long TIMEOUT_FOR_RESET_ALL = 60000; // 60000ms
 
     @Override
     public Response intercept(Chain chain) throws IOException {
@@ -72,6 +73,16 @@ public class CircuitBreakerInterceptor implements Interceptor {
                         entryOpenStateTimestamp);
                 if (openDuration > TIMEOUT_FOR_OPEN_STATE) {
                     state = State.HALF_OPENED;
+                }
+            }
+            if (recentErrorTimestamp > 0) {
+                if (TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - recentErrorTimestamp) >
+                    TIMEOUT_FOR_RESET_ALL) {
+                    // reset all state and counter
+                    state = State.CLOSED;
+                    successCount.set(0);
+                    failedCount.set(0);
+                    recentErrorTimestamp = 0;
                 }
             }
             if (isFreshTask = footprintWriter.noRecords(task)) {
@@ -108,6 +119,7 @@ public class CircuitBreakerInterceptor implements Interceptor {
             return response;
         } catch (IOException e) {
             synchronized (CircuitBreakerInterceptor.class) {
+                recentErrorTimestamp = System.nanoTime();
                 if (state == State.CLOSED && failedCount.incrementAndGet() >=
                     THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_FAIL) {
                     QCloudLogger.i(HTTP_LOG_TAG, "CircuitBreaker is OPEN.");
