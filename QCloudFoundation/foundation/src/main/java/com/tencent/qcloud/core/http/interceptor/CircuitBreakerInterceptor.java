@@ -57,7 +57,7 @@ public class CircuitBreakerInterceptor implements Interceptor {
     private FootprintWriter footprintWriter = new FootprintWriter(); // 任务记录器
 
     private static final int THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_FAIL = 5; // 连续失败进入 OPEN 状态
-    private static final int THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_SUCCESS = 3; // 连续成功 进入 CLOSED 状态
+    private static final int THRESHOLD_STATE_SWITCH_FOR_CONTINUOUS_SUCCESS = 2; // 连续成功 进入 CLOSED 状态
     private static final long TIMEOUT_FOR_OPEN_STATE = 3000; // 3000ms
     private static final long TIMEOUT_FOR_RESET_ALL = 60000; // 60000ms
 

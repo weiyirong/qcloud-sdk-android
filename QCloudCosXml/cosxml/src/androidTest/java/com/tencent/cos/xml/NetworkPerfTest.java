@@ -53,15 +53,14 @@ public class NetworkPerfTest {
     private Context mContext;
     private String bucket = "android-ut-persist-bucket-1253653367";
 
-    private final int everyTest = 1;
+    private final int everyTest = 2;
     private final boolean isSerial = true;
 
     private Long[] sizeSelections = new Long[] {
-            1024L * 1024,
-            1024L * 1024 * 5,
-            1024L * 1024 * 50,
-//            1024L * 1024 * 100,
-//            1024L * 1024 * 200
+//            1024L * 1024,
+//            1024L * 1024 * 5,
+//            1024L * 1024 * 50,
+            1024L * 1024 * 200
     };
     private long sliceSize = 1 * 1024 * 1024;
 
@@ -177,7 +176,7 @@ public class NetworkPerfTest {
             @Override
             public void onSuccess(CosXmlRequest request, CosXmlResult result) {
                 COSXMLUploadTask.COSXMLUploadTaskResult cOSXMLUploadTaskResult = (COSXMLUploadTask.COSXMLUploadTaskResult) result;
-                QCloudLogger.i(TAG, cosKey + ": upload success, " + metrics);
+//                QCloudLogger.i(TAG, cosKey + ": upload success, " + metrics);
                 double tookTime = (System.currentTimeMillis() - startTime) / 1000.0;
                 perfStat.stats.add(new Result(cosKey, null, tookTime, taskStat[0]/ tookTime));
                 signal.countDown();
@@ -189,7 +188,7 @@ public class NetworkPerfTest {
             @Override
             public void onFail(CosXmlRequest request, CosXmlClientException exception, CosXmlServiceException serviceException) {
                 Exception e = exception != null ? exception : serviceException;
-                QCloudLogger.i(TAG, cosKey + ": upload failed:  " + e.getCause());
+//                QCloudLogger.i(TAG, cosKey + ": upload failed:  " + e.getCause());
                 double tookTime = (System.currentTimeMillis() - startTime) / 1000.0;
                 perfStat.stats.add(new Result(cosKey, e, tookTime, taskStat[0]/ tookTime));
                 signal.countDown();
@@ -242,6 +241,9 @@ public class NetworkPerfTest {
                     synchronized (lock) {
                         lock.wait();
                     }
+                    Result result = perfStat.stats.get(perfStat.stats.size() - 1);
+                    QCloudLogger.i(TAG, String.format("STATISTIC RESULT === %s: exception[%s] duration[%f s] avgSpeed[%f B/S]",
+                            result.fileId, result.exception, result.duration, result.avgSpeed));
                 }
             }
         }
@@ -251,10 +253,8 @@ public class NetworkPerfTest {
         double sumDuration = 0, sumSpeed = 0;
         String lastFileId = null;
         for (Result result : perfStat.stats) {
-            QCloudLogger.i(TAG, String.format("STAT === %s: exception[%s] duration[%f s] avgSpeed[%f B/S]",
-                    result.fileId, result.exception, result.duration, result.avgSpeed));
             if (lastFileId != null && !result.fileId.equals(lastFileId)) {
-                QCloudLogger.i(TAG, String.format("STAT AVG === %s: duration[%f s] avgSpeed[%f B/S]",
+                QCloudLogger.i(TAG, String.format("STATISTIC AVG === %s: duration[%f s] avgSpeed[%f B/S]",
                         lastFileId, sumDuration / everyTest, sumSpeed / everyTest));
                 sumDuration = 0;
                 sumSpeed = 0;
@@ -263,7 +263,7 @@ public class NetworkPerfTest {
             sumDuration += result.duration;
             sumSpeed += result.avgSpeed;
         }
-        QCloudLogger.i(TAG, String.format("STAT AVG === %s: duration[%f s] avgSpeed[%f B/S]",
+        QCloudLogger.i(TAG, String.format("STATISTIC AVG === %s: duration[%f s] avgSpeed[%f B/S]",
                 lastFileId, sumDuration / everyTest, sumSpeed / everyTest));
 
         // write for log to write
