@@ -53,14 +53,14 @@ public class NetworkPerfTest {
     private Context mContext;
     private String bucket = "android-ut-persist-bucket-1253653367";
 
-    private final int everyTest = 2;
+    private final int everyTest = 10;
     private final boolean isSerial = true;
 
     private Long[] sizeSelections = new Long[] {
 //            1024L * 1024,
 //            1024L * 1024 * 5,
-//            1024L * 1024 * 50,
-            1024L * 1024 * 200
+            1024L * 1024 * 20,
+//            1024L * 1024 * 200
     };
     private long sliceSize = 1 * 1024 * 1024;
 
@@ -145,7 +145,7 @@ public class NetworkPerfTest {
     private void uploadFile(final String cosKey, final File file,
                             final CountDownLatch signal, final Object lock, final PerfStat perfStat) {
         CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
-                .isHttps(true)
+                .isHttps(false)
                 .setRegion("ap-guangzhou")
                 .setDebuggable(true)
                 .builder();

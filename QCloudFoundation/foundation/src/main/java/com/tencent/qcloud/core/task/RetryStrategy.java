@@ -1,6 +1,11 @@
 package com.tencent.qcloud.core.task;
 
+import com.tencent.qcloud.core.http.QCloudHttpClient;
 import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
+import com.tencent.qcloud.core.logger.QCloudLogger;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <p>
@@ -20,11 +25,13 @@ public class RetryStrategy {
     private static final int DEFAULT_ATTEMPTS = 3;
 
     // 普通任务最长重试间隔
-    private static final int DEFAULT_MAX_BACKOFF = 2000;
+    private static final int DEFAULT_MAX_BACKOFF = 4000;
 
     private final int initBackoff;
     private final int maxBackoff;
     private final int maxAttempts;
+
+    private AtomicInteger nextDelayFactor = new AtomicInteger(0);
 
     public static RetryStrategy DEFAULT = new RetryStrategy(DEFAULT_INIT_BACKOFF,
             DEFAULT_MAX_BACKOFF, DEFAULT_ATTEMPTS);
@@ -39,12 +46,24 @@ public class RetryStrategy {
         this.maxAttempts = maxAttempts;
     }
 
-    public int getNextDelay(int attempts) {
-        return Math.min(maxBackoff, initBackoff * (int) Math.pow(BACKOFF_MULTIPLIER, (attempts - 1)));
-    }
-
     public boolean shouldRetry(int attempts, long millstook) {
         return attempts < maxAttempts;
+    }
+
+    public int getSleepDelay() {
+        int fac = nextDelayFactor.get();
+        if (fac > 0) {
+            return Math.min(maxBackoff, initBackoff * (int) Math.pow(BACKOFF_MULTIPLIER, fac));
+        }
+        return 0;
+    }
+
+    public void resetDelay() {
+        nextDelayFactor.set(0);
+    }
+
+    public void addMoreDelay() {
+        nextDelayFactor.addAndGet(1);
     }
 
     public void setRetryHandler(QCloudHttpRetryHandler qCloudHttpRetryHandler){

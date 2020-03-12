@@ -717,7 +717,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
             simpleUpload(cosXmlService);
         }else {
             isSliceUpload = true;
-            isLargeFileUpload = fileLength > 20 * 1024 * 1024;
+            isLargeFileUpload = fileLength >= 20 * 1024 * 1024;
             UPLOAD_PART_COUNT = new AtomicInteger(0); //用于计算分片数
             ALREADY_SEND_DATA_LEN = new AtomicLong(0); //分片上传进度计数
             partStructMap = new LinkedHashMap<>(); //必须有序

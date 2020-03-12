@@ -40,7 +40,7 @@ public class OkHttpClientImpl extends NetworkClient {
 
                 .addInterceptor(new RetryInterceptor(b.retryStrategy))
                 .addInterceptor(new CircuitBreakerInterceptor())
-                .addInterceptor(new TrafficControllerInterceptor())
+                .addInterceptor(new TrafficControllerInterceptor(b.retryStrategy))
                 .addInterceptor(logInterceptor)
 
                 .build();

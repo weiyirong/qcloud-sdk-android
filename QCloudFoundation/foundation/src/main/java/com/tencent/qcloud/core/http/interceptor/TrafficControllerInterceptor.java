@@ -4,6 +4,7 @@ import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 import com.tencent.qcloud.core.http.HttpTask;
 import com.tencent.qcloud.core.logger.QCloudLogger;
+import com.tencent.qcloud.core.task.RetryStrategy;
 import com.tencent.qcloud.core.task.TaskManager;
 
 import java.io.IOException;
@@ -43,6 +44,12 @@ public class TrafficControllerInterceptor implements Interceptor {
         protected void reducePermits(int reduction) {
             super.reducePermits(reduction);
         }
+    }
+
+    private RetryStrategy retryStrategy;
+
+    public TrafficControllerInterceptor(RetryStrategy retryStrategy) {
+        this.retryStrategy = retryStrategy;
     }
 
     /**
@@ -175,6 +182,16 @@ public class TrafficControllerInterceptor implements Interceptor {
         if (strategy != null) {
             strategy.waitForPermit();
         }
+        // wait for retry
+        int delay = retryStrategy.getSleepDelay();
+        if (delay > 0) {
+            QCloudLogger.i(HTTP_LOG_TAG, "%s sleep %d(ms) for env recovery", request, delay);
+            try {
+                TimeUnit.MILLISECONDS.sleep(delay);
+            } catch (InterruptedException ex) {
+            }
+        }
+
         QCloudLogger.i(HTTP_LOG_TAG, " %s begin to execute", request);
         IOException e;
         try {
@@ -188,8 +205,14 @@ public class TrafficControllerInterceptor implements Interceptor {
             if (strategy != null) {
                 if (response.isSuccessful()) {
                     long networkMillsTook = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+                    retryStrategy.resetDelay();
                     strategy.reportSpeed(request, getAverageStreamingSpeed(task, networkMillsTook));
                 } else {
+                    if (response.code() >= 500) {
+                        retryStrategy.addMoreDelay();
+                    } else {
+                        retryStrategy.resetDelay();
+                    }
                     strategy.reportException(request, null);
                 }
             }
@@ -207,6 +230,7 @@ public class TrafficControllerInterceptor implements Interceptor {
                     e instanceof UnknownHostException ||
                     e instanceof SSLException ||
                     e instanceof SocketException) {
+                retryStrategy.addMoreDelay();
                 strategy.reportTimeOut(request);
             } else {
                 strategy.reportException(request, e);

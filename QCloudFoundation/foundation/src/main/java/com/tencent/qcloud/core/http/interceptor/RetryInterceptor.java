@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
 import java.util.Date;
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 
@@ -67,14 +70,6 @@ public class RetryInterceptor implements Interceptor {
         long startTime = System.nanoTime();
 
         while (true) {
-            // wait for retry
-            if (attempts > 0) {
-                long delay = retryStrategy.getNextDelay(attempts);
-                try {
-                    TimeUnit.MILLISECONDS.sleep(delay);
-                } catch (InterruptedException ex) {
-                }
-            }
             QCloudLogger.i(HTTP_LOG_TAG, "%s #%d is enqueued to execute", request, attempts);
 
             attempts++;
