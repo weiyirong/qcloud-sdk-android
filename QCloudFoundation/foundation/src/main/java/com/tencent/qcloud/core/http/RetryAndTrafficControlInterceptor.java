@@ -151,6 +151,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
 
         void reportException(Request request, IOException exception) {
             controller.release();
+            QCloudLogger.d(HTTP_LOG_TAG, name + " releasePermit, available = " + controller.availablePermits());
         }
 
         void reportTimeOut(Request request) {
@@ -163,6 +164,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 adjustConcurrentAndRelease(1);
             } else {
                 controller.release();
+                QCloudLogger.d(HTTP_LOG_TAG, name + " releasePermit, available = " + controller.availablePermits());
             }
         }
 
@@ -189,6 +191,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
         void waitForPermit() {
             try {
                 controller.acquire();
+                QCloudLogger.d(HTTP_LOG_TAG, name + " acquirePermit, available = " + controller.availablePermits());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -238,6 +241,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                 }
                 QCloudLogger.i(HTTP_LOG_TAG, name + " adjust concurrent to " + expect);
             }
+            QCloudLogger.d(HTTP_LOG_TAG, name + " releasePermit, available = " + controller.availablePermits());
         }
     }
 
@@ -313,6 +317,9 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
 
                     if (!QCloudUtils.isNetworkConnected()) {
                         e = new IOException(new QCloudClientException("NetworkNotConnected"));
+                        if (strategy != null) {
+                            strategy.reportException(request, e);
+                        }
                         break;
                     }
                 }
@@ -456,6 +463,7 @@ class RetryAndTrafficControlInterceptor implements Interceptor {
                     //ignore
                 }
             }
+
         }
 
         return null;

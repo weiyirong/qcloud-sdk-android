@@ -161,7 +161,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
      * cos android SDK 服务
      *
      * @param context       Application 上下文{@link android.app.Application}
-     * @param configuration cos android SDK 服务配置{@link CosXmlServiceConfig}
+     * @param configuration cos android SDK 服务配置 {@link CosXmlServiceConfig}
      * @param qCloudSigner  cos android SDK 签名提供者 {@link QCloudSigner}
      */
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration,
@@ -242,7 +242,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
         this.getServiceRequestDomain = domain;
     }
 
-    private String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) {
+    private String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) throws CosXmlClientException {
 
         if (request instanceof GetServiceRequest ) {
             if (!TextUtils.isEmpty(getServiceRequestDomain)) {
@@ -266,6 +266,8 @@ public class CosXmlSimpleService implements SimpleCosXml {
                 .userAgent(config.getUserAgent())
                 .tag(tag);
 
+        httpRequestBuilder.addHeaders(config.getCommonHeaders());
+        httpRequestBuilder.addNoSignHeaderKeys(config.getNoSignHeaders());
         //add url
         String requestURL = cosXmlRequest.getRequestURL();
         if (requestURL != null) {
@@ -288,11 +290,17 @@ public class CosXmlSimpleService implements SimpleCosXml {
             httpRequestBuilder.query(cosXmlRequest.getQueryString());
         }
 
+
+        if (cosXmlRequest instanceof CopyObjectRequest) {
+            ((CopyObjectRequest) cosXmlRequest).setCopySource(((CopyObjectRequest) cosXmlRequest).getCopySource(), config);
+        }
+
         //add headers
         httpRequestBuilder.addHeaders(cosXmlRequest.getRequestHeaders());
         if (cosXmlRequest.isNeedMD5()) {
             httpRequestBuilder.contentMD5();
         }
+
 
         // add sign
         if (credentialProvider == null) {

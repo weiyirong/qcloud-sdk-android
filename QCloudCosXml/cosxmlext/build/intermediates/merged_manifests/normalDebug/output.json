@@ -1,1 +1,0 @@
-[{"outputType":{"type":"MERGED_MANIFESTS"},"apkData":{"type":"MAIN","splits":[],"versionCode":50430,"versionName":"5.4.30","enabled":true,"outputFile":"cosxml-ext-normal-debug.aar","fullName":"normalDebug","baseName":"normal-debug"},"path":"../../library_manifest/normalDebug/AndroidManifest.xml","properties":{"packageId":"com.tencent.cos.xml.transfer","split":""}}]

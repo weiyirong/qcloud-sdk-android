@@ -10,7 +10,10 @@ import com.tencent.cos.xml.common.VersionInfo;
 import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
 import com.tencent.qcloud.core.task.RetryStrategy;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 /**
@@ -59,6 +62,10 @@ public class CosXmlServiceConfig implements Parcelable {
 
     private List<String> prefetchHosts;
 
+    private Map<String, List<String>> commonHeaders;
+
+    private List<String> noSignHeaders;
+
     public CosXmlServiceConfig(Builder builder) {
         this.protocol = builder.protocol;
         this.userAgent = builder.userAgent;
@@ -70,6 +77,8 @@ public class CosXmlServiceConfig implements Parcelable {
         this.port = builder.port;
         this.endpointSuffix = builder.endpointSuffix;
         this.bucketInPath = builder.bucketInPath;
+        this.commonHeaders = builder.commonHeaders;
+        this.noSignHeaders = builder.noSignHeaders;
         if (TextUtils.isEmpty(endpointSuffix) && TextUtils.isEmpty(region) &&
                 TextUtils.isEmpty(host)) {
             throw new IllegalArgumentException("please set host or endpointSuffix or region !");
@@ -106,6 +115,10 @@ public class CosXmlServiceConfig implements Parcelable {
             myBucket = bucket + "-" + appid;
         }
         return myBucket;
+    }
+
+    public List<String> getNoSignHeaders() {
+        return noSignHeaders;
     }
 
     public String getAppid() {
@@ -147,6 +160,10 @@ public class CosXmlServiceConfig implements Parcelable {
         }
         hostBuilder += getEndpointSuffix(region, isSupportAccelerate);
         return hostBuilder;
+    }
+
+    public Map<String, List<String>> getCommonHeaders() {
+        return commonHeaders;
     }
 
     @Deprecated
@@ -319,6 +336,9 @@ public class CosXmlServiceConfig implements Parcelable {
 
         private boolean isQuic = false;
 
+        private Map<String, List<String>> commonHeaders = new HashMap<>();
+        private List<String> noSignHeaders = new LinkedList<>();
+
         public Builder() {
             protocol = HTTP_PROTOCOL;
             userAgent = DEFAULT_USER_AGENT;
@@ -379,6 +399,11 @@ public class CosXmlServiceConfig implements Parcelable {
             return this;
         }
 
+        public Builder setHost(String host) {
+            this.host = host;
+            return this;
+        }
+
         public Builder setHost(Uri uri) {
             this.host = uri.getHost();
             if (uri.getPort() != -1) {
@@ -421,6 +446,28 @@ public class CosXmlServiceConfig implements Parcelable {
 
         public CosXmlServiceConfig builder() {
             return new CosXmlServiceConfig(this);
+        }
+
+        /**
+         * 给所有的请求统一添加 Header
+         *
+         * @param key
+         * @param value
+         */
+        public Builder addHeader(String key, String value) {
+
+            List<String> values = commonHeaders.get(key);
+            if (values == null) {
+                values = new LinkedList<>();
+            }
+            values.add(value);
+            commonHeaders.put(key, values);
+            return this;
+        }
+
+        public Builder addNoSignHeaders(String key) {
+            noSignHeaders.add(key);
+            return this;
         }
     }
 }

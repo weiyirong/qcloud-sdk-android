@@ -143,7 +143,7 @@ public class QuicProxy<T> extends NetworkProxy<T> {
                     break;
                 }else{
                     //是否需要重试
-                    if(quicManager.retryStrategy.shouldRetry(attempt++, System.nanoTime() - startTime)){
+                    if(quicManager.retryStrategy.shouldRetry(attempt++, System.nanoTime() - startTime, 0)){
                         QLog.d("%s failed for %s, %d", httpRequest.url().toString(), e.getMessage(), attempt);
                     }else {
                         if (e.getCause() instanceof QCloudClientException) {

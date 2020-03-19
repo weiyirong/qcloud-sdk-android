@@ -163,7 +163,7 @@ public abstract class CosXmlRequest{
         return getHost(config, isSupportAccelerate, false);
     }
 
-    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate, boolean isHeader){
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate, boolean isHeader) throws CosXmlClientException{
         if (TextUtils.isEmpty(bucket)) {
             throw new IllegalArgumentException("bucket is null");
         }

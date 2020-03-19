@@ -92,7 +92,7 @@ public class CopyObjectRequest extends ObjectRequest {
      * You can specify the history version with the versionid sub-resource
      * @param copySource
      */
-    private void setCopySource(CopySourceStruct copySource, CosXmlServiceConfig config) throws CosXmlClientException {
+    public void setCopySource(CopySourceStruct copySource, CosXmlServiceConfig config) throws CosXmlClientException {
         this.copySourceStruct = copySource;
         if(copySourceStruct != null){
             addHeader(COSRequestHeaderKey.X_COS_COPY_SOURCE, copySourceStruct.getSource(config));
@@ -100,9 +100,9 @@ public class CopyObjectRequest extends ObjectRequest {
     }
 
     @Override
-    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate) throws CosXmlClientException {
-        String host =  super.getHost(config, isSupportAccelerate);
-        setCopySource(copySourceStruct, config);
+    public String getHost(CosXmlServiceConfig config, boolean isSupportAccelerate, boolean isHeader) throws CosXmlClientException {
+        String host =  super.getHost(config, isSupportAccelerate, isHeader);
+        // setCopySource(copySourceStruct, config);
         return host;
     }
 

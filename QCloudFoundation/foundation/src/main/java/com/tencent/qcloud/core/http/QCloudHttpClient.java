@@ -70,20 +70,14 @@ public final class QCloudHttpClient {
             if (dnsMap.containsKey(hostname)) {
                 return dnsMap.get(hostname);
             }
-            if (new Random().nextBoolean()) {
-                QCloudLogger.w(HTTP_LOG_TAG, "execute system dns.");
+
+            try {
                 return Dns.SYSTEM.lookup(hostname);
-            } else {
+            } catch (UnknownHostException e) {
+                // e.printStackTrace();
                 QCloudLogger.w(HTTP_LOG_TAG, "system dns failed, retry cache dns records.");
-                return dnsRepository.getDnsRecord(hostname);
             }
-//            try {
-//                return Dns.SYSTEM.lookup(hostname);
-//            } catch (UnknownHostException e) {
-//                // e.printStackTrace();
-//                QCloudLogger.w(HTTP_LOG_TAG, "system dns failed, retry cache dns records.");
-//            }
-//            return dnsRepository.getDnsRecord(hostname);
+            return dnsRepository.getDnsRecord(hostname);
         }
     };
 
