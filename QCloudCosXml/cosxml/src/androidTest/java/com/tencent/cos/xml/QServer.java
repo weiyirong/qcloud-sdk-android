@@ -47,7 +47,8 @@ public class QServer {
     private QServer(Context context){
         CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
                 .isHttps(true)
-                .setAppidAndRegion(appid, region)
+                //.setAppidAndRegion(appid, region)
+                .setEndpointSuffix("xiaohongshu.com")
                 .setDebuggable(true)
                 .setRetryHandler(new QCloudHttpRetryHandler(){@Override public boolean shouldRetry(Request request, Response response, Exception exception){
                     Log.e(TAG, request.url().host());

@@ -16,7 +16,7 @@ import java.util.Map;
  * 关于下载接口的描述，请查看 <a href="https://cloud.tencent.com/document/product/436/7753">https://cloud.tencent.com/document/product/436/7753.</a><br>
  * </p>
  */
-public class GetObjectRequest extends ObjectRequest {
+public class GetObjectRequest extends ObjectRequest implements TransferRequest {
 
     private String rspContentType;
     private String rspContentLanguage;
@@ -352,4 +352,8 @@ public class GetObjectRequest extends ObjectRequest {
         return null;
     }
 
+    @Override
+    public void setTrafficLimit(long limit) {
+        addHeader("x-cos-traffic-limit", String.valueOf(limit));
+    }
 }

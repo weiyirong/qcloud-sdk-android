@@ -11,15 +11,16 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/cosext" />
             <option value="$PROJECT_DIR$/cosxml" />
             <option value="$PROJECT_DIR$/logutils" />
             <option value="$PROJECT_DIR$/mtaUtils" />
-            <option value="$PROJECT_DIR$/myapplication" />
             <option value="$PROJECT_DIR$/../QCloudFoundation/foundation" />
             <option value="$PROJECT_DIR$/../QCloudFoundation/quic" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
+        <option name="testRunner" value="PLATFORM" />
       </GradleProjectSettings>
     </option>
   </component>

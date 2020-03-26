@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by bradyxiao on 2017/12/4.
  */
-
+@Deprecated
 public class UploadService {
     private static String TAG = "UploadService";
     private CosXmlSimpleService cosXmlService;

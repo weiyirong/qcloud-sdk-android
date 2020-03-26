@@ -37,6 +37,7 @@ import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
+import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.transfer.ResponseBytesConverter;
 import com.tencent.cos.xml.transfer.ResponseFileBodySerializer;
 import com.tencent.cos.xml.transfer.ResponseXmlS3BodySerializer;
@@ -59,8 +60,10 @@ import com.tencent.qcloud.core.http.QCloudHttpRequest;
 import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
 import com.tencent.qcloud.core.logger.FileLogAdapter;
 import com.tencent.qcloud.core.logger.QCloudLogger;
+import com.tencent.qcloud.core.task.QCloudTask;
 import com.tencent.qcloud.core.task.RetryStrategy;
 import com.tencent.qcloud.core.task.TaskExecutors;
+import com.tencent.qcloud.core.util.ContextHolder;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -82,6 +85,10 @@ public class CosXmlSimpleService implements SimpleCosXml {
     protected String signerType = "CosXmlSigner";
     protected CosXmlServiceConfig config;
     public static String appCachePath;      // 用于缓存临时文件
+
+    private String requestDomain;
+
+    private String getServiceRequestDomain;
 
     /**
      * cos android SDK 服务
@@ -147,13 +154,14 @@ public class CosXmlSimpleService implements SimpleCosXml {
         client.addVerifiedHost("*." + configuration.getEndpointSuffix(
                 configuration.getRegion(), true));
         client.setDebuggable(configuration.isDebuggable());
+        ContextHolder.setContext(context);
     }
 
     /**
      * cos android SDK 服务
      *
      * @param context       Application 上下文{@link android.app.Application}
-     * @param configuration cos android SDK 服务配置{@link CosXmlServiceConfig}
+     * @param configuration cos android SDK 服务配置 {@link CosXmlServiceConfig}
      * @param qCloudSigner  cos android SDK 签名提供者 {@link QCloudSigner}
      */
     public CosXmlSimpleService(Context context, CosXmlServiceConfig configuration,
@@ -186,6 +194,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
         }else {
             builder.setNetworkClient(new OkHttpClientImpl());
         }
+        builder.addPrefetchHost(configuration.getEndpointSuffix());
     }
 
     public void setNetworkClient(CosXmlServiceConfig configuration){
@@ -214,6 +223,39 @@ public class CosXmlSimpleService implements SimpleCosXml {
     }
 
     /**
+     * 设置除 get service 请求外其他所有请求的域名
+     *
+     * @param domain
+     */
+    public void setDomain(String domain) {
+
+        this.requestDomain = domain;
+    }
+
+    /**
+     * 设置 get service 请求的域名
+     *
+     * @param domain
+     */
+    public void setServiceDomain(String domain) {
+
+        this.getServiceRequestDomain = domain;
+    }
+
+    private String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) throws CosXmlClientException {
+
+        if (request instanceof GetServiceRequest ) {
+            if (!TextUtils.isEmpty(getServiceRequestDomain)) {
+                return getServiceRequestDomain;
+            }
+        } else if (!TextUtils.isEmpty(requestDomain)) {
+            return requestDomain;
+        }
+
+        return request.getHost(config, accelerate, isHeader);
+    }
+
+    /**
      * 构建请求
      */
     protected <T1 extends CosXmlRequest, T2 extends CosXmlResult> QCloudHttpRequest buildHttpRequest
@@ -224,20 +266,22 @@ public class CosXmlSimpleService implements SimpleCosXml {
                 .userAgent(config.getUserAgent())
                 .tag(tag);
 
+        httpRequestBuilder.addHeaders(config.getCommonHeaders());
+        httpRequestBuilder.addNoSignHeaderKeys(config.getNoSignHeaders());
         //add url
         String requestURL = cosXmlRequest.getRequestURL();
         if (requestURL != null) {
             try {
                 httpRequestBuilder.url(new URL(requestURL));
-                String hostHeader = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate(), true);
+                String hostHeader = getRequestHost(cosXmlRequest, cosXmlRequest.isSupportAccelerate(), true);
                 httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
             } catch (MalformedURLException e) {
                 throw new CosXmlClientException(ClientErrorCode.BAD_REQUEST.getCode(), e);
             }
         } else {
             cosXmlRequest.checkParameters();
-            String host = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate());
-            String hostHeader = cosXmlRequest.getHost(config, cosXmlRequest.isSupportAccelerate(), true);
+            String host = getRequestHost(cosXmlRequest, cosXmlRequest.isSupportAccelerate(), false);
+            String hostHeader = getRequestHost(cosXmlRequest, cosXmlRequest.isSupportAccelerate(), true);
             httpRequestBuilder.scheme(config.getProtocol())
                     .host(host)
                     .path(cosXmlRequest.getPath(config))
@@ -246,11 +290,17 @@ public class CosXmlSimpleService implements SimpleCosXml {
             httpRequestBuilder.query(cosXmlRequest.getQueryString());
         }
 
+
+        if (cosXmlRequest instanceof CopyObjectRequest) {
+            ((CopyObjectRequest) cosXmlRequest).setCopySource(((CopyObjectRequest) cosXmlRequest).getCopySource(), config);
+        }
+
         //add headers
         httpRequestBuilder.addHeaders(cosXmlRequest.getRequestHeaders());
         if (cosXmlRequest.isNeedMD5()) {
             httpRequestBuilder.contentMD5();
         }
+
 
         // add sign
         if (credentialProvider == null) {
@@ -302,6 +352,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
                 httpTask.addProgressListener(((PutObjectRequest) cosXmlRequest).getProgressListener());
             } else if (cosXmlRequest instanceof UploadPartRequest) {
                 httpTask.addProgressListener(((UploadPartRequest) cosXmlRequest).getProgressListener());
+                // httpTask.setWeight(cosXmlRequest.getWeight());
             } else if (cosXmlRequest instanceof GetObjectRequest) {
                 httpTask.addProgressListener(((GetObjectRequest) cosXmlRequest).getProgressListener());
             } else if (cosXmlRequest instanceof PostObjectRequest) {
@@ -362,6 +413,12 @@ public class CosXmlSimpleService implements SimpleCosXml {
                 httpTask.addProgressListener(((PutObjectRequest) cosXmlRequest).getProgressListener());
             } else if (cosXmlRequest instanceof UploadPartRequest) {
                 httpTask.addProgressListener(((UploadPartRequest) cosXmlRequest).getProgressListener());
+                httpTask.setOnRequestWeightListener(new QCloudTask.OnRequestWeightListener() {
+                    @Override
+                    public int onWeight() {
+                        return cosXmlRequest.getWeight();
+                    }
+                });
             } else if (cosXmlRequest instanceof GetObjectRequest) {
                 httpTask.addProgressListener(((GetObjectRequest) cosXmlRequest).getProgressListener());
             } else if (cosXmlRequest instanceof PostObjectRequest) {
@@ -400,6 +457,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
         String host = null;
         try {
             host = cosXmlRequest.getHost(config, false);
+            host = getRequestHost(cosXmlRequest, false, false);
         } catch (CosXmlClientException e) {
             e.printStackTrace();
         }

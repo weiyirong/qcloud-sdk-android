@@ -3,6 +3,8 @@ package com.tencent.cos.xml.transfer;
 
 import com.tencent.cos.xml.constraints.Constraints;
 
+import java.util.Map;
+
 /**
  * Created by rickenwang on 2019-11-29.
  * <p>
@@ -10,11 +12,11 @@ import com.tencent.cos.xml.constraints.Constraints;
  */
 public class TransferRequest {
 
-    private String id;
-
     private String region;
 
     private String bucket;
+
+    private Map<String, String> headers;
 
     private COSXMLTask.OnSignatureListener onSignatureListener;
 
@@ -32,12 +34,8 @@ public class TransferRequest {
         return bucket;
     }
 
-    public String getId() {
-        return id;
-    }
 
     public TransferRequest(String id, String region, String bucket, Constraints constraints) {
-        this.id = id;
         this.region = region;
         this.bucket = bucket;
         this.constraints = constraints;
@@ -48,4 +46,7 @@ public class TransferRequest {
     }
 
 
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
 }

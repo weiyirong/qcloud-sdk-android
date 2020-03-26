@@ -22,6 +22,8 @@ import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
 import com.tencent.cos.xml.model.tag.ListParts;
 import com.tencent.qcloud.core.common.QCloudTaskStateListener;
+import com.tencent.qcloud.core.task.QCloudTask;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
@@ -77,6 +79,8 @@ public final class COSXMLUploadTask extends COSXMLTask {
     private AtomicInteger UPLOAD_PART_COUNT;
     private AtomicLong ALREADY_SEND_DATA_LEN;
     private Object SYNC_UPLOAD_PART = new Object();
+
+    private WeightStrategy weightStrategy = new WeightStrategy();
 
     private MultiUploadsStateListener multiUploadsStateListenerHandler = new MultiUploadsStateListener() {
         @Override
@@ -343,6 +347,12 @@ public final class COSXMLUploadTask extends COSXMLTask {
                 uploadPartRequest.setRegion(region);
                 uploadPartRequest.setNeedMD5(isNeedMd5);
                 uploadPartRequest.setRequestHeaders(headers);
+                uploadPartRequest.setOnRequestWeightListener(new CosXmlRequest.OnRequestWeightListener() {
+                    @Override
+                    public int onWeight() {
+                        return weightStrategy.getWeight(ALREADY_SEND_DATA_LEN.get());
+                    }
+                });
 
                 if(onSignatureListener != null){
                     uploadPartRequest.setSign(onSignatureListener.onGetSign(uploadPartRequest));
@@ -469,7 +479,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
         upload();
     }
 
-    private void cancelAllRequest(CosXmlSimpleService cosXmlService){
+    void cancelAllRequest(CosXmlSimpleService cosXmlService){
         PutObjectRequest tempPutObjectRequest = putObjectRequest;
         if(tempPutObjectRequest != null){
             cosXmlService.cancel(tempPutObjectRequest);
@@ -731,6 +741,30 @@ public final class COSXMLUploadTask extends COSXMLTask {
         public long offset;
         public long sliceSize;
         public String eTag;
+    }
+
+    private static class WeightStrategy {
+
+        private final long DEFAULT_WEIGHT_NORMAL_SIZE = 80 * 1024 * 1024;
+        private final long DEFAULT_WEIGHT_HIGH_SIZE   = 150 * 1024 * 1024;
+
+        private long normalSize = DEFAULT_WEIGHT_NORMAL_SIZE;
+        private long highSize = DEFAULT_WEIGHT_HIGH_SIZE;
+
+        private WeightStrategy() {
+
+        }
+
+        private int getWeight(long size) {
+
+            if (size > highSize) {
+                return QCloudTask.WEIGHT_HIGH;
+            } else if (size > normalSize) {
+                return QCloudTask.WEIGHT_NORMAL;
+            } else {
+                return QCloudTask.WEIGHT_LOW;
+            }
+        }
     }
 
     private interface MultiUploadsStateListener{

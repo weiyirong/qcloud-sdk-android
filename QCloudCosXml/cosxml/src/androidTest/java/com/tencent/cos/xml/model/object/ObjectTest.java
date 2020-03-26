@@ -222,10 +222,12 @@ public class ObjectTest {
 
     @Test public void deleteObjectTest() throws Exception {
 
-        String bucketName = QServer.persistBucket;
+        String bucketName = "ap-cos";
         String objectName = "/putobject.txt";
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new StringBuilder("this is a test"));
+        putObjectRequest.setRequestHeaders("Host", "host", false);
+
 
         PutObjectResult putObjectResult = null;
         try {
@@ -250,6 +252,8 @@ public class ObjectTest {
         String objectName = "/putobject.txt";
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new StringBuilder("this is a test"));
+
+
 
         try {
             QServer.cosXml.putObject(putObjectRequest);
