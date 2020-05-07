@@ -24,6 +24,9 @@ import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
 import com.tencent.cos.xml.model.tag.Tagging;
 import com.tencent.cos.xml.model.tag.VersioningConfiguration;
 import com.tencent.cos.xml.model.tag.WebsiteConfiguration;
+import com.tencent.cos.xml.model.tag.pic.PicObject;
+import com.tencent.cos.xml.model.tag.pic.PicOriginalInfo;
+import com.tencent.cos.xml.model.tag.pic.PicUploadResult;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -32,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by bradyxiao on 2017/11/24.
@@ -1136,6 +1141,83 @@ public class XmlParser extends XmlSlimParser {
             }
             eventType = xmlPullParser.next();
         }
+
+    }
+
+    public static void parsePicUploadResult(InputStream inputStream, PicUploadResult picUploadResult) throws XmlPullParserException, IOException {
+
+        XmlPullParser xmlPullParser = Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        String tagName;
+        PicOriginalInfo picOriginalInfo = null;
+        PicObject picObject = null;
+        List<PicObject> picObjects = new LinkedList<>();
+
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+
+            switch (eventType) {
+
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if (tagName.equalsIgnoreCase("OriginalInfo")) {
+                        picOriginalInfo = new PicOriginalInfo();
+                    } else if (tagName.equalsIgnoreCase("Object")) {
+                        picObject = new PicObject();
+
+                    } else if (tagName.equalsIgnoreCase("Key")) {
+                        xmlPullParser.next();
+
+                        if (picOriginalInfo != null && picOriginalInfo.key == null) {
+                            picOriginalInfo.key = xmlPullParser.getText();
+                        } else if (picObject != null && picObject.key == null){
+                            picObject.key = xmlPullParser.getText();
+                        }
+                    } else if (tagName.equalsIgnoreCase("Location")) {
+                        xmlPullParser.next();
+
+                        if (picOriginalInfo != null && picOriginalInfo.location == null) {
+                            picOriginalInfo.location = xmlPullParser.getText();
+                        } else if (picObject != null && picObject.location == null){
+                            picObject.location = xmlPullParser.getText();
+                        }
+                    } else if (tagName.equalsIgnoreCase("Format")) {
+                        xmlPullParser.next();
+
+                        if (picObject != null && picObject.format == null) {
+                            picObject.format = xmlPullParser.getText();
+                        }
+                    } else if (tagName.equalsIgnoreCase("Width")) {
+                        xmlPullParser.next();
+
+                        if (picObject != null) {
+                            picObject.width = Integer.valueOf(xmlPullParser.getText());
+                        }
+                    } else if (tagName.equalsIgnoreCase("Height")) {
+                        xmlPullParser.next();
+
+                        if (picObject != null) {
+                            picObject.height = Integer.valueOf(xmlPullParser.getText());
+                        }
+                    } else if (tagName.equalsIgnoreCase("Size")) {
+                        xmlPullParser.next();
+
+                        if (picObject != null) {
+                            picObject.size = Integer.valueOf(xmlPullParser.getText());
+                        }
+                    } else if (tagName.equalsIgnoreCase("Quality")) {
+                        xmlPullParser.next();
+
+                        if (picObject != null) {
+                            picObject.quality = Integer.valueOf(xmlPullParser.getText());
+                        }
+                    }
+
+//                case XmlPullParser.END_TAG:
+//                    if ()
+            }
+        }
+
 
     }
 }

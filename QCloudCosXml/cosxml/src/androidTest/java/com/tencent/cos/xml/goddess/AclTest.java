@@ -45,6 +45,11 @@ public class AclTest extends BaseCosXmlServiceTest {
     @Test
     public void putBucketACL() {
         PutBucketACLRequest putBucketACLRequest = new PutBucketACLRequest(bucket);
+//        try {
+//            putBucketACLRequest.setRequestHeaders("Host", "cosxml", false);
+//        } catch (CosXmlClientException e) {
+//            e.printStackTrace();
+//        }
         ACLAccount aclAccount = new ACLAccount();
         aclAccount.addAccount(QServer.ownUin, QServer.ownUin);
         putBucketACLRequest.setXCOSGrantRead(aclAccount);

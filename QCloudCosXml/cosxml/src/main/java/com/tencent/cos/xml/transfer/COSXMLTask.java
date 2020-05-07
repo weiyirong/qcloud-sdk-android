@@ -135,19 +135,19 @@ public abstract class COSXMLTask {
     /**
      * 异步的，发送通知，置位
      */
-    public void pause(){
+    public void pause() {
         if(IS_EXIT.get())return;
         else IS_EXIT.set(true);
         monitor.sendStateMessage(this, TransferState.PAUSED,null,null, MESSAGE_TASK_MANUAL);
     }
 
-    public void cancel(){
+    public void cancel() {
         if(IS_EXIT.get())return;
         else IS_EXIT.set(true);
         monitor.sendStateMessage(this, TransferState.CANCELED,new CosXmlClientException(ClientErrorCode.USER_CANCELLED.getCode(), "canceled by user"),null, MESSAGE_TASK_MANUAL);
     }
 
-    public void resume(){
+    public void resume() {
         monitor.sendStateMessage(this, TransferState.RESUMED_WAITING,null,null, MESSAGE_TASK_MANUAL);
     }
 

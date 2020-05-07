@@ -47,13 +47,13 @@ public class QServer {
     private QServer(Context context){
         CosXmlServiceConfig cosXmlServiceConfig = new CosXmlServiceConfig.Builder()
                 .isHttps(true)
-                //.setAppidAndRegion(appid, region)
-                .setEndpointSuffix("xiaohongshu.com")
+                .setAppidAndRegion(appid, region)
+                //.setEndpointSuffix("xiaohongshu.com")
                 .setDebuggable(true)
                 .setRetryHandler(new QCloudHttpRetryHandler(){@Override public boolean shouldRetry(Request request, Response response, Exception exception){
                     Log.e(TAG, request.url().host());
                     try {
-                        cosXml.addCustomerDNS("service.cos.myqcloud.com", new String[]{"123.151.157.147"});
+                        cosXml.addCustomerDNS("service.cos.myqcloud.com", new String[]{"211.159.131.17"});
                     } catch (CosXmlClientException e) {
                         e.printStackTrace();
                     }

@@ -12,6 +12,7 @@ import com.tencent.cos.xml.utils.DigestUtils;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 /**
  * Created by bradyxiao on 2017/11/30.
@@ -89,5 +90,18 @@ public abstract class ObjectRequest extends CosXmlRequest {
         if(json != null){
             addHeader("x-cos-server-side-encryption-context", DigestUtils.getBase64(json));
         }
+    }
+
+    protected String getContentType() {
+
+        List<String> contentType = requestHeaders.get("Content-Type");
+        if (contentType == null || contentType.isEmpty()) {
+            contentType = requestHeaders.get("content-type");
+        }
+        if (contentType == null || contentType.isEmpty()) {
+            contentType = requestHeaders.get("Content-type");
+        }
+
+        return contentType != null && !contentType.isEmpty() ? contentType.get(0) : null;
     }
 }

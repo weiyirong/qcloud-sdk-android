@@ -7,7 +7,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 28
         versionCode sdkVersionCode
-        versionName "5.5.0"
+        versionName "5.5.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -17,6 +17,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            jniDebuggable = false
+        }
+        debug {
+            jniDebuggable = true
+            renderscriptDebuggable = true
         }
     }
 

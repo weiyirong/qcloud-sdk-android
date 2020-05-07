@@ -29,7 +29,7 @@ public class CosXmlServiceConfig implements Parcelable {
     public static final String HTTP_PROTOCOL = "http";
     public static final String HTTPS_PROTOCOL = "https";
 
-    public static final String ACCELERATE_ENDPOINT_SUFFIX = "cos-accelerate";
+    public static final String ACCELERATE_ENDPOINT_SUFFIX = "cos.accelerate";
 
     /**
      * The default user agent header for cos android sdk clients.
@@ -335,6 +335,7 @@ public class CosXmlServiceConfig implements Parcelable {
         private Executor executor;
 
         private boolean isQuic = false;
+        private boolean trustAllHost = false;
 
         private Map<String, List<String>> commonHeaders = new HashMap<>();
         private List<String> noSignHeaders = new LinkedList<>();
@@ -441,6 +442,11 @@ public class CosXmlServiceConfig implements Parcelable {
 
         public Builder enableQuic(boolean isEnable){
             this.isQuic = isEnable;
+            return this;
+        }
+
+        public Builder trustAllHost(boolean trust) {
+            this.trustAllHost = trust;
             return this;
         }
 

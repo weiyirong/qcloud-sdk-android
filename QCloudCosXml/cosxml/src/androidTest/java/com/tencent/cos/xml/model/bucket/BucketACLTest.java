@@ -14,6 +14,7 @@ import com.tencent.qcloud.core.http.*;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.*;
@@ -320,6 +321,7 @@ public class BucketACLTest {
 
     }
 
+    @Test
     public void testBucketACL() {
         HeadBucket();
         PutBucketAcl();

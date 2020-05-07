@@ -1,13 +1,15 @@
-package com.tencent.cos.xml.csp;
+package com.tencent.cos.xml.simple_sync_request;
 
 import android.content.Context;
-import android.text.TextUtils;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
+
+import com.tencent.cos.xml.BuildConfig;
 import com.tencent.cos.xml.CosXmlService;
-import com.tencent.cos.xml.CosXmlServiceConfig;
-import com.tencent.cos.xml.MyQCloudSigner;
 import com.tencent.cos.xml.QServer;
 import com.tencent.cos.xml.common.COSACL;
+import com.tencent.cos.xml.core.TestConfigs;
+import com.tencent.cos.xml.core.TestUtils;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.exception.CosXmlServiceException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
@@ -74,91 +76,34 @@ import com.tencent.cos.xml.model.service.GetServiceResult;
 import com.tencent.cos.xml.model.tag.ACLAccount;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
 import com.tencent.cos.xml.model.tag.LifecycleConfiguration;
-import com.tencent.cos.xml.model.tag.ListAllMyBuckets;
 import com.tencent.cos.xml.model.tag.ListMultipartUploads;
-import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
-import com.tencent.qcloud.core.auth.ShortTimeCredentialProvider;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import static com.tencent.cos.xml.QServer.TAG;
 
-/**
- * Created by rickenwang on 2018/8/29.
- * <p>
- * Copyright (c) 2010-2020 Tencent Cloud. All rights reserved.
- */
-public class BaseTest {
-
+@RunWith(AndroidJUnit4.class)
+public class SimpleRequestTest {
 
     private static CosXmlService cosXmlService;
 
-    private static String bucketName = "rickenwang";
-    private static String fileName = "tce.txt";
-    private static String copyFileName = "copy_tce.txt";
-    private static String postFileName = "post_tce.txt";
-    private static String multiFileName = "multi_tce.txt";
+    @BeforeClass public static void setUp() {
 
-    /**
-     * 简单上传文件大小
-     */
-    private static final long simpleUploadFileSize = 64 * 1024;
-
-    private Context context;
-    private final String appid;
-    private final String region;
-    private final String fullBucketName;
-
-    public BaseTest(final Context context, String appid, String bucket, String secretId, String secretKey,
-                    final String region, String endpointSuffix) {
-
-        this.context = context;
-        this.appid = appid;
-        this.region = region;
-        bucketName = bucket;
-        this.fullBucketName = TextUtils.isEmpty(appid)? bucketName : bucketName + "-" + appid;
-
-        CosXmlServiceConfig.Builder configBuilder = new CosXmlServiceConfig.Builder()
-                .setAppidAndRegion(appid, region)
-                .setDebuggable(true)
-                .setBucketInPath(true);
-
-        if (!TextUtils.isEmpty(endpointSuffix)) {
-            configBuilder.setEndpointSuffix(endpointSuffix);
-        }
-
-        CosXmlServiceConfig cosXmlServiceConfig = configBuilder.builder();
-
-        QCloudCredentialProvider credentialProvider = new ShortTimeCredentialProvider(secretId, secretKey, 3600);
-
-        //cosXmlService = new CosXmlService(context, cosXmlServiceConfig, credentialProvider);
-
-        cosXmlService = new CosXmlService(context, cosXmlServiceConfig, new MyQCloudSigner());
-
-//        /** CSP 测试需要自定 DNS 解析  */
-//        try {
-//            String[] ips = new String[]{"203.195.206.83"};
-//            cosXmlService.addCustomerDNS("yun.ccb.com", ips);
-//            cosXmlService.addCustomerDNS("cos.wh.yun.ccb.com", ips);
-//            cosXmlService.addCustomerDNS("rickenwang.wh.yun.ccb.com", ips);
-//            cosXmlService.addCustomerDNS("service.cos.wh.yun.ccb.com", ips);
-//        } catch (CosXmlClientException e) {
-//            e.printStackTrace();
-//        }
+        cosXmlService = TestUtils.newDefaultTerminalService();
     }
 
 
     private void putBucketTest() {
 
-        PutBucketRequest putBucketRequest = new PutBucketRequest(bucketName);
+        PutBucketRequest putBucketRequest = new PutBucketRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         PutBucketResult putBucketResult = null;
 
         try {
@@ -167,6 +112,9 @@ public class BaseTest {
             e.printStackTrace();
         } catch (CosXmlServiceException e) {
             e.printStackTrace();
+            if (e.getErrorCode().equals("BucketAlreadyOwnedByYou")) {
+                return;
+            }
         }
 
         Assert.assertNotNull(putBucketResult);
@@ -175,7 +123,7 @@ public class BaseTest {
 
     private void headBucketTest() {
 
-        HeadBucketRequest headBucketRequest = new HeadBucketRequest(bucketName);
+        HeadBucketRequest headBucketRequest = new HeadBucketRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         HeadBucketResult headBucketResult = null;
         try {
             headBucketResult = cosXmlService.headBucket(headBucketRequest);
@@ -192,7 +140,7 @@ public class BaseTest {
 
     private void getBucketTest() {
 
-        GetBucketRequest getBucketRequest = new GetBucketRequest(bucketName);
+        GetBucketRequest getBucketRequest = new GetBucketRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         GetBucketResult getBucketResult = null;
         try {
             getBucketResult = cosXmlService.getBucket(getBucketRequest);
@@ -203,7 +151,6 @@ public class BaseTest {
         }
 
         Assert.assertNotNull(getBucketResult);
-        Assert.assertEquals(getBucketResult.listBucket.name, fullBucketName);
     }
 
 
@@ -221,19 +168,11 @@ public class BaseTest {
 
         Assert.assertNotNull(getServiceResult);
         Assert.assertEquals(200, getServiceResult.httpCode);
-
-        boolean hasBucketRickenwang = false;
-        for (ListAllMyBuckets.Bucket bucket : getServiceResult.listAllMyBuckets.buckets) {
-            if (bucket.name.equals(fullBucketName)) {
-                hasBucketRickenwang = true;
-            }
-        }
-        Assert.assertEquals(hasBucketRickenwang, true);
     }
 
     private void putBucketLifecycle() {
 
-        PutBucketLifecycleRequest putBucketLifecycleRequest = new PutBucketLifecycleRequest(bucketName);
+        PutBucketLifecycleRequest putBucketLifecycleRequest = new PutBucketLifecycleRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         LifecycleConfiguration.Rule rule = new LifecycleConfiguration.Rule();
         rule.id = "lifecycle_" + new Random(System.currentTimeMillis()).nextInt();
         rule.status = "Enabled";
@@ -255,7 +194,7 @@ public class BaseTest {
 
 
     private void getBucketLifecycle() {
-        GetBucketLifecycleRequest getBucketLifecycleRequest = new GetBucketLifecycleRequest(bucketName);
+        GetBucketLifecycleRequest getBucketLifecycleRequest = new GetBucketLifecycleRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         GetBucketLifecycleResult getBucketLifecycleResult = null;
         try {
             getBucketLifecycleResult = cosXmlService.getBucketLifecycle(getBucketLifecycleRequest);
@@ -270,7 +209,7 @@ public class BaseTest {
 
 
     private void deleteBucketLifecycle()  {
-        DeleteBucketLifecycleRequest deleteBucketLifecycleRequest = new DeleteBucketLifecycleRequest(bucketName);
+        DeleteBucketLifecycleRequest deleteBucketLifecycleRequest = new DeleteBucketLifecycleRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         DeleteBucketLifecycleResult deleteBucketLifecycleResult = null;
         try {
             deleteBucketLifecycleResult = cosXmlService.deleteBucketLifecycle(deleteBucketLifecycleRequest);
@@ -284,7 +223,8 @@ public class BaseTest {
     }
 
     private void putBucketCORS() {
-        PutBucketCORSRequest putBucketCORSRequest = new PutBucketCORSRequest(bucketName);
+
+        PutBucketCORSRequest putBucketCORSRequest = new PutBucketCORSRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         CORSConfiguration.CORSRule corsRule = new CORSConfiguration.CORSRule();
         corsRule.id = "cors" + new Random(System.currentTimeMillis()).nextInt();
         corsRule.maxAgeSeconds = 5000;
@@ -313,7 +253,7 @@ public class BaseTest {
     }
 
     private void getBucketCORS()  {
-        GetBucketCORSRequest getBucketCORSRequest = new GetBucketCORSRequest(bucketName);
+        GetBucketCORSRequest getBucketCORSRequest = new GetBucketCORSRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         GetBucketCORSResult getBucketCORSResult = null;
         try {
             getBucketCORSResult = cosXmlService.getBucketCORS(getBucketCORSRequest);
@@ -328,7 +268,7 @@ public class BaseTest {
     }
 
     private void deleteBucketCORS() {
-        DeleteBucketCORSRequest deleteBucketCORSRequest = new DeleteBucketCORSRequest(bucketName);
+        DeleteBucketCORSRequest deleteBucketCORSRequest = new DeleteBucketCORSRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         DeleteBucketCORSResult deleteBucketCORSResult = null;
         try {
             deleteBucketCORSResult = cosXmlService.deleteBucketCORS(deleteBucketCORSRequest);
@@ -342,7 +282,7 @@ public class BaseTest {
     }
 
     private void putBucketACL() {
-        PutBucketACLRequest putBucketACLRequest = new PutBucketACLRequest(bucketName);
+        PutBucketACLRequest putBucketACLRequest = new PutBucketACLRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         ACLAccount aclAccount = new ACLAccount();
         aclAccount.addAccount(QServer.ownUin, QServer.ownUin);
         putBucketACLRequest.setXCOSGrantRead(aclAccount);
@@ -361,7 +301,7 @@ public class BaseTest {
     }
 
     private void getBucketACL() {
-        GetBucketACLRequest getBucketACLRequest = new GetBucketACLRequest(bucketName);
+        GetBucketACLRequest getBucketACLRequest = new GetBucketACLRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         GetBucketACLResult getBucketACLResult = null;
         try {
             getBucketACLResult = cosXmlService.getBucketACL(getBucketACLRequest);
@@ -376,7 +316,7 @@ public class BaseTest {
     }
 
     private void getBucketLocation() {
-        GetBucketLocationRequest getBucketLocationRequest = new GetBucketLocationRequest(bucketName);
+        GetBucketLocationRequest getBucketLocationRequest = new GetBucketLocationRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         GetBucketLocationResult getBucketLocationResult = null;
         try {
             getBucketLocationResult = cosXmlService.getBucketLocation(getBucketLocationRequest);
@@ -393,16 +333,7 @@ public class BaseTest {
 
     private void putObject() {
 
-        String localFilePath = null;
-
-        try {
-            localFilePath = createFile(context, fileName, simpleUploadFileSize);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Assert.assertTrue(false);
-        }
-
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, "/"+fileName, localFilePath);
+        PutObjectRequest putObjectRequest = new PutObjectRequest(TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.COS_TXT_1M_PATH, TestConfigs.LOCAL_TXT_1M_PATH);
         putObjectRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -424,7 +355,7 @@ public class BaseTest {
 
     private void headObject() {
 
-        HeadObjectRequest headObjectRequest = new HeadObjectRequest(bucketName, fileName);
+        HeadObjectRequest headObjectRequest = new HeadObjectRequest(TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.COS_TXT_1M_PATH);
         HeadObjectResult headObjectResult = null;
         try {
             headObjectResult = cosXmlService.headObject(headObjectRequest);
@@ -442,7 +373,7 @@ public class BaseTest {
 
         String origin = "cloud.tencent.com";
         String method = "GET";
-        OptionObjectRequest optionObjectRequest = new OptionObjectRequest(bucketName, fileName, origin, method);
+        OptionObjectRequest optionObjectRequest = new OptionObjectRequest(TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.COS_TXT_1M_PATH, origin, method);
         // optionObjectRequest.setAccessControlHeaders("Authorization");
         OptionObjectResult optionObjectResult = null;
         try {
@@ -457,7 +388,7 @@ public class BaseTest {
     }
 
     private void putObjectACL()  {
-        PutObjectACLRequest putObjectACLRequest = new PutObjectACLRequest(bucketName, fileName);
+        PutObjectACLRequest putObjectACLRequest = new PutObjectACLRequest(TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.COS_TXT_1M_PATH);
         putObjectACLRequest.setXCOSACL(COSACL.PRIVATE);
         ACLAccount aclAccount = new ACLAccount();
         aclAccount.addAccount(QServer.ownUin, QServer.ownUin);
@@ -478,7 +409,7 @@ public class BaseTest {
 
 
     private void getObjectACL()  {
-        GetObjectACLRequest getObjectACLRequest = new GetObjectACLRequest(bucketName, fileName);
+        GetObjectACLRequest getObjectACLRequest = new GetObjectACLRequest(TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.COS_TXT_1M_PATH);
         GetObjectACLResult getObjectACLResult = null;
         try {
             getObjectACLResult = cosXmlService.getObjectACL(getObjectACLRequest);
@@ -494,13 +425,13 @@ public class BaseTest {
 
     private void copyObject() {
 
-        String destCosPath = copyFileName;
+        String destCosPath = "/copy/" + TestConfigs.COS_TXT_1M_PATH;
         CopyObjectRequest.CopySourceStruct copySourceStruct = new CopyObjectRequest.CopySourceStruct(
-                appid, bucketName, region, fileName);
+                TestConfigs.TERMINAL_APPID, TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.TERMINAL_DEFAULT_REGION, TestConfigs.COS_TXT_1M_PATH);
         CopyObjectRequest copyObjectRequest = null;
         CopyObjectResult copyObjectResult = null;
         try {
-            copyObjectRequest = new CopyObjectRequest(bucketName, destCosPath, copySourceStruct);
+            copyObjectRequest = new CopyObjectRequest(TestConfigs.TERMINAL_TEMP_BUCKET, destCosPath, copySourceStruct);
             copyObjectResult = cosXmlService.copyObject(copyObjectRequest);
         } catch (CosXmlClientException e) {
             e.printStackTrace();
@@ -517,8 +448,7 @@ public class BaseTest {
 
     private void getObject() {
 
-        String savePath = context.getExternalCacheDir().getPath();
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, fileName, savePath);
+        GetObjectRequest getObjectRequest = new GetObjectRequest(TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.COS_TXT_1M_PATH, TestConfigs.LOCAL_FILE_DIRECTORY);
         getObjectRequest.setProgressListener(new CosXmlProgressListener() {
             @Override
             public void onProgress(long complete, long target) {
@@ -535,9 +465,9 @@ public class BaseTest {
         }
         Assert.assertNotNull(getObjectResult);
         Assert.assertEquals(200, getObjectResult.httpCode);
-        File file = new File(savePath, fileName);
+        File file = new File(TestConfigs.LOCAL_TXT_1M_PATH);
         System.out.println("file path is " + getObjectRequest.getDownloadPath());
-        Assert.assertEquals(file.length(), simpleUploadFileSize);
+        Assert.assertEquals(file.length(), 1024 * 1024);
 
         //QServer.deleteLocalFile(getObjectRequest.getDownloadPath());
     }
@@ -549,10 +479,12 @@ public class BaseTest {
      * @throws CosXmlServiceException
      * @throws CosXmlClientException
      */
-    private void sliceUploadObject() {
+    private void multiUploadObject() {
 
-        String fileName = multiFileName;
+        String fileName = TestConfigs.COS_TXT_1M_PATH;
+        String bucketName = TestConfigs.TERMINAL_TEMP_BUCKET;
 
+        // 初始化分片上传
         InitMultipartUploadRequest initMultipartUploadRequest = new InitMultipartUploadRequest(bucketName, fileName);
         InitMultipartUploadResult initMultipartUploadResult = null;
         try {
@@ -566,6 +498,7 @@ public class BaseTest {
         Assert.assertEquals(200, initMultipartUploadResult.httpCode);
         Assert.assertNotNull(initMultipartUploadResult.initMultipartUpload.uploadId);
 
+        // 查询分片上传
         String uploadId = initMultipartUploadResult.initMultipartUpload.uploadId;
         ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, fileName, uploadId);
         ListPartsResult listPartsResult = null;
@@ -580,16 +513,9 @@ public class BaseTest {
         Assert.assertEquals(200, listPartsResult.httpCode);
         Assert.assertNotNull(listPartsResult.listParts);
 
+        // 上传分片
         int partNumber = 1;
-        String localFilePath = null;
-        try {
-            localFilePath = createFile(context, partNumber + fileName, 1024 * 1024 * 2);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Assert.assertTrue(false);
-        }
-
-
+        String localFilePath = TestConfigs.LOCAL_TXT_1M_PATH;
         UploadPartRequest uploadPartRequest1 = new UploadPartRequest(bucketName, fileName, partNumber, localFilePath, uploadId);
         uploadPartRequest1.setProgressListener(new CosXmlProgressListener() {
             @Override
@@ -609,37 +535,9 @@ public class BaseTest {
         Assert.assertEquals(200, uploadPartResult1.httpCode);
         Assert.assertNotNull(uploadPartResult1.eTag);
 
-        partNumber = 2;
-        String newLocalFilePath = null;
-        try {
-            newLocalFilePath = createFile(context, partNumber + fileName, 1024 * 512);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Assert.assertTrue(false);
-        }
-        UploadPartRequest uploadPartRequest2 = new UploadPartRequest(bucketName, fileName, partNumber, newLocalFilePath, uploadId);
-        uploadPartRequest2.setProgressListener(new CosXmlProgressListener() {
-            @Override
-            public void onProgress(long complete, long target) {
-                Log.d(TAG, complete + "/" + target);
-            }
-        });
-        UploadPartResult uploadPartResult2 = null;
-        try {
-            uploadPartResult2 = cosXmlService.uploadPart(uploadPartRequest2);
-        } catch (CosXmlClientException e) {
-            e.printStackTrace();
-        } catch (CosXmlServiceException e) {
-            e.printStackTrace();
-        }
-        Assert.assertNotNull(uploadPartResult2);
-        Assert.assertEquals(200, uploadPartResult2.httpCode);
-        Assert.assertNotNull(uploadPartResult2.eTag);
-
-
+        // 完成分片上传
         CompleteMultiUploadRequest completeMultiUploadRequest = new CompleteMultiUploadRequest(bucketName, fileName, uploadId, null);
         completeMultiUploadRequest.setPartNumberAndETag(1, uploadPartResult1.eTag);
-        completeMultiUploadRequest.setPartNumberAndETag(2, uploadPartResult2.eTag);
         CompleteMultiUploadResult completeMultiUploadResult = null;
         try {
             completeMultiUploadResult = cosXmlService.completeMultiUpload(completeMultiUploadRequest);
@@ -655,7 +553,7 @@ public class BaseTest {
 
     private void deleteAllUploadIdOfBucket() {
 
-        ListMultiUploadsRequest listMultiUploadsRequest = new ListMultiUploadsRequest(bucketName);
+        ListMultiUploadsRequest listMultiUploadsRequest = new ListMultiUploadsRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         ListMultiUploadsResult listMultiUploadsResult = null;
         try {
             listMultiUploadsResult = cosXmlService.listMultiUploads(listMultiUploadsRequest);
@@ -670,7 +568,7 @@ public class BaseTest {
             for(ListMultipartUploads.Upload upload : uploadList){
                 String uploadId = upload.uploadID;
                 String key = upload.key;
-                AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(bucketName, key, uploadId);
+                AbortMultiUploadRequest abortMultiUploadRequest = new AbortMultiUploadRequest(TestConfigs.TERMINAL_TEMP_BUCKET, key, uploadId);
                 AbortMultiUploadResult abortMultiUploadResult = null;
                 try {
                     abortMultiUploadResult = cosXmlService.abortMultiUpload(abortMultiUploadRequest);
@@ -689,7 +587,7 @@ public class BaseTest {
 
     private void deleteObject() {
 
-        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, fileName);
+        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(TestConfigs.TERMINAL_TEMP_BUCKET, TestConfigs.COS_TXT_1M_PATH);
         DeleteObjectResult deleteObjectResult = null;
         try {
             deleteObjectResult = cosXmlService.deleteObject(deleteObjectRequest);
@@ -703,9 +601,9 @@ public class BaseTest {
     }
 
     private void deleteMultiObject() {
-        DeleteMultiObjectRequest deleteMultiObjectRequest = new DeleteMultiObjectRequest(bucketName, null);
-        deleteMultiObjectRequest.setObjectList(copyFileName);
-        deleteMultiObjectRequest.setObjectList(multiFileName);
+
+        DeleteMultiObjectRequest deleteMultiObjectRequest = new DeleteMultiObjectRequest(TestConfigs.TERMINAL_TEMP_BUCKET, null);
+        deleteMultiObjectRequest.setObjectList(TestConfigs.COS_TXT_1M_PATH);
         deleteMultiObjectRequest.setQuiet(false);
         DeleteMultiObjectResult deleteMultiObjectResult = null;
         try {
@@ -721,7 +619,7 @@ public class BaseTest {
 
     private void deleteBucketTest() {
 
-        DeleteBucketRequest deleteBucketRequest = new DeleteBucketRequest(bucketName);
+        DeleteBucketRequest deleteBucketRequest = new DeleteBucketRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
         DeleteBucketResult deleteBucketResult = null;
 
         try {
@@ -730,6 +628,9 @@ public class BaseTest {
             e.printStackTrace();
         } catch (CosXmlServiceException e) {
             e.printStackTrace();
+            if (e.getErrorCode().equals("BucketNotEmpty")) {
+                return;
+            }
         }
 
         Assert.assertNotNull(deleteBucketResult);
@@ -740,43 +641,44 @@ public class BaseTest {
     /**
      * 同步简单请求测试
      */
+    @Test
     public void testSimpleSyncMethod() {
-        if(!QServer.cspTest)return;
-        //putBucketTest();
-        //headBucketTest();
-        //getBucketTest();
+        // if(!QServer.cspTest) return;
+        putBucketTest();
+        headBucketTest();
+        getBucketTest();
         getServiceTest();
 
-//        putBucketLifecycle();
-//        getBucketLifecycle();
-//
-//        putBucketCORS();
-//        getBucketCORS();
-//
-//
-//        putBucketACL();
-//        getBucketACL();
-//
-//        getBucketLocation();
-//
-//
-//        putObject();
-//        headObject();
-//        optionObject();
-//
-//        sliceUploadObject();
-//        putObjectACL();
-//        getObjectACL();
-//        copyObject();
-//        getObject();
-//
-//        deleteAllUploadIdOfBucket();
-//        deleteObject();
-//        deleteMultiObject();
-//
-//        deleteBucketCORS();
-//        deleteBucketLifecycle();
-//        deleteBucketTest();
+        putBucketLifecycle();
+        getBucketLifecycle();
+
+        putBucketCORS();
+        getBucketCORS();
+
+
+        putBucketACL();
+        getBucketACL();
+
+        getBucketLocation();
+
+
+        putObject();
+        headObject();
+        optionObject();
+
+        multiUploadObject();
+        putObjectACL();
+        getObjectACL();
+        copyObject();
+        getObject();
+
+        deleteAllUploadIdOfBucket();
+        deleteObject();
+        deleteMultiObject();
+
+        deleteBucketCORS();
+        deleteBucketLifecycle();
+        deleteBucketTest();
 
     }
 
@@ -790,41 +692,41 @@ public class BaseTest {
 
 
 
-    // TODO: 2018/9/3  tce don't need
-    private void postObject() {
-
-        String cosPath = postFileName;
-        String srcPath = null;
-        try {
-            srcPath = QServer.createFile(context, 1024 * 1024);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        byte[] data = new byte[0];
-        try {
-            data = "this is post object test".getBytes("utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        PostObjectRequest postObjectRequest = new PostObjectRequest(bucketName, cosPath, data);
-        postObjectRequest.setProgressListener(new CosXmlProgressListener() {
-            @Override
-            public void onProgress(long complete, long target) {
-                Log.d("XIAO", "progress =" + complete / target);
-            }
-        });
-
-        PostObjectResult postObjectResult = null;
-        try {
-            postObjectResult = cosXmlService.postObject(postObjectRequest);
-        } catch (CosXmlClientException e) {
-            e.printStackTrace();
-        } catch (CosXmlServiceException e) {
-            e.printStackTrace();
-        }
-        QServer.deleteLocalFile(srcPath);
-    }
+//    // TODO: 2018/9/3  tce don't need
+//    private void postObject() {
+//
+//        String cosPath = postFileName;
+//        String srcPath = null;
+//        try {
+//            srcPath = QServer.createFile(context, 1024 * 1024);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        byte[] data = new byte[0];
+//        try {
+//            data = "this is post object test".getBytes("utf-8");
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+//
+//        PostObjectRequest postObjectRequest = new PostObjectRequest(bucketName, cosPath, data);
+//        postObjectRequest.setProgressListener(new CosXmlProgressListener() {
+//            @Override
+//            public void onProgress(long complete, long target) {
+//                Log.d("XIAO", "progress =" + complete / target);
+//            }
+//        });
+//
+//        PostObjectResult postObjectResult = null;
+//        try {
+//            postObjectResult = cosXmlService.postObject(postObjectRequest);
+//        } catch (CosXmlClientException e) {
+//            e.printStackTrace();
+//        } catch (CosXmlServiceException e) {
+//            e.printStackTrace();
+//        }
+//        QServer.deleteLocalFile(srcPath);
+//    }
 
 
 //    @Test public void partCopyObject() throws CosXmlServiceException, CosXmlClientException {
@@ -849,18 +751,4 @@ public class BaseTest {
 //    }
 
 
-    private String createFile(Context context, String fileName, long fileLength) throws IOException {
-
-        String cacheFilePath = context.getExternalCacheDir().getPath() + File.separator
-                + fileName;
-        RandomAccessFile accessFile = new RandomAccessFile(cacheFilePath, "rws");
-        //accessFile.setLength(fileLength);
-        byte[] bytes = new byte[(int) fileLength];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) (i % 100 + 35);
-        }
-        accessFile.write(bytes);
-        accessFile.close();
-        return cacheFilePath;
-    }
 }

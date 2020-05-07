@@ -82,7 +82,7 @@ final public class AppendObjectRequest extends ObjectRequest {
     @Override
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         if(srcPath != null){
-            return RequestBodySerializer.file(null, new File(srcPath));
+            return RequestBodySerializer.file(getContentType(), new File(srcPath));
         }else if(data != null){
            return RequestBodySerializer.bytes(null, data);
         }else if(inputStream != null){

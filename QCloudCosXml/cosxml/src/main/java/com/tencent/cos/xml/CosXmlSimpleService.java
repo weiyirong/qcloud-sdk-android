@@ -274,7 +274,10 @@ public class CosXmlSimpleService implements SimpleCosXml {
             try {
                 httpRequestBuilder.url(new URL(requestURL));
                 String hostHeader = getRequestHost(cosXmlRequest, cosXmlRequest.isSupportAccelerate(), true);
-                httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+                // httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+                if (!isRequestHasHeader(cosXmlRequest, HttpConstants.Header.HOST)) {
+                    httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+                }
             } catch (MalformedURLException e) {
                 throw new CosXmlClientException(ClientErrorCode.BAD_REQUEST.getCode(), e);
             }
@@ -284,8 +287,11 @@ public class CosXmlSimpleService implements SimpleCosXml {
             String hostHeader = getRequestHost(cosXmlRequest, cosXmlRequest.isSupportAccelerate(), true);
             httpRequestBuilder.scheme(config.getProtocol())
                     .host(host)
-                    .path(cosXmlRequest.getPath(config))
-                    .addHeader(HttpConstants.Header.HOST, hostHeader);
+                    .path(cosXmlRequest.getPath(config));
+                    // .addHeader(HttpConstants.Header.HOST, hostHeader);
+            if (!isRequestHasHeader(cosXmlRequest, HttpConstants.Header.HOST)) {
+                httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+            }
             if(config.getPort() != -1)httpRequestBuilder.port(config.getPort());
             httpRequestBuilder.query(cosXmlRequest.getQueryString());
         }
@@ -815,6 +821,14 @@ public class CosXmlSimpleService implements SimpleCosXml {
             }
         }
         return null;
+    }
+
+    private boolean isRequestHasHeader(CosXmlRequest request, String key) {
+
+        if (request == null || request.getRequestHeaders() == null) {
+            return false;
+        }
+        return request.getRequestHeaders().containsKey(key);
     }
 
 }
