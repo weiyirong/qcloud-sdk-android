@@ -37,7 +37,6 @@ import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
-import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.transfer.ResponseBytesConverter;
 import com.tencent.cos.xml.transfer.ResponseFileBodySerializer;
 import com.tencent.cos.xml.transfer.ResponseXmlS3BodySerializer;
@@ -87,8 +86,6 @@ public class CosXmlSimpleService implements SimpleCosXml {
     public static String appCachePath;      // 用于缓存临时文件
 
     private String requestDomain;
-
-    private String getServiceRequestDomain;
 
     /**
      * cos android SDK 服务
@@ -232,26 +229,12 @@ public class CosXmlSimpleService implements SimpleCosXml {
         this.requestDomain = domain;
     }
 
-    /**
-     * 设置 get service 请求的域名
-     *
-     * @param domain
-     */
-    public void setServiceDomain(String domain) {
 
-        this.getServiceRequestDomain = domain;
-    }
+    protected String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) throws CosXmlClientException {
 
-    private String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) throws CosXmlClientException {
-
-        if (request instanceof GetServiceRequest ) {
-            if (!TextUtils.isEmpty(getServiceRequestDomain)) {
-                return getServiceRequestDomain;
-            }
-        } else if (!TextUtils.isEmpty(requestDomain)) {
+        if (!TextUtils.isEmpty(requestDomain)) {
             return requestDomain;
         }
-
         return request.getHost(config, accelerate, isHeader);
     }
 
