@@ -62,7 +62,7 @@ dependencies {
 ##### COS XML SDK
 
 ```
-compile 'com.tencent.qcloud:cosxml:5.4.+'
+compile 'com.tencent.qcloud:cosxml:5.5.+'
 ```
 
 ### 手动集成
