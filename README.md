@@ -51,7 +51,7 @@ allprojects {
 ```
 dependencies {
     //增加这行
-    compile 'com.tencent.qcloud:cosxml:5.4.+'
+    compile 'com.tencent.qcloud:cosxml:5.5.+'
 }
 ```
 
