@@ -7,8 +7,6 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
-import com.tencent.qcloud.core.common.QCloudDigistListener;
-
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -49,6 +47,10 @@ public abstract class RequestBodySerializer{
         } else {
             return null;
         }
+    }
+
+    public static RequestBodySerializer wrap(RequestBody body) {
+        return new BaseRequestBodyWrapper(body);
     }
 
 

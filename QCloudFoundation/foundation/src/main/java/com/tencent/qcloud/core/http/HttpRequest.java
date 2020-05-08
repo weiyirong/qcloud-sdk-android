@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import okhttp3.CacheControl;
 import okhttp3.HttpUrl;
@@ -26,20 +28,22 @@ import okhttp3.RequestBody;
 
 public class HttpRequest<T> {
 
-    private final Request.Builder requestBuilder;
-    private final Map<String, List<String>> headers;
-    private final RequestBody requestBody;
-    private final String method;
-    private final Object tag;
-    private final URL url;
-    private final ResponseBodyConverter<T> responseBodyConverter;
+    protected final Request.Builder requestBuilder;
+    protected final Map<String, List<String>> headers;
+    protected final Set<String> noSignHeaders;
+    protected final RequestBody requestBody;
+    protected final String method;
+    protected final Object tag;
+    protected final URL url;
+    protected final ResponseBodyConverter<T> responseBodyConverter;
 
-    private final boolean calculateContentMD5;
+    protected final boolean calculateContentMD5;
 
     HttpRequest(Builder<T> builder) {
         requestBuilder = builder.requestBuilder;
         responseBodyConverter = builder.responseBodyConverter;
         headers = builder.headers;
+        noSignHeaders = builder.noSignHeaderKeys;
         method = builder.method;
         calculateContentMD5 = builder.calculateContentMD5;
         if (builder.tag == null) {
@@ -59,6 +63,10 @@ public class HttpRequest<T> {
 
     public Map<String, List<String>> headers() {
         return headers;
+    }
+
+    public Set<String> getNoSignHeaders() {
+        return noSignHeaders;
     }
 
     public String header(String name) {
@@ -150,6 +158,8 @@ public class HttpRequest<T> {
         HttpUrl.Builder httpUrlBuilder;
 
         Map<String, List<String>> headers = new HashMap<>(10);
+
+        Set<String> noSignHeaderKeys = new HashSet<>(); // 不签名的 header
 
         RequestBodySerializer requestBodySerializer;
         ResponseBodyConverter<T> responseBodyConverter;
@@ -280,6 +290,16 @@ public class HttpRequest<T> {
             requestBuilder.removeHeader(name);
             headers.remove(name);
             return this;
+        }
+
+
+        public Builder<T> addNoSignHeaderKeys(List<String> keys) {
+            noSignHeaderKeys.addAll(keys);
+            return this;
+        }
+
+        public Set<String> getNoSignHeaderKeys() {
+            return noSignHeaderKeys;
         }
 
         public Builder<T> userAgent(String userAgent) {

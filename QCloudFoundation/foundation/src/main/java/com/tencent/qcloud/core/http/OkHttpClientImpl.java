@@ -1,10 +1,14 @@
 package com.tencent.qcloud.core.http;
 
+import com.tencent.qcloud.core.http.interceptor.RetryInterceptor;
+import com.tencent.qcloud.core.http.interceptor.TrafficControlInterceptor;
+
 import okhttp3.Call;
 import okhttp3.Dns;
 import okhttp3.OkHttpClient;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSocketFactory;
 
 import java.util.concurrent.TimeUnit;
 
@@ -20,11 +24,13 @@ public class OkHttpClientImpl extends NetworkClient {
     private OkHttpClient okHttpClient;
 
     @Override
-    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, Dns dns, HttpLogger httpLogger) {
+    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier,
+                     final Dns dns, HttpLogger httpLogger) {
         super.init(b, hostnameVerifier, dns, httpLogger);
         HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor(httpLogger);
         logInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-        okHttpClient = b.mBuilder
+        OkHttpClient.Builder builder = b.mBuilder;
+        okHttpClient = builder
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .hostnameVerifier(hostnameVerifier)
@@ -34,7 +40,8 @@ public class OkHttpClientImpl extends NetworkClient {
                 .writeTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
                 .eventListenerFactory(mEventListenerFactory)
                 .addInterceptor(logInterceptor)
-                .addInterceptor(new RetryAndTrafficControlInterceptor(b.retryStrategy))
+                .addInterceptor(new RetryInterceptor(b.retryStrategy))
+                .addInterceptor(new TrafficControlInterceptor())
                 .build();
     }
 

@@ -76,7 +76,7 @@ void init(JNIEnv *env, jobject thiz){
     if(!local_data_recv) return;
     quic_handle_struct->dataReceive = local_data_recv;
 
-    jmethodID local_complete= env->GetMethodID(local_clazz, "onCompleted", "()V");
+    jmethodID local_complete= env->GetMethodID(local_clazz, "onCompleted", "(I)V");
     if(!local_complete) return;
     quic_handle_struct->completed = local_complete;
 
@@ -163,7 +163,7 @@ void destory(JNIEnv *env, jobject thiz){
         }
     }
     pthread_mutex_unlock(&g_mut);
-    LOGI(debug, "remain %d", cos_quic_map.size());
+    LOGI(debug, "remain %lu", cos_quic_map.size());
 }
 
 void clear(JNIEnv *env, jobject thiz, jint handle_id){

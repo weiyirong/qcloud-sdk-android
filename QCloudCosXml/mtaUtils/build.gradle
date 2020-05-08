@@ -40,3 +40,4 @@ project.extensions.add('packageType', 'aar')
 project.extensions.add('packageName', 'MTAUtils')
 project.extensions.add('artifactDesc', 'the tencent cloud cosxml android sdk mtaUtils')
 
+apply from: '../../publish.gradle'

@@ -32,7 +32,7 @@ public class QuicTest {
 
             quicManager = new QuicManager();
 
-            quicManager.init(true, null, null);
+            quicManager.init(true, null, null, null);
         }
 
     }

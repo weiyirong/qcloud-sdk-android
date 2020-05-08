@@ -21,16 +21,28 @@ public class SessionCredentialProvider extends BasicLifecycleCredentialProvider 
     private HttpRequest<String> httpRequest;
     private HttpRequest.Builder<String> requestBuilder;
 
+    private StsVersion stsVersion = StsVersion.VERSION_2; // 默认解析 STS 2.0 的返回包
+
     public SessionCredentialProvider() {
 
     }
 
     public SessionCredentialProvider(HttpRequest<String> httpRequest) {
-        this.httpRequest = httpRequest;
+        this(httpRequest, StsVersion.VERSION_2);
     }
 
     public SessionCredentialProvider(HttpRequest.Builder<String> requestBuilder) {
+        this(requestBuilder, StsVersion.VERSION_2);
+    }
+
+    public SessionCredentialProvider(HttpRequest<String> httpRequest, StsVersion stsVersion) {
+        this.httpRequest = httpRequest;
+        this.stsVersion = stsVersion;
+    }
+
+    public SessionCredentialProvider(HttpRequest.Builder<String> requestBuilder, StsVersion stsVersion) {
         this.requestBuilder = requestBuilder;
+        this.stsVersion = stsVersion;
     }
 
     @Override
@@ -87,9 +99,45 @@ public class SessionCredentialProvider extends BasicLifecycleCredentialProvider 
      * @throws QCloudClientException 获取签名出错的异常
      */
     protected SessionQCloudCredentials parseServerResponse(String jsonContent) throws QCloudClientException {
-        return parseStandardSTSJsonResponse(jsonContent);
+        return stsVersion == StsVersion.VERSION_2 ? parseStandardSTSJsonResponse(jsonContent)
+                : parseStandardSTS3JsonResponse(jsonContent);
     }
 
+    /**
+     * 解析 STS 3.0 的返回
+     */
+    static SessionQCloudCredentials parseStandardSTS3JsonResponse(String jsonContent) throws QCloudClientException {
+        if (jsonContent != null) {
+            try {
+                JSONObject jsonObject = new JSONObject(jsonContent);
+                JSONObject data = jsonObject.optJSONObject("Response");
+                if (data == null) {
+                    data = jsonObject;
+                }
+                JSONObject credentials = data.optJSONObject("Credentials");
+                JSONObject error = data.optJSONObject("Error");
+
+                if (credentials != null) {
+                    long expiredTime = data.optLong("ExpiredTime");
+                    String sessionToken = credentials.optString("Token");
+                    String tmpSecretId = credentials.optString("TmpSecretId");
+                    String tmpSecretKey = credentials.optString("TmpSecretKey");
+                    return new SessionQCloudCredentials(tmpSecretId, tmpSecretKey, sessionToken, expiredTime);
+                } else if (error != null) {
+                    throw new QCloudClientException(new QCloudAuthenticationException("get credentials error : " + data.toString()));
+                }
+            } catch (JSONException e) {
+                throw new QCloudClientException("parse sts3.0 session json fails", new QCloudAuthenticationException(e.getMessage()));
+            }
+        }
+
+        throw new QCloudClientException(new QCloudAuthenticationException("fetch credential response content is null"));
+    }
+
+
+    /**
+     * 解析 STS 2.0 的返回
+     */
     static SessionQCloudCredentials parseStandardSTSJsonResponse(String jsonContent) throws QCloudClientException {
         if (jsonContent != null) {
             try {
@@ -115,10 +163,16 @@ public class SessionCredentialProvider extends BasicLifecycleCredentialProvider 
                     throw new QCloudClientException(new QCloudAuthenticationException("get credentials error : " + data.toString()));
                 }
             } catch (JSONException e) {
-                throw new QCloudClientException("parse session json fails", new QCloudAuthenticationException(e.getMessage()));
+                throw new QCloudClientException("parse sts2.0 session json fails", new QCloudAuthenticationException(e.getMessage()));
             }
         }
 
-        return null;
+        throw new QCloudClientException(new QCloudAuthenticationException("fetch credential response content is null"));
+    }
+
+    public enum StsVersion {
+
+        VERSION_2,
+        VERSION_3
     }
 }

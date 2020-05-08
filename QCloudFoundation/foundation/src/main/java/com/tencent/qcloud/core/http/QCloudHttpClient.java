@@ -3,6 +3,7 @@ package com.tencent.qcloud.core.http;
 
 import android.support.annotation.NonNull;
 
+import com.tencent.qcloud.core.R;
 import com.tencent.qcloud.core.auth.QCloudCredentialProvider;
 import com.tencent.qcloud.core.logger.QCloudLogger;
 import com.tencent.qcloud.core.task.QCloudTask;
@@ -11,16 +12,25 @@ import com.tencent.qcloud.core.task.TaskManager;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.*;
 
@@ -30,7 +40,7 @@ import okhttp3.*;
 
 public final class QCloudHttpClient {
 
-    static final String HTTP_LOG_TAG = "QCloudHttp";
+    public static final String HTTP_LOG_TAG = "QCloudHttp";
 
    // private NetworkClient networkClient;
     private String networkClientType = OkHttpClientImpl.class.getName();
@@ -40,6 +50,8 @@ public final class QCloudHttpClient {
 
     private final Set<String> verifiedHost;
     private final Map<String, List<InetAddress>> dnsMap;
+
+    private final DnsRepository dnsRepository;
 
     private static volatile QCloudHttpClient gDefault;
 
@@ -57,6 +69,7 @@ public final class QCloudHttpClient {
         }
     };
 
+
     private Dns mDns = new Dns() {
 
         @Override
@@ -64,7 +77,14 @@ public final class QCloudHttpClient {
             if (dnsMap.containsKey(hostname)) {
                 return dnsMap.get(hostname);
             }
-            return Dns.SYSTEM.lookup(hostname);
+
+            try {
+                return Dns.SYSTEM.lookup(hostname);
+            } catch (UnknownHostException e) {
+                // e.printStackTrace();
+                QCloudLogger.w(HTTP_LOG_TAG, "system dns failed, retry cache dns records.");
+            }
+            return dnsRepository.getDnsRecord(hostname);
         }
     };
 
@@ -111,6 +131,7 @@ public final class QCloudHttpClient {
         this.verifiedHost = new HashSet<>(5);
         this.dnsMap = new HashMap<>(3);
         this.taskManager = TaskManager.getInstance();
+        this.dnsRepository = DnsRepository.getInstance();
         httpLogger = new HttpLogger(false);
         setDebuggable(false);
         NetworkClient networkClient = b.networkClient;
@@ -120,9 +141,11 @@ public final class QCloudHttpClient {
         networkClientType = networkClient.getClass().getName();
         int hashCode = networkClientType.hashCode();
         if(!networkClientMap.containsKey(hashCode)){
-            networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
+            networkClient.init(b, hostnameVerifier(), mDns, httpLogger);
             networkClientMap.put(hashCode, networkClient);
         }
+        dnsRepository.addPrefetchHosts(b.prefetchHost);
+        dnsRepository.init(); // 启动 dns 缓存
     }
 
     public void setNetworkClientType(Builder b){
@@ -131,7 +154,7 @@ public final class QCloudHttpClient {
             String name = networkClient.getClass().getName();
             int hashCode = name.hashCode();
             if(!networkClientMap.containsKey(hashCode)){
-                networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
+                networkClient.init(b, hostnameVerifier(), mDns, httpLogger);
                 networkClientMap.put(hashCode, networkClient);
             }
             this.networkClientType = name;
@@ -163,6 +186,11 @@ public final class QCloudHttpClient {
         return handleRequest(request, credentialProvider);
     }
 
+    private HostnameVerifier hostnameVerifier() {
+        return mHostnameVerifier;
+    }
+
+
     private <T> HttpTask<T> handleRequest(HttpRequest<T> request,
                                             QCloudCredentialProvider credentialProvider) {
         return new HttpTask<T>(request, credentialProvider, networkClientMap.get(networkClientType.hashCode()));
@@ -176,12 +204,13 @@ public final class QCloudHttpClient {
         OkHttpClient.Builder mBuilder;
         NetworkClient networkClient;
         boolean enableDebugLog = false;
+        List<String> prefetchHost = new LinkedList<>();
 
         public Builder() {
         }
 
         public Builder setConnectionTimeout(int connectionTimeout) {
-            if (connectionTimeout < 10 * 1000) {
+            if (connectionTimeout < 3 * 1000) {
                 throw new IllegalArgumentException("connection timeout must be larger than 10 seconds.");
             }
             this.connectionTimeout = connectionTimeout;
@@ -189,7 +218,7 @@ public final class QCloudHttpClient {
         }
 
         public Builder setSocketTimeout(int socketTimeout) {
-            if (socketTimeout < 10 * 1000) {
+            if (socketTimeout < 3 * 1000) {
                 throw new IllegalArgumentException("socket timeout must be larger than 10 seconds.");
             }
             this.socketTimeout = socketTimeout;
@@ -221,6 +250,11 @@ public final class QCloudHttpClient {
             return this;
         }
 
+        public Builder addPrefetchHost(String host) {
+            prefetchHost.add(host);
+            return this;
+        }
+
         public QCloudHttpClient build() {
             if (retryStrategy == null) {
                 retryStrategy = RetryStrategy.DEFAULT;
@@ -231,6 +265,7 @@ public final class QCloudHttpClient {
             if (mBuilder == null) {
                 mBuilder = new OkHttpClient.Builder();
             }
+
             return new QCloudHttpClient(this);
         }
     }

@@ -40,7 +40,7 @@ public class CosUnitTest {
     private QCloudHttpClient httpClient;
     private QCloudCredentialProvider credentialProvider;
 
-    private String bucket = "android-ut-persist-bucket-" + BuildConfig.COSAppId;
+    private String bucket = "android-ut-persist-bucket-" ;//+ BuildConfig.COSAppId;
     private String region = "ap-guangzhou";
 
     @Before
@@ -51,8 +51,9 @@ public class CosUnitTest {
         httpClient.setDebuggable(true);
 
         credentialProvider = new ShortTimeCredentialProvider(
-                BuildConfig.COSSecretId,
-                BuildConfig.COSSecretKey,
+//                BuildConfig.COSSecretId,
+//                BuildConfig.COSSecretKey,
+                "", "",
                 600
         );
     }

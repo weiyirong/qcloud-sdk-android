@@ -8,7 +8,7 @@ import static com.tencent.qcloud.core.auth.Utils.handleTimeAccuracy;
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 
-public class SessionQCloudCredentials implements QCloudLifecycleCredentials {
+public class SessionQCloudCredentials implements QCloudLifecycleCredentials, QCloudRawCredentials {
 
     private final String secretId;
     private final String secretKey;

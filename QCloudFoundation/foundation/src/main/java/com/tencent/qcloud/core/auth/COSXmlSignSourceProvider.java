@@ -112,6 +112,11 @@ public class COSXmlSignSourceProvider implements QCloudSignSourceProvider {
         // 默认头部字段参与计算
         if (headerKeysRequiredToSign.size() < 1) {
             for (String headerKey : request.headers().keySet()) {
+
+                if (request.getNoSignHeaders().contains(headerKey)) {
+                    continue;
+                }
+
                 if (HttpConstants.Header.CONTENT_MD5.equalsIgnoreCase(headerKey) ||
                         HttpConstants.Header.CONTENT_DISPOSITION.equalsIgnoreCase(headerKey) ||
                         HttpConstants.Header.CONTENT_ENCODING.equalsIgnoreCase(headerKey) ||

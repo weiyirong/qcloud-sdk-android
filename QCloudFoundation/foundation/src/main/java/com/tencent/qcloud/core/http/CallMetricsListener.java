@@ -44,6 +44,8 @@ public class CallMetricsListener extends EventListener {
     private long readResponseBodyStartTime;
     private long readResponseBodyTookTime;
 
+    private List<InetAddress> inetAddressList;
+
     public CallMetricsListener(Call call) {
 
     }
@@ -66,6 +68,7 @@ public class CallMetricsListener extends EventListener {
         ipList.append("}");
         QCloudLogger.i(QCloudHttpClient.HTTP_LOG_TAG, "dns: " + domainName + ":" + ipList.toString());
         dnsLookupTookTime += System.nanoTime() - dnsStartTime;
+        this.inetAddressList = inetAddressList;
     }
 
     @Override
@@ -154,5 +157,9 @@ public class CallMetricsListener extends EventListener {
         metrics.writeRequestBodyTookTime += writeRequestBodyTookTime;
         metrics.readResponseHeaderTookTime += readResponseHeaderTookTime;
         metrics.readResponseBodyTookTime += readResponseBodyTookTime;
+    }
+
+    public List<InetAddress> dumpDns() {
+        return inetAddressList;
     }
 }

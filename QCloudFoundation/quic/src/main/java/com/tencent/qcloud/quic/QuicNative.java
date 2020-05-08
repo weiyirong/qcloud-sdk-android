@@ -1,5 +1,6 @@
 package com.tencent.qcloud.quic;
 
+import java.util.Locale;
 import java.util.UUID;
 
 public class QuicNative {
@@ -22,6 +23,12 @@ public class QuicNative {
     protected boolean isCompleted = false;
     protected long idleStartTime = Long.MAX_VALUE;
     protected int currentState = INIT; //取值：init, connected, SERVER_FAILED
+
+    @Override
+    public String toString() {
+        return String.format(Locale.ENGLISH, "{handleId:%s, host:%s, ip:%s, port:%d, tcpPort:%d, isComplete:%b, idleStartTime:%d, currentState:%s}",
+                handleId, host, ip, port, tcpPort, isCompleted, idleStartTime, readableState(currentState));
+    }
 
     static {
         System.loadLibrary("tquic");
@@ -49,8 +56,8 @@ public class QuicNative {
     }
 
     @CallByNative
-    private void onCompleted(){
-        if(callback != null)callback.onCompleted(handleId);
+    private void onCompleted(int code){
+        if(callback != null)callback.onCompleted(handleId, code);
     }
 
     @CallByNative
@@ -106,7 +113,31 @@ public class QuicNative {
     public interface NetworkCallback {
         void onConnect(int handleId, int code);
         void onDataReceive(int handleId, byte[] data, int len);
-        void onCompleted(int handleId);
+        void onCompleted(int handleId, int code);
         void onClose(int handleId, int code, String desc);
+    }
+
+//    protected static final int INIT = 0;
+//    protected static final int CONNECTED = 1;
+//    protected static final int RECEIVING = 2;
+//    protected static final int COMPLETED = 3;
+//    //已cancel_request
+//    protected static final int SERVER_FAILED = 4;
+//    //第一版，cancel_request, 以后版本 不cancel_request 满足复用
+//    protected static final int CLIENT_FAILED = 5;
+
+    public static String readableState(int state) {
+
+        switch (state) {
+
+            case 0: return "INIT";
+            case 1: return "CONNECTED";
+            case 2: return "RECEIVING";
+            case 3: return "COMPLETE";
+            case 4: return "SERVER_FAILED";
+            case 5: return "CLIENT_FAILED";
+
+            default: return "UNKNOWN";
+        }
     }
 }

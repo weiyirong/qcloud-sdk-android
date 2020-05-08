@@ -5,11 +5,7 @@
 #ifndef TENCENT_TNET_QUIC_REQUEST_H
 #define TENCENT_TNET_QUIC_REQUEST_H
 
-#if defined(WIN32)
-#define TNET_EXPORT
-#else
 #define TNET_EXPORT __attribute__((visibility("default")))
-#endif
 
 namespace stgw {
 class TnetRequestFront;
@@ -19,6 +15,7 @@ struct TnetStats {
   bool is_valid;        // if this stats is valid.
   bool is_quic;         // if it is quic, else it is tcp.
   bool is_0rtt;         // Only valid if it is quic.
+  bool is_conn_reuse;   // if reuse an exist quic connection.
   uint64_t connect_ms;  // connect cost in millionseconds.
   uint64_t ttfb_ms;     // first byte cost from send request in millionseconds.
 
@@ -44,13 +41,27 @@ enum CongestionType {
   kGoogCC // kGoogCC is equal to BBR in quic.
 };
 
-struct TnetConfig {
-  TnetConfig() : nSessionMaxRecvWindowSize(15 * 1024 * 1024), 
-  nStreamMaxRecvWindowSize(6 * 1024 * 1024),
-  fallback_tcp(true),
-  sync_read(false),
-  upload_optimize_(false),
-  congestion_type_(kCubicBytes) {}
+enum RaceType {
+  kOnlyQUIC,
+  kQUICHTTP,
+  kOnlyHTTP
+};
+
+class TNET_EXPORT TnetConfig {
+ public: 
+  TnetConfig() : nSessionMaxRecvWindowSize(15 * 1024 * 1024),
+          nStreamMaxRecvWindowSize(6 * 1024 * 1024),
+          race_type(kQUICHTTP),
+          sync_read(false),
+          upload_optimize_(false),
+          congestion_type_(kCubicBytes),
+          is_plaintext_(false),
+          is_custom_(false),
+          total_timeout_sec_(0),
+          quic_version_(0) {};
+
+  TnetConfig(const TnetConfig& c) = default;
+
   // The max receive window for a whole session.
   // unit is bytes, default is 15 MB, max is 24 MB
   // The window size of session must be larger than
@@ -60,9 +71,8 @@ struct TnetConfig {
   // The max receive window for a single stream
   // unit is bytes, default is 6 MB, max is 16 MB
   uint32_t nStreamMaxRecvWindowSize;
-  // fallback_tcp controls whether employ a tcp connection
-  // after quic connection has failed. It is true defaultly.
-  bool fallback_tcp;
+  // Set race type for backup.
+  RaceType race_type;
   // Whether employ a sync-mechanism to prevent the QuicChromiumPacketReader
   // from reading too fast. If this mode is on, the data consuming speed
   // will be well controlled by the speed you process OnDataRecv().
@@ -77,7 +87,17 @@ struct TnetConfig {
   bool upload_optimize_;
   // The congestion control algorithm, it's cubic_bytes defaultly.
   CongestionType congestion_type_;
+
+  // If use plaintext to send data.
+  bool is_plaintext_;
+  // If use custom protocol to send data.
+  bool is_custom_;
+  // Represent total timeout set by upper layer.
+  int total_timeout_sec_;
+  // Specify quic version, only support quic 35-44, it is 43 defaultly.
+  int quic_version_;
 };
+
 
 class TNET_EXPORT TnetRequestDelegate {
  public:
@@ -92,8 +112,11 @@ class TNET_EXPORT TnetRequestDelegate {
   virtual void OnConnectionClose(int error_code,
                                  const char* error_detail) = 0;
 
-  // Called if last request is finished.
-  virtual void OnRequestCompleted() {}
+  // Called if last request is finished, is_done refers that if the
+  // request has received all data.
+  // stream_error = 0 means no error, other code refer to
+  // quic_error_codes.h<QuicRstStreamErrorCode>
+  virtual void OnRequestFinish(int stream_error) {}
 }; // class TnetRequestDelegate
 
 class TNET_EXPORT TnetQuicRequest {

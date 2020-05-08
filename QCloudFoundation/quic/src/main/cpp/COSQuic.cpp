@@ -8,7 +8,7 @@ COSQuic::COSQuic(JNIEnv *env, jobject jcaller, jint handle_id){
     this->m_caller = reinterpret_cast<jobject>(env->NewGlobalRef(jcaller));
     this->m_handle_id = handle_id;
     TnetConfig tnetConfig;
-    tnetConfig.fallback_tcp = false;
+    // tnetConfig.fallback_tcp = false;
     tnetConfig.upload_optimize_ = true;
     tnetConfig.congestion_type_ = kBBR;
 //    m_tnetQuic = new TnetQuicRequest(this, tnetConfig);
@@ -78,26 +78,26 @@ jstring COSQuic::GetState(JNIEnv *env, const jobject jcaller) {
             (tnetStats.is_valid ? "true" : "false"),
             (tnetStats.is_quic ? "true" : "false"),
             (tnetStats.is_0rtt ? "true" : "false"),
-            tnetStats.connect_ms,
-            tnetStats.ttfb_ms,
-            tnetStats.complete_ms,
-            tnetStats.srtt_us,
-            tnetStats.packets_sent,
-            tnetStats.packets_retransmitted,
-            tnetStats.bytes_sent,
-            tnetStats.bytes_retransmitted,
-            tnetStats.packets_lost,
-            tnetStats.packets_received,
-            tnetStats.bytes_received,
-            tnetStats.stream_bytes_received);
+            (long long)tnetStats.connect_ms,
+            (long long)tnetStats.ttfb_ms,
+            (long long)tnetStats.complete_ms,
+            (long long)tnetStats.srtt_us,
+            (long long)tnetStats.packets_sent,
+            (long long)tnetStats.packets_retransmitted,
+            (long long)tnetStats.bytes_sent,
+            (long long)tnetStats.bytes_retransmitted,
+            (long long)tnetStats.packets_lost,
+            (long long)tnetStats.packets_received,
+            (long long)tnetStats.bytes_received,
+            (long long)tnetStats.stream_bytes_received);
     LOGD(debug, "[%d] state %s", this->m_handle_id, buf);
     jstring encoding = env->NewStringUTF("GB2312");
     jclass str_class = env->FindClass("java/lang/String");
-    jmethodID str_initID = env->GetMethodID(str_class, "<init>", "([BLjava/lang/String;)V");
+    jmethodID str_initID = env->GetMethodID(str_class, "<init>", "([BLjava/lang/String;)V"); //
     int size = strlen(buf); //不包含NULL
     jbyteArray bytes = env->NewByteArray(size);
     env->SetByteArrayRegion(bytes, 0, size, (jbyte*)buf);
-    jstring result = reinterpret_cast<jstring>(env->NewObject(str_class, str_initID, bytes, encoding));
+    jstring result = reinterpret_cast<jstring>(env->NewObject(str_class, str_initID, bytes, encoding)); // 转化为 String
     delete[] buf;
     return result;
 }
@@ -116,10 +116,10 @@ void COSQuic::OnDataRecv(const char *buf, const int buf_len) {
     envPtr->CallVoidMethod(this->m_caller, quic_handle_struct->dataReceive, bytes, buf_len);
 }
 
-void COSQuic::OnRequestCompleted() {
+void COSQuic::OnRequestFinish(int stream_error) {
     LOGI(debug, "[%d] request completed", this->m_handle_id);
     JNIEnvPtr envPtr(quic_handle_struct->m_vm);
-    envPtr->CallVoidMethod(this->m_caller, quic_handle_struct->completed);
+    envPtr->CallVoidMethod(this->m_caller, quic_handle_struct->completed, stream_error);
 }
 
 void COSQuic::OnConnectionClose(int error_code, const char *error_detail) {

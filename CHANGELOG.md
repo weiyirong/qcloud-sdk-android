@@ -1,3 +1,11 @@
+
+## V5.5.1
+
+1. 支持图片处理       
+2. 支持全球加速上传   
+3. 支持用户自定义 Content-Type 和 Host 头部
+4. COSXMLUploadTask 增加 pauseSafely() 接口，之前的 pause() 接口在进度 100% 时暂停并恢复时可能会报错。
+
 ## V5.5.0
 
 1. 增加 DNS 缓存
