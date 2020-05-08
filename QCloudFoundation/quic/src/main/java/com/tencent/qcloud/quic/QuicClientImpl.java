@@ -14,9 +14,9 @@ public class QuicClientImpl extends NetworkClient {
     QuicManager quicManager;
 
     @Override
-    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, SSLSocketFactory sslSocketFactory,
+    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier,
                      Dns dns, HttpLogger httpLogger) {
-        super.init(b, hostnameVerifier, sslSocketFactory, dns, httpLogger);
+        super.init(b, hostnameVerifier, dns, httpLogger);
         quicManager = new QuicManager();
         quicManager.init(enableDebugLog, retryStrategy, dns, httpLogger);
     }

@@ -1,5 +1,8 @@
 package com.tencent.qcloud.core.http;
 
+import com.tencent.qcloud.core.http.interceptor.RetryInterceptor;
+import com.tencent.qcloud.core.http.interceptor.TrafficControlInterceptor;
+
 import okhttp3.Call;
 import okhttp3.Dns;
 import okhttp3.OkHttpClient;
@@ -7,9 +10,6 @@ import okhttp3.OkHttpClient;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class OkHttpClientImpl extends NetworkClient {
@@ -24,16 +24,12 @@ public class OkHttpClientImpl extends NetworkClient {
     private OkHttpClient okHttpClient;
 
     @Override
-    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, SSLSocketFactory sslSocketFactory,
+    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier,
                      final Dns dns, HttpLogger httpLogger) {
-
-        super.init(b, hostnameVerifier, sslSocketFactory, dns, httpLogger);
+        super.init(b, hostnameVerifier, dns, httpLogger);
         HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor(httpLogger);
         logInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
         OkHttpClient.Builder builder = b.mBuilder;
-        if (sslSocketFactory != null) {
-            builder.sslSocketFactory(sslSocketFactory);
-        }
         okHttpClient = builder
                 .followRedirects(true)
                 .followSslRedirects(true)
@@ -44,7 +40,8 @@ public class OkHttpClientImpl extends NetworkClient {
                 .writeTimeout(b.socketTimeout, TimeUnit.MILLISECONDS)
                 .eventListenerFactory(mEventListenerFactory)
                 .addInterceptor(logInterceptor)
-                .addInterceptor(new RetryAndTrafficControlInterceptor(b.retryStrategy))
+                .addInterceptor(new RetryInterceptor(b.retryStrategy))
+                .addInterceptor(new TrafficControlInterceptor())
                 .build();
     }
 

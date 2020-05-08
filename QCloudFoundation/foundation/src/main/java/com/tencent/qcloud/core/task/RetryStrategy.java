@@ -10,7 +10,7 @@ import com.tencent.qcloud.core.http.QCloudHttpRetryHandler;
 public class RetryStrategy {
 
     // 重试的指数退避
-    private static final int BACKOFF_MULTIPLIER = 2;
+    protected static final int BACKOFF_MULTIPLIER = 2;
 
     // 重试的初始间隔
     private static final int DEFAULT_INIT_BACKOFF = 1000;
@@ -29,7 +29,7 @@ public class RetryStrategy {
             DEFAULT_MAX_BACKOFF, 0);
 
     public static RetryStrategy FAIL_FAST = new RetryStrategy(0,
-            0, 0);
+            0, Integer.MIN_VALUE);
 
     private QCloudHttpRetryHandler qCloudHttpRetryHandler = QCloudHttpRetryHandler.DEFAULT;
 
@@ -39,7 +39,10 @@ public class RetryStrategy {
         this.baseAttempts = baseAttempts;
     }
 
-    public int getNextDelay(int attempts) {
+    public long getNextDelay(int attempts) {
+        if (attempts < 1) {
+            return 0;
+        }
         return Math.min(maxBackoff, initBackoff * (int) Math.pow(BACKOFF_MULTIPLIER, (attempts - 1)));
     }
 
@@ -52,6 +55,10 @@ public class RetryStrategy {
      */
     public boolean shouldRetry(int attempts, long millstook, int addition) {
         return attempts < baseAttempts + addition;
+    }
+
+    public void onTaskEnd(boolean isTaskSuccess, Exception e) {
+
     }
 
     public void setRetryHandler(QCloudHttpRetryHandler qCloudHttpRetryHandler){

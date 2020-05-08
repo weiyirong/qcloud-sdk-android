@@ -131,7 +131,7 @@ public class SessionCredentialProvider extends BasicLifecycleCredentialProvider 
             }
         }
 
-        return null;
+        throw new QCloudClientException(new QCloudAuthenticationException("fetch credential response content is null"));
     }
 
 
@@ -167,7 +167,7 @@ public class SessionCredentialProvider extends BasicLifecycleCredentialProvider 
             }
         }
 
-        return null;
+        throw new QCloudClientException(new QCloudAuthenticationException("fetch credential response content is null"));
     }
 
     public enum StsVersion {

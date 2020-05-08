@@ -13,7 +13,7 @@ public abstract class NetworkClient {
     protected boolean enableDebugLog;
     protected Dns dns;
 
-    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, SSLSocketFactory sslSocketFactory,
+    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier,
                      Dns dns, HttpLogger httpLogger){
         this.retryStrategy = b.retryStrategy;
         this.httpLogger = httpLogger;

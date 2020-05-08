@@ -80,6 +80,11 @@ public final class COSXMLUploadTask extends COSXMLTask {
     private AtomicLong ALREADY_SEND_DATA_LEN;
     private Object SYNC_UPLOAD_PART = new Object();
 
+    /**
+     * 正在发送 CompleteMultiUpload 请求的过程中不允许暂停
+     */
+    private AtomicBoolean sendingCompleteRequest = new AtomicBoolean(false);
+
     private WeightStrategy weightStrategy = new WeightStrategy();
 
     private MultiUploadsStateListener multiUploadsStateListenerHandler = new MultiUploadsStateListener() {
@@ -140,6 +145,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
         this.headers = putObjectRequest.getRequestHeaders();
         this.isNeedMd5 = putObjectRequest.isNeedMD5();
     }
+
 
     protected boolean checkParameter(){
         if(bytes == null && inputStream == null && srcPath == null){
@@ -410,6 +416,9 @@ public final class COSXMLUploadTask extends COSXMLTask {
     }
 
     private void completeMultiUpload(CosXmlSimpleService cosXmlService){
+
+        sendingCompleteRequest.set(true);
+
         completeMultiUploadRequest = new CompleteMultiUploadRequest(bucket, cosPath,
                 uploadId, null);
         completeMultiUploadRequest.setRegion(region);
@@ -436,6 +445,8 @@ public final class COSXMLUploadTask extends COSXMLTask {
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onCompleted(request, result);
+
+                sendingCompleteRequest.set(false);
             }
 
             @Override
@@ -446,6 +457,8 @@ public final class COSXMLUploadTask extends COSXMLTask {
                 if(IS_EXIT.get())return;
                 IS_EXIT.set(true);
                 multiUploadsStateListenerHandler.onFailed(request, exception, serviceException);
+
+                sendingCompleteRequest.set(false);
             }
         });
     }
@@ -462,8 +475,25 @@ public final class COSXMLUploadTask extends COSXMLTask {
 
     @Override
     protected void internalPause() {
+
         cancelAllRequest(cosXmlService);
     }
+
+    /**
+     * 如果已经发送了 CompleteMultiUpload 请求，则不允许暂停
+     *
+     * @return 是否暂停功
+     */
+    public boolean pauseSafely() {
+
+        if (sendingCompleteRequest.get()) {
+            return false;
+        }
+
+        pause();
+        return true;
+    }
+
 
     @Override
     protected void internalCancel() {
@@ -765,6 +795,10 @@ public final class COSXMLUploadTask extends COSXMLTask {
                 return QCloudTask.WEIGHT_LOW;
             }
         }
+    }
+
+    public boolean getSendingCompleteRequest() {
+        return sendingCompleteRequest.get();
     }
 
     private interface MultiUploadsStateListener{

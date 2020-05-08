@@ -10,7 +10,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ProtocolException;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.tencent.qcloud.quic.QuicNative.*;
 
@@ -23,20 +28,28 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
     private ConnectPool connectPool;
     private QuicNative realQuicCall;
 
-    private Looper looper;
-    private @Nullable Handler handler;
+    // Quic 通过 onDataReceive 回调来返回响应数据，首先返回 Header，然后返回 Body
+    // 是否已经接收了 Header 数据
+    private boolean receivedHeader = false;
 
-    private boolean isHeader;
-
-    //真正取消：response 接收完 + onRequestCompleted 或者 onClose
-    //需要排除: response 未接收，onRequestCompleted 就发生了的情况
-    //一旦 response 获取了，则任务可表示结束了
+    // 真正取消：response 接收完 + onRequestCompleted 或者 onClose
+    // 需要排除: response 未接收，onRequestCompleted 就发生了的情况
+    // 一旦 response 获取了，则任务可表示结束了
+    // 任务结束，包括正常结束和异常退出
     private volatile boolean isOver = false;
+
+    // 是否完成响应
     private boolean isCompleted = false;
-    private boolean hasReceivedResponse = false;
-    private boolean isClosed = false;
+
+    // 是否接收到了响应数据
+    private boolean receivedResponse = false;
+
+    // 是否产生了异常，包括 Quic 通过 Close 返回的异常，或者是 java 代码导致的异常
+    private boolean reportException = false;
 
     private CallMetricsListener callMetricsListener;
+
+    private CountDownLatch latch = new CountDownLatch(1);
 
     public QuicImpl(QuicRequest quicRequest, ConnectPool connectPool){
         this.quicRequest = quicRequest;
@@ -63,7 +76,7 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
      */
     @Override
     public void onConnect(int handleId, int code) {
-        handler.sendEmptyMessage(CONNECTED);
+        onInternalConnect();
     }
 
     /**
@@ -74,13 +87,7 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
      */
     @Override
     public void onDataReceive(int handleId, byte[] data, int len) {
-        Message message = handler.obtainMessage();
-        message.what = RECEIVING;
-        Bundle bundle = new Bundle();
-        bundle.putByteArray("DATA", data);
-        bundle.putInt("LEN", len);
-        message.obj = bundle;
-        handler.sendMessage(message);
+        onInternalReceiveResponse(data, len);
     }
 
     /**
@@ -88,8 +95,8 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
      * @param handleId
      */
     @Override
-    public void onCompleted(int handleId) {
-        handler.sendEmptyMessage(COMPLETED);
+    public void onCompleted(int handleId, int code) {
+        onInternalComplete(handleId, code);
     }
 
     /**
@@ -100,14 +107,60 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
      */
     @Override
     public void onClose(int handleId, int code, String desc) {
-        QLog.d("has been completed : %s", isOver);
-        if(isOver)return; //cancel by user
-        Message message = handler.obtainMessage();
-        message.what = SERVER_FAILED;
-        QuicException quicException = new QuicException(String.format("Closed(%d, %s)", code, desc));
-        message.obj = quicException;
-        handler.sendMessage(message);
+        onInternalClose(handleId, code, desc);
     }
+
+    private void onInternalClientFailed(Exception clientException) {
+
+        connectPool.updateQuicNativeState(realQuicCall, CLIENT_FAILED);
+        reportException = true;
+        exception = new QuicException(clientException);
+        latch.countDown();
+        quitSafely();
+    }
+
+    private void onInternalConnect() {
+        connectPool.updateQuicNativeState(realQuicCall, CONNECTED);
+        isOver = false;
+        sendData();
+    }
+
+    private void onInternalReceiveResponse(byte[] data, int len){
+        if (!receivedHeader) {
+            parseResponseHeader(data, len);
+            callMetricsListener.responseHeadersEnd(null, null);
+            receivedHeader = true;
+            callMetricsListener.responseBodyStart(null);
+        } else {
+            parseBody(data, len);
+            callMetricsListener.responseBodyEnd(null, -1L);
+        }
+        receivedResponse = true;
+    }
+
+    private void onInternalComplete(int handleId, int code) {
+
+        isCompleted = true;
+        connectPool.updateQuicNativeState(realQuicCall, COMPLETED);
+        latch.countDown();
+        quitSafely();
+    }
+
+    private void onInternalClose(int handleId, int code, String desc) {
+
+        QLog.d("has been completed : %s", isOver);
+
+        if(isOver) {
+            return; //cancel by user
+        }
+
+        exception = new QuicException(String.format(Locale.ENGLISH, "Closed(%d, %s)", code, desc));;
+        connectPool.updateQuicNativeState(realQuicCall, SERVER_FAILED);
+        reportException = true;
+        latch.countDown();
+        quitSafely();
+    }
+
 
     /**
      * 建立链接
@@ -145,27 +198,13 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
             }
             callMetricsListener.requestBodyEnd(null, -1L);
             callMetricsListener.responseHeadersStart(null);
-        }catch (IOException e){
+        } catch (IOException e){
             //失败
-            Message message = handler.obtainMessage();
-            message.what = CLIENT_FAILED;
-            message.obj = new QuicException(e);
-            handler.sendMessage(message);
+            onInternalClientFailed(e);
         }
     }
 
-    private void receiveResponse(byte[] data, int len){
-        if(isHeader){
-            parseResponseHeader(data, len);
-            callMetricsListener.responseHeadersEnd(null, null);
-            isHeader = false;
-            callMetricsListener.responseBodyStart(null);
-        }else {
-            parseBody(data, len);
-            callMetricsListener.responseBodyEnd(null, -1L);
-        }
-        hasReceivedResponse = true;
-    }
+
 
     /**
      * 解析头部字段
@@ -182,6 +221,7 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
         } catch (UnsupportedEncodingException e) {
             //e.printStackTrace();
         }
+
         if(quicResponse != null){
             ByteArrayInputStream byteArrayInputStream = null;
             BufferedReader bufferedReader = null;
@@ -218,10 +258,7 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
                 }
             }catch (IOException e){
                 // error
-                Message message = handler.obtainMessage();
-                message.what = CLIENT_FAILED;
-                message.obj = new QuicException(e);
-                handler.sendMessage(message);
+                onInternalClientFailed(e);
             }
             finally {
                 if(bufferedReader != null) {
@@ -309,10 +346,7 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
             }
         } catch (Exception e) {
             //失败
-            Message message = handler.obtainMessage();
-            message.what = CLIENT_FAILED;
-            message.obj = new QuicException(e);
-            handler.sendMessage(message);
+            onInternalClientFailed(e);
         }
 
     }
@@ -327,15 +361,11 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
                     quicResponse.fileSink.flush();
                     quicResponse.fileSink.close();
                 }
-            }else {
+            } else {
                 quicResponse.buffer.flush();
             }
         } catch (Exception e) {
-            //失败
-            Message message = handler.obtainMessage();
-            message.what = CLIENT_FAILED;
-            message.obj = new QuicException(e);
-            handler.sendMessage(message);
+            onInternalClientFailed(e);
         }
 
         QLog.d("quic net info: %s", realQuicCall.getState());
@@ -364,84 +394,23 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
         realQuicCall = connectPool.getQuicNative(quicRequest.host, quicRequest.ip, quicRequest.port, quicRequest.tcpPort);
         realQuicCall.setCallback(this);
 
-        QLog.d("has get a connect: ");
+        QLog.d("handle message " + "start call " + realQuicCall.toString());
+        connectPool.dumpQuicNatives();
 
-        synchronized (this){
-            looper = Looper.myLooper(); //表示当前线程已存在
-            if(looper != null){
-                notifyAll();
-            }
-        }
-        if(looper == null){
-            Looper.prepare(); //开始准备
-            QLog.d("looper prepare");
-            synchronized (this){
-                looper = Looper.myLooper();
-                notifyAll();
-            }
-        }
-
-        //设置消息队列
-        try {
-            setMessageQueue();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        handler = new Handler(getLooper()){
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what){
-                    case INIT:
-                        startConnect();
-                        break;
-                    case CONNECTED:
-                        connectPool.updateQuicNativeState(realQuicCall, CONNECTED);
-                        isHeader = true;
-                        isOver = false;
-                        sendData();
-                        break;
-                    case RECEIVING:
-                        Bundle bundle = (Bundle) msg.obj;
-                        receiveResponse(bundle.getByteArray("DATA"), bundle.getInt("LEN"));
-                        quitSafely();
-                        break;
-                    case COMPLETED:
-                        isCompleted = true;
-                        quitSafely();
-                        break;
-                    case SERVER_FAILED:
-                        connectPool.updateQuicNativeState(realQuicCall, SERVER_FAILED);
-                        isClosed = true;
-                        exception = (QuicException) msg.obj;
-                        quitSafely();
-                        break;
-                    case CLIENT_FAILED:
-                        connectPool.updateQuicNativeState(realQuicCall, CLIENT_FAILED);
-                        isClosed = true;
-                        exception = (QuicException) msg.obj;
-                        quitSafely();
-                        break;
-                }
-            }
-        };
-        QLog.d("looper loop start");
         if(realQuicCall.currentState == CONNECTED){
-            handler.sendEmptyMessage(CONNECTED);
+            onInternalConnect();
         }else {
-            handler.sendEmptyMessage(INIT);
+            startConnect();
         }
-        Looper.loop();//开始循环
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //Looper.loop();//开始循环
         //循环结束
-        QLog.d("looper loop end");
+        QLog.d("handle message looper loop end");
         if(exception != null){
             throw exception;
         }
@@ -452,60 +421,19 @@ public class QuicImpl implements NetworkCallback, java.util.concurrent.Callable<
         return exception;
     }
 
-    private Looper getLooper() {
-        if (!Thread.currentThread().isAlive()) {
-            return null;
-        }
-
-        // If the thread has been started, wait until the looper has been created.
-        synchronized (this) {
-            while (Thread.currentThread().isAlive() && looper == null) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                }
-            }
-        }
-        return looper;
-    }
 
     private void quitSafely() {
-        QLog.d("isClose: %s; isCompleted: %s; hasReceiveResponse: %s", isClosed, isCompleted, hasReceivedResponse);
-        if(isClosed || (isCompleted && hasReceivedResponse)){
+
+        QLog.d("isClose: %s; isCompleted: %s; hasReceiveResponse: %s", reportException, isCompleted, receivedResponse);
+        if(reportException || (isCompleted && receivedResponse)){
             isOver = true;
         }else {
             return;
         }
-        if(isCompleted){
+        if (isCompleted) {
             finish();
         }
-        handler.removeCallbacksAndMessages(null);
         connectPool.updateQuicNativeState(realQuicCall, COMPLETED);
-        Looper looper = getLooper();
-        if (looper != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                looper.quitSafely();
-            }else {
-                looper.quit();
-            }
-        }
-    }
-
-    private void setMessageQueue() throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, InvocationTargetException, InstantiationException {
-        Field messageQueueField = Looper.class.getDeclaredField("mQueue");
-        messageQueueField.setAccessible(true);
-        Class<MessageQueue> messageQueueClass = (Class<MessageQueue>) Class.forName("android.os.MessageQueue");
-        Constructor<MessageQueue>[] messageQueueConstructor = (Constructor<MessageQueue>[]) messageQueueClass.getDeclaredConstructors();
-        for(Constructor<MessageQueue> constructor : messageQueueConstructor){
-            constructor.setAccessible(true);
-            Class[] types = constructor.getParameterTypes();
-            for(Class clazz : types){
-                if(clazz.getName().equalsIgnoreCase("boolean")){
-                    messageQueueField.set(looper, constructor.newInstance(true));
-                    break;
-                }
-            }
-        }
     }
 
 }

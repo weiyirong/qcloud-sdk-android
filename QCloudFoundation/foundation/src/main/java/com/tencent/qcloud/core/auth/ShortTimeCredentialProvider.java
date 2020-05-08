@@ -29,7 +29,7 @@ public class ShortTimeCredentialProvider extends BasicLifecycleCredentialProvide
         String keyTime = current + ";" + expired;
         String signKey = secretKey2SignKey(secretKey, keyTime);
 
-        return new BasicQCloudCredentials(secretId, signKey, keyTime);
+        return new BasicQCloudCredentials(secretId, secretKey, signKey, keyTime);
     }
 
     private String secretKey2SignKey(String secretKey, String keyTime) {

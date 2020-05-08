@@ -1,5 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
+import android.support.annotation.NonNull;
+
 import com.tencent.cos.xml.CosXmlSimpleService;
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
@@ -9,7 +11,7 @@ import com.tencent.cos.xml.common.RequestMethod;
 import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.listener.CosXmlProgressListener;
 import com.tencent.cos.xml.model.tag.ACLAccount;
-import com.tencent.cos.xml.utils.FileUtils;
+import com.tencent.cos.xml.model.tag.pic.PicOperations;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
 
 import java.io.File;
@@ -105,7 +107,7 @@ public class PutObjectRequest extends ObjectRequest implements TransferRequest {
     @Override
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         if(srcPath != null){
-            return RequestBodySerializer.file(null, new File(srcPath));
+            return RequestBodySerializer.file(getContentType(), new File(srcPath));
         }else if(data != null){
             return RequestBodySerializer.bytes(null, data);
         }else if(inputStream != null){
@@ -367,5 +369,9 @@ public class PutObjectRequest extends ObjectRequest implements TransferRequest {
     @Override
     public void setTrafficLimit(long limit) {
         addHeader("x-cos-traffic-limit", String.valueOf(limit));
+    }
+
+    public void setPicOperations(@NonNull PicOperations operations) {
+        addHeader("Pic-Operations", operations.toJsonStr());
     }
 }

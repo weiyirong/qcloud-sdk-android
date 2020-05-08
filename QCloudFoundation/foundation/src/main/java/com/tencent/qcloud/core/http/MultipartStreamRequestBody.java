@@ -28,7 +28,7 @@ import okio.Okio;
  * Copyright 2010-2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class MultipartStreamRequestBody extends RequestBody implements ProgressBody, QCloudDigistListener {
+public class MultipartStreamRequestBody extends RequestBody implements ProgressBody, QCloudDigistListener, ReactiveBody {
     private Map<String, String> bodyParameters = new LinkedHashMap<>();
     private String name;
     private String fileName;
@@ -86,7 +86,8 @@ public class MultipartStreamRequestBody extends RequestBody implements ProgressB
         }
     }
 
-    public void build(){
+    @Override
+    public void prepare() {
         MultipartBody.Builder builder = new MultipartBody.Builder();
         builder.setType(MediaType.parse(HttpConstants.ContentType.MULTIPART_FORM_DATA));
         for (Map.Entry<String, String> entry : bodyParameters.entrySet()) {
@@ -94,6 +95,11 @@ public class MultipartStreamRequestBody extends RequestBody implements ProgressB
         }
         builder.addFormDataPart(name, fileName, streamingRequestBody);
         multipartBody = builder.build();
+    }
+
+    @Override
+    public <T> void end(HttpResult<T> httpResult) throws IOException {
+
     }
 
     @Override

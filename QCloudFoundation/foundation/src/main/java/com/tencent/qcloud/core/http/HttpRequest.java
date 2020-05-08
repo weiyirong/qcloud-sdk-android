@@ -9,7 +9,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,16 +28,16 @@ import okhttp3.RequestBody;
 
 public class HttpRequest<T> {
 
-    private final Request.Builder requestBuilder;
-    private final Map<String, List<String>> headers;
-    private final Set<String> noSignHeaders;
-    private final RequestBody requestBody;
-    private final String method;
-    private final Object tag;
-    private final URL url;
-    private final ResponseBodyConverter<T> responseBodyConverter;
+    protected final Request.Builder requestBuilder;
+    protected final Map<String, List<String>> headers;
+    protected final Set<String> noSignHeaders;
+    protected final RequestBody requestBody;
+    protected final String method;
+    protected final Object tag;
+    protected final URL url;
+    protected final ResponseBodyConverter<T> responseBodyConverter;
 
-    private final boolean calculateContentMD5;
+    protected final boolean calculateContentMD5;
 
     HttpRequest(Builder<T> builder) {
         requestBuilder = builder.requestBuilder;

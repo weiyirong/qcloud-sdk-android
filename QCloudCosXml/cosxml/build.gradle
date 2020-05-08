@@ -11,7 +11,7 @@ android {
         targetSdkVersion 28
 
         versionCode sdkVersionCode
-        versionName "5.4.32"
+        versionName "5.5.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -34,6 +34,9 @@ android {
             it.buildConfigField 'String', 'CSP_UIN', quotWrapper(System.getenv("CSP_UIN"))
             it.buildConfigField 'String', 'CSP_SECRET_ID', quotWrapper(System.getenv("CSP_SECRET_ID"))
             it.buildConfigField 'String', 'CSP_SECRET_KEY', quotWrapper(System.getenv("CSP_SECRET_KEY"))
+
+            it.buildConfigField 'String', 'COS_CI_SECRET_ID', quotWrapper(System.getenv("COS_CI_SECRET_ID"))
+            it.buildConfigField 'String', 'COS_CI_SECRET_KEY', quotWrapper(System.getenv("COS_CI_SECRET_KEY"))
         }
 
         release {
@@ -55,7 +58,14 @@ android {
 
     // 切换发 normal 或者 slim 包，需要同步修改 pom.artifactId 信息
     defaultPublishConfig "normalRelease"
-    //  defaultPublishConfig "slimRelease"
+    // defaultPublishConfig "slimRelease"
+
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+    buildToolsVersion = '28.0.2'
+
 
 }
 
@@ -69,6 +79,7 @@ dependencies {
     api project(path: ':foundation')
     api project(path: ':mtaUtils')
     api project(path: ':logUtils')
+    // api project(path: ':quic')
 }
 
 // 发布到 bintray

@@ -1,6 +1,7 @@
 package com.tencent.cos.xml;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.tencent.cos.xml.common.Constants;
 import com.tencent.cos.xml.common.MetaDataDirective;
@@ -106,6 +107,8 @@ import com.tencent.qcloud.core.http.QCloudHttpRequest;
  */
 
 public class CosXmlService extends CosXmlSimpleService implements CosXml {
+
+    private String getServiceRequestDomain;
 
     /**
      * cos android SDK 服务
@@ -1257,4 +1260,25 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
         }
         return super.buildHttpRequestBodyConverter(cosXmlRequest, cosXmlResult, httpRequestBuilder);
     }
+
+    @Override
+    protected String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) throws CosXmlClientException {
+
+        if (request instanceof GetServiceRequest && !TextUtils.isEmpty(getServiceRequestDomain)) {
+            return getServiceRequestDomain;
+        } else {
+            return super.getRequestHost(request, accelerate, isHeader);
+        }
+    }
+
+    /**
+     * 设置 get service 请求的域名
+     *
+     * @param domain
+     */
+    public void setServiceDomain(String domain) {
+
+        this.getServiceRequestDomain = domain;
+    }
+
 }

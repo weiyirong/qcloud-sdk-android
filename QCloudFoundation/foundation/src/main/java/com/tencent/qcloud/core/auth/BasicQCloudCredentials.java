@@ -10,10 +10,11 @@ import static com.tencent.qcloud.core.auth.Utils.handleTimeAccuracy;
  * Copyright (c) 2010-2017 Tencent Cloud. All rights reserved.
  */
 
-public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
+public class BasicQCloudCredentials implements QCloudLifecycleCredentials, QCloudRawCredentials {
 
     private final String secretId;
     private final String signKey;
+    private final String secretKey;
     private final String keyTime;
 
     /**
@@ -24,9 +25,12 @@ public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
      * @param beginTime The begin time of the key.
      * @param expiredTime The expired time of the key.
      */
-    public BasicQCloudCredentials(String secretId, String signKey, long beginTime, long expiredTime) {
+    public BasicQCloudCredentials(String secretId, String secretKey, String signKey, long beginTime, long expiredTime) {
         if (secretId == null) {
             throw new IllegalArgumentException("secretId cannot be null.");
+        }
+        if (secretKey == null) {
+            throw new IllegalArgumentException("secretKey cannot be null.");
         }
         if (signKey == null) {
             throw new IllegalArgumentException("signKey cannot be null.");
@@ -36,6 +40,7 @@ public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
         }
 
         this.secretId = secretId;
+        this.secretKey = secretKey;
         this.signKey = signKey;
         this.keyTime = handleTimeAccuracy(beginTime) + ";" + handleTimeAccuracy(expiredTime);
     }
@@ -47,9 +52,12 @@ public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
      * @param signKey The QCloud signKey.
      * @param keyTime The QCloud keyTime.
      */
-    public BasicQCloudCredentials(String secretId, String signKey, String keyTime) {
+    public BasicQCloudCredentials(String secretId, String secretKey, String signKey, String keyTime) {
         if (secretId == null) {
             throw new IllegalArgumentException("secretId cannot be null.");
+        }
+        if (secretKey == null) {
+            throw new IllegalArgumentException("secretKey cannot be null.");
         }
         if (signKey == null) {
             throw new IllegalArgumentException("signKey cannot be null.");
@@ -59,6 +67,7 @@ public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
         }
 
         this.secretId = secretId;
+        this.secretKey = secretKey;
         this.signKey = signKey;
         this.keyTime = keyTime;
     }
@@ -83,5 +92,10 @@ public class BasicQCloudCredentials implements QCloudLifecycleCredentials {
     @Override
     public String getSecretId() {
         return secretId;
+    }
+
+    @Override
+    public String getSecretKey() {
+        return secretKey;
     }
 }

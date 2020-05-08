@@ -18,7 +18,7 @@ import java.net.URL;
  * Copyright 2010-2017 Tencent Cloud. All Rights Reserved.
  */
 
-public final class QCloudHttpRequest<T> extends HttpRequest<T> {
+public class QCloudHttpRequest<T> extends HttpRequest<T> {
 
     private final QCloudSignSourceProvider signProvider;
     private final String signerType;

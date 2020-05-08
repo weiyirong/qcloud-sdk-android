@@ -10,7 +10,7 @@ import static com.tencent.qcloud.quic.QuicNative.INIT;
 import static com.tencent.qcloud.quic.QuicNative.SERVER_FAILED;
 
 public class ConnectPool {
-    private final int MAX_REQUEST_SIZE = 3;
+    private final int MAX_REQUEST_SIZE = 5;
     private Deque<QuicNative> quicNatives = new ArrayDeque<>();
     private Object sync = new Object();
 
@@ -37,9 +37,9 @@ public class ConnectPool {
 //        tmp.tcpPort = tcpPort;
 
         QLog.d("get an quic connect for(%s, %s, %d, %d)", host, ip, port, tcpPort);
-        while (true){
-            synchronized (sync){
-                if(quicNatives.size() > MAX_REQUEST_SIZE){
+        while (true) {
+            synchronized (sync) {
+                if(quicNatives.size() > MAX_REQUEST_SIZE) {
                     //复用一个已完成请求-响应且闲时较长的链接
                     long idleTime = Long.MAX_VALUE;
                     for(QuicNative quicNative : quicNatives) {
@@ -55,7 +55,7 @@ public class ConnectPool {
                             }
                         }
                     }
-                }else {
+                } else {
                     QLog.d("add new quic connect");
                     QuicNative quicNative = new QuicNative();
                     quicNative.host = host;
@@ -67,6 +67,8 @@ public class ConnectPool {
                     tmp = quicNative;
                     break;
                 }
+
+
                 if(tmp == null){
                     tmp = getLongestIdleConnect();
                     if(tmp != null){
@@ -87,6 +89,7 @@ public class ConnectPool {
             if(tmp == null){
                 //继续等待
                 QLog.d("wait an idle quic connect");
+                // dumpQuicNatives();
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -97,6 +100,18 @@ public class ConnectPool {
             }
         }
         return tmp;
+    }
+
+    void dumpQuicNatives() {
+
+        QLog.d("handle message  dump quicNatives");
+        QLog.d("handle message  quickNative size " + quicNatives.size());
+        for(Iterator<QuicNative> iterator = quicNatives.iterator(); iterator.hasNext();) {
+            QuicNative quicNative = iterator.next();
+            QLog.d("handle message  quickNative handleId: " + quicNative.handleId);
+            QLog.d("handle message  quickNative isCompleted: " + quicNative.isCompleted);
+
+        }
     }
 
     protected void updateQuicNativeState(QuicNative quicNative, int newState){

@@ -129,9 +129,9 @@ final public class UploadPartRequest extends BaseMultipartUploadRequest implemen
     public RequestBodySerializer getRequestBody() throws CosXmlClientException {
         if(srcPath != null){
             if(fileOffset != -1){
-                return RequestBodySerializer.file(null, new File(srcPath), fileOffset, fileContentLength);
+                return RequestBodySerializer.file(getContentType(), new File(srcPath), fileOffset, fileContentLength);
             }else {
-               return RequestBodySerializer.file(null, new File(srcPath));
+               return RequestBodySerializer.file(getContentType(), new File(srcPath));
             }
         }else if(data != null){
             return RequestBodySerializer.bytes(null, data);

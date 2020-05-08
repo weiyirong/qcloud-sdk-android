@@ -45,13 +45,18 @@ public:
     jstring GetState(JNIEnv *env,
                       const jobject jcaller);
 
-    // implement TnetRequestDelegate method.
+    // 连接成功
     void OnConnect(int error_code) override;
+
+    // 收到数据并且输出
     void OnDataRecv(const char* buf,
                     const int buf_len) override;
+
+    // 连接关闭回调
     void OnConnectionClose(int error_code, const char* error_detail) override;
 
-    void OnRequestCompleted() override;
+    // 单次请求已完成的回调
+    void OnRequestFinish(int stream_error) override;
 
 };
 

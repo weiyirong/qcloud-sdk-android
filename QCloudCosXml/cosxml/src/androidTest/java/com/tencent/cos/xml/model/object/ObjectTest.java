@@ -1,6 +1,7 @@
 package com.tencent.cos.xml.model.object;
 
 import android.content.Context;
+import android.os.Environment;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
@@ -14,6 +15,9 @@ import com.tencent.cos.xml.model.bucket.GetBucketRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketResult;
 import com.tencent.cos.xml.model.tag.COSMetaData;
 import com.tencent.cos.xml.model.tag.ListBucket;
+import com.tencent.cos.xml.model.tag.pic.PicOperationRule;
+import com.tencent.cos.xml.model.tag.pic.PicOperations;
+import com.tencent.cos.xml.model.tag.pic.PicUploadResult;
 import com.tencent.qcloud.core.common.QCloudClientException;
 import com.tencent.qcloud.core.common.QCloudServiceException;
 
@@ -23,6 +27,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -139,14 +145,45 @@ public class ObjectTest {
     }
 
 
+    @Test public void uploadImageTest() throws Exception {
+
+        String bucketName = QServer.persistBucket;
+        String objectName = "/test.txt";
+        String filePath = new File(Environment.getExternalStorageDirectory(), "673597_thumb.jpg").getAbsolutePath();
+
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, filePath);
+        putObjectRequest.setRequestHeaders("Content-Type", "image/png", false);
+
+        List<PicOperationRule> rules = new LinkedList<>();
+        rules.add(new PicOperationRule("/test.png", "imageView2/format/png"));
+        PicOperations picOperations = new PicOperations(false, rules);
+        putObjectRequest.setPicOperations(picOperations);
+
+        PutObjectResult putObjectResult = null;
+        try {
+            putObjectResult = QServer.cosXml.putObject(putObjectRequest);
+
+            PicUploadResult uploadResult = putObjectResult.picUploadResult();
+            Assert.assertTrue(putObjectResult.httpCode == 200);
+        } catch (QCloudClientException clientException) {
+            clientException.printStackTrace();
+            Assert.assertTrue(false);
+        } catch (QCloudServiceException serviceException) {
+            serviceException.printStackTrace();
+            Assert.assertTrue(false);
+        }
+
+    }
 
 
     @Test public void uploadStringObjectTest() throws Exception {
 
         String bucketName = QServer.persistBucket;
         String objectName = "/putobject.txt";
+        String filePath = QServer.createFile(InstrumentationRegistry.getContext(), 1024 * 1024);
 
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, new StringBuilder("this is a test"));
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, "test.txt".getBytes());
+        putObjectRequest.setRequestHeaders("Content-Type", "image/png", false);
 
         PutObjectResult putObjectResult = null;
         try {

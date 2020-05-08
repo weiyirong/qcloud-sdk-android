@@ -37,7 +37,6 @@ import com.tencent.cos.xml.model.object.UploadPartCopyRequest;
 import com.tencent.cos.xml.model.object.UploadPartCopyResult;
 import com.tencent.cos.xml.model.object.UploadPartRequest;
 import com.tencent.cos.xml.model.object.UploadPartResult;
-import com.tencent.cos.xml.model.service.GetServiceRequest;
 import com.tencent.cos.xml.transfer.ResponseBytesConverter;
 import com.tencent.cos.xml.transfer.ResponseFileBodySerializer;
 import com.tencent.cos.xml.transfer.ResponseXmlS3BodySerializer;
@@ -87,8 +86,6 @@ public class CosXmlSimpleService implements SimpleCosXml {
     public static String appCachePath;      // 用于缓存临时文件
 
     private String requestDomain;
-
-    private String getServiceRequestDomain;
 
     /**
      * cos android SDK 服务
@@ -154,9 +151,6 @@ public class CosXmlSimpleService implements SimpleCosXml {
         client.addVerifiedHost("*." + configuration.getEndpointSuffix(
                 configuration.getRegion(), true));
         client.setDebuggable(configuration.isDebuggable());
-        if (configuration.isTrustAllHost()) {
-        }
-
         ContextHolder.setContext(context);
     }
 
@@ -235,26 +229,12 @@ public class CosXmlSimpleService implements SimpleCosXml {
         this.requestDomain = domain;
     }
 
-    /**
-     * 设置 get service 请求的域名
-     *
-     * @param domain
-     */
-    public void setServiceDomain(String domain) {
 
-        this.getServiceRequestDomain = domain;
-    }
+    protected String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) throws CosXmlClientException {
 
-    private String getRequestHost(CosXmlRequest request, boolean accelerate, boolean isHeader) throws CosXmlClientException {
-
-        if (request instanceof GetServiceRequest ) {
-            if (!TextUtils.isEmpty(getServiceRequestDomain)) {
-                return getServiceRequestDomain;
-            }
-        } else if (!TextUtils.isEmpty(requestDomain)) {
+        if (!TextUtils.isEmpty(requestDomain)) {
             return requestDomain;
         }
-
         return request.getHost(config, accelerate, isHeader);
     }
 
@@ -277,7 +257,10 @@ public class CosXmlSimpleService implements SimpleCosXml {
             try {
                 httpRequestBuilder.url(new URL(requestURL));
                 String hostHeader = getRequestHost(cosXmlRequest, cosXmlRequest.isSupportAccelerate(), true);
-                httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+                // httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+                if (!isRequestHasHeader(cosXmlRequest, HttpConstants.Header.HOST)) {
+                    httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+                }
             } catch (MalformedURLException e) {
                 throw new CosXmlClientException(ClientErrorCode.BAD_REQUEST.getCode(), e);
             }
@@ -287,8 +270,11 @@ public class CosXmlSimpleService implements SimpleCosXml {
             String hostHeader = getRequestHost(cosXmlRequest, cosXmlRequest.isSupportAccelerate(), true);
             httpRequestBuilder.scheme(config.getProtocol())
                     .host(host)
-                    .path(cosXmlRequest.getPath(config))
-                    .addHeader(HttpConstants.Header.HOST, hostHeader);
+                    .path(cosXmlRequest.getPath(config));
+                    // .addHeader(HttpConstants.Header.HOST, hostHeader);
+            if (!isRequestHasHeader(cosXmlRequest, HttpConstants.Header.HOST)) {
+                httpRequestBuilder.addHeader(HttpConstants.Header.HOST, hostHeader);
+            }
             if(config.getPort() != -1)httpRequestBuilder.port(config.getPort());
             httpRequestBuilder.query(cosXmlRequest.getQueryString());
         }
@@ -820,5 +806,12 @@ public class CosXmlSimpleService implements SimpleCosXml {
         return null;
     }
 
+    private boolean isRequestHasHeader(CosXmlRequest request, String key) {
+
+        if (request == null || request.getRequestHeaders() == null) {
+            return false;
+        }
+        return request.getRequestHeaders().containsKey(key);
+    }
 
 }
