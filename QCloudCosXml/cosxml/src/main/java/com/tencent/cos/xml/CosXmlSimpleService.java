@@ -154,6 +154,9 @@ public class CosXmlSimpleService implements SimpleCosXml {
         client.addVerifiedHost("*." + configuration.getEndpointSuffix(
                 configuration.getRegion(), true));
         client.setDebuggable(configuration.isDebuggable());
+        if (configuration.isTrustAllHost()) {
+        }
+
         ContextHolder.setContext(context);
     }
 
@@ -816,5 +819,6 @@ public class CosXmlSimpleService implements SimpleCosXml {
         }
         return null;
     }
+
 
 }

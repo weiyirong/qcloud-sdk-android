@@ -1,6 +1,7 @@
 package com.tencent.qcloud.core.http;
 
 
+import android.os.Build;
 import android.support.annotation.NonNull;
 
 import com.tencent.qcloud.core.R;
@@ -12,6 +13,9 @@ import com.tencent.qcloud.core.task.TaskManager;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +27,11 @@ import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.*;
 
@@ -48,6 +56,7 @@ public final class QCloudHttpClient {
 
     private static volatile QCloudHttpClient gDefault;
 
+    private boolean trustAllHost;
 
     private HostnameVerifier mHostnameVerifier = new HostnameVerifier() {
         @Override
@@ -62,6 +71,42 @@ public final class QCloudHttpClient {
             return HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session);
         }
     };
+
+    private HostnameVerifier mTrustAllHostVerifier = new HostnameVerifier() {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+
+    private static SSLSocketFactory createSSLSocketFactory() {
+        SSLSocketFactory sSLSocketFactory = null;
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, new TrustManager[]{new TrustAllManager()},
+                    new SecureRandom());
+            sSLSocketFactory = sc.getSocketFactory();
+        } catch (Exception e) {
+        }
+        return sSLSocketFactory;
+    }
+
+    private static class TrustAllManager implements X509TrustManager {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType)
+                throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType)
+                throws CertificateException {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
+    }
 
     private Dns mDns = new Dns() {
 
@@ -134,11 +179,13 @@ public final class QCloudHttpClient {
         networkClientType = networkClient.getClass().getName();
         int hashCode = networkClientType.hashCode();
         if(!networkClientMap.containsKey(hashCode)){
-            networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
+            networkClient.init(b, hostnameVerifier(), createSSLSocketFactory(), mDns, httpLogger);
             networkClientMap.put(hashCode, networkClient);
         }
+        this.trustAllHost = b.trustAllHost;
         dnsRepository.addPrefetchHosts(b.prefetchHost);
         dnsRepository.init(); // 启动 dns 缓存
+
     }
 
     public void setNetworkClientType(Builder b){
@@ -147,11 +194,15 @@ public final class QCloudHttpClient {
             String name = networkClient.getClass().getName();
             int hashCode = name.hashCode();
             if(!networkClientMap.containsKey(hashCode)){
-                networkClient.init(b, mHostnameVerifier, mDns, httpLogger);
+                networkClient.init(b, hostnameVerifier(), createSSLSocketFactory(), mDns, httpLogger);
                 networkClientMap.put(hashCode, networkClient);
             }
             this.networkClientType = name;
         }
+    }
+
+    private HostnameVerifier hostnameVerifier() {
+        return trustAllHost ? mTrustAllHostVerifier : mHostnameVerifier;
     }
 
     public List<HttpTask> getTasksByTag(String tag) {
@@ -192,6 +243,7 @@ public final class QCloudHttpClient {
         OkHttpClient.Builder mBuilder;
         NetworkClient networkClient;
         boolean enableDebugLog = false;
+        boolean trustAllHost = false;
         List<String> prefetchHost = new LinkedList<>();
 
         public Builder() {
@@ -240,6 +292,11 @@ public final class QCloudHttpClient {
 
         public Builder addPrefetchHost(String host) {
             prefetchHost.add(host);
+            return this;
+        }
+
+        public Builder trustAllHost(boolean trust) {
+            this.trustAllHost = trust;
             return this;
         }
 

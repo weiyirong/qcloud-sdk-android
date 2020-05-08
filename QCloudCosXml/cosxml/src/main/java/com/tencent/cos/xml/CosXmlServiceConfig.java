@@ -60,6 +60,8 @@ public class CosXmlServiceConfig implements Parcelable {
 
     private boolean isQuic;
 
+    private boolean trustAllHost;
+
     private List<String> prefetchHosts;
 
     private Map<String, List<String>> commonHeaders;
@@ -91,6 +93,7 @@ public class CosXmlServiceConfig implements Parcelable {
 
         this.executor = builder.executor;
         this.isQuic = builder.isQuic;
+        this.trustAllHost = builder.trustAllHost;
     }
 
     public String getProtocol() {
@@ -115,6 +118,10 @@ public class CosXmlServiceConfig implements Parcelable {
             myBucket = bucket + "-" + appid;
         }
         return myBucket;
+    }
+
+    public boolean isTrustAllHost() {
+        return trustAllHost;
     }
 
     public List<String> getNoSignHeaders() {
@@ -339,6 +346,8 @@ public class CosXmlServiceConfig implements Parcelable {
         private Map<String, List<String>> commonHeaders = new HashMap<>();
         private List<String> noSignHeaders = new LinkedList<>();
 
+        private boolean trustAllHost;
+
         public Builder() {
             protocol = HTTP_PROTOCOL;
             userAgent = DEFAULT_USER_AGENT;
@@ -441,6 +450,11 @@ public class CosXmlServiceConfig implements Parcelable {
 
         public Builder enableQuic(boolean isEnable){
             this.isQuic = isEnable;
+            return this;
+        }
+
+        public Builder trustAllHost(boolean trust) {
+            this.trustAllHost = trust;
             return this;
         }
 

@@ -5,6 +5,7 @@ import okhttp3.Dns;
 import okhttp3.OkHttpClient;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSocketFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -23,11 +24,17 @@ public class OkHttpClientImpl extends NetworkClient {
     private OkHttpClient okHttpClient;
 
     @Override
-    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, final Dns dns, HttpLogger httpLogger) {
-        super.init(b, hostnameVerifier, dns, httpLogger);
+    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, SSLSocketFactory sslSocketFactory,
+                     final Dns dns, HttpLogger httpLogger) {
+
+        super.init(b, hostnameVerifier, sslSocketFactory, dns, httpLogger);
         HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor(httpLogger);
         logInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-        okHttpClient = b.mBuilder
+        OkHttpClient.Builder builder = b.mBuilder;
+        if (sslSocketFactory != null) {
+            builder.sslSocketFactory(sslSocketFactory);
+        }
+        okHttpClient = builder
                 .followRedirects(true)
                 .followSslRedirects(true)
                 .hostnameVerifier(hostnameVerifier)

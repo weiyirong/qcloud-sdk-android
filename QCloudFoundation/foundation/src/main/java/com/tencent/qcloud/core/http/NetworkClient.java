@@ -4,6 +4,7 @@ import com.tencent.qcloud.core.task.RetryStrategy;
 import okhttp3.Dns;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSocketFactory;
 
 public abstract class NetworkClient {
 
@@ -12,7 +13,8 @@ public abstract class NetworkClient {
     protected boolean enableDebugLog;
     protected Dns dns;
 
-    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, Dns dns, HttpLogger httpLogger){
+    public void init(QCloudHttpClient.Builder b, HostnameVerifier hostnameVerifier, SSLSocketFactory sslSocketFactory,
+                     Dns dns, HttpLogger httpLogger){
         this.retryStrategy = b.retryStrategy;
         this.httpLogger = httpLogger;
         this.enableDebugLog = b.enableDebugLog;
