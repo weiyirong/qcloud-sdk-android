@@ -2,9 +2,17 @@ package com.tencent.cos.xml.model.bucket;
 
 import com.tencent.cos.xml.common.COSACL;
 import com.tencent.cos.xml.common.COSRequestHeaderKey;
+import com.tencent.cos.xml.common.ClientErrorCode;
 import com.tencent.cos.xml.common.RequestMethod;
+import com.tencent.cos.xml.exception.CosXmlClientException;
 import com.tencent.cos.xml.model.tag.ACLAccount;
+import com.tencent.cos.xml.model.tag.CreateBucketConfiguration;
+import com.tencent.cos.xml.transfer.XmlBuilder;
 import com.tencent.qcloud.core.http.RequestBodySerializer;
+
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 
 /**
  * <p>
@@ -15,6 +23,8 @@ import com.tencent.qcloud.core.http.RequestBodySerializer;
 */
 final public class PutBucketRequest extends BucketRequest {
 
+    private CreateBucketConfiguration createBucketConfiguration = new CreateBucketConfiguration();
+
     public PutBucketRequest(String bucket){
         super(bucket);
     }
@@ -22,6 +32,11 @@ final public class PutBucketRequest extends BucketRequest {
     public PutBucketRequest(){
         super(null);
     }
+
+    public void enableMAZ(boolean enable) {
+        createBucketConfiguration.bucketAzConfig = enable ? "MAZ" : "OAZ";
+    }
+
     /**
      * <p>
      * 设置Bucket访问权限
@@ -102,7 +117,13 @@ final public class PutBucketRequest extends BucketRequest {
     }
 
     @Override
-    public RequestBodySerializer getRequestBody() {
-        return RequestBodySerializer.bytes(null, new byte[0]);
+    public RequestBodySerializer getRequestBody() throws CosXmlClientException {
+        try {
+            return RequestBodySerializer.string(COSRequestHeaderKey.APPLICATION_XML, XmlBuilder.buildCreateBucketConfiguration(createBucketConfiguration));
+        } catch (XmlPullParserException e) {
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
+        } catch (IOException e) {
+            throw new CosXmlClientException(ClientErrorCode.INVALID_ARGUMENT.getCode(), e);
+        }
     }
 }

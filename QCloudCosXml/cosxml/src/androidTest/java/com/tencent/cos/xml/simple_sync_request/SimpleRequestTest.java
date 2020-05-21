@@ -27,6 +27,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketLifecycleRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLifecycleResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationResult;
+import com.tencent.cos.xml.model.bucket.GetBucketObjectVersionsRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketObjectVersionsResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketResult;
 import com.tencent.cos.xml.model.bucket.HeadBucketRequest;
@@ -151,6 +153,25 @@ public class SimpleRequestTest {
         }
 
         Assert.assertNotNull(getBucketResult);
+    }
+
+    @Test
+    public void getBucketObjectVersionsTest() {
+
+        GetBucketObjectVersionsRequest getBucketObjectVersionsRequest = new GetBucketObjectVersionsRequest(TestConfigs.TERMINAL_TEMP_BUCKET);
+        getBucketObjectVersionsRequest.setPrefix("versionsFolder/");
+        getBucketObjectVersionsRequest.setDelimiter("/");
+        GetBucketObjectVersionsResult getBucketObjectVersionsResult = null;
+
+        try {
+            getBucketObjectVersionsResult = cosXmlService.getBucketObjectVersions(getBucketObjectVersionsRequest);
+        } catch (CosXmlClientException e) {
+            e.printStackTrace();
+        } catch (CosXmlServiceException e) {
+            e.printStackTrace();
+        }
+
+        Assert.assertNotNull(getBucketObjectVersionsResult);
     }
 
 

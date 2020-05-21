@@ -3,6 +3,7 @@ package com.tencent.cos.xml.transfer;
 
 import com.tencent.cos.xml.model.tag.BucketLoggingStatus;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
+import com.tencent.cos.xml.model.tag.CreateBucketConfiguration;
 import com.tencent.cos.xml.model.tag.Delete;
 import com.tencent.cos.xml.model.tag.DomainConfiguration;
 import com.tencent.cos.xml.model.tag.InventoryConfiguration;
@@ -198,6 +199,26 @@ public class XmlBuilder extends XmlSlimBuilder {
         addElement(xmlSerializer, "Status", versioningConfiguration.status);
         xmlSerializer.endTag("", "VersioningConfiguration");
 
+        xmlSerializer.endDocument();
+        return removeXMLHeader(xmlContent.toString());
+    }
+
+    public static String buildCreateBucketConfiguration(CreateBucketConfiguration createBucketConfiguration) throws XmlPullParserException, IOException {
+
+        if (createBucketConfiguration == null) {
+            return null;
+        }
+
+        StringWriter xmlContent = new StringWriter();
+        XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        XmlSerializer xmlSerializer = xmlPullParserFactory.newSerializer();
+        xmlSerializer.setOutput(xmlContent);
+        xmlSerializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+        xmlSerializer.startDocument("UTF-8", null);
+
+        xmlSerializer.startTag("", "CreateBucketConfiguration");
+        addElement(xmlSerializer, "BucketAZConfig", createBucketConfiguration.bucketAzConfig);
+        xmlSerializer.endTag("", "CreateBucketConfiguration");
         xmlSerializer.endDocument();
         return removeXMLHeader(xmlContent.toString());
     }

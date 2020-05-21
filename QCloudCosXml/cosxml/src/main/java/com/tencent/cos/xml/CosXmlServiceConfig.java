@@ -66,6 +66,8 @@ public class CosXmlServiceConfig implements Parcelable {
 
     private List<String> noSignHeaders;
 
+    private boolean dnsCache;
+
     public CosXmlServiceConfig(Builder builder) {
         this.protocol = builder.protocol;
         this.userAgent = builder.userAgent;
@@ -91,6 +93,8 @@ public class CosXmlServiceConfig implements Parcelable {
 
         this.executor = builder.executor;
         this.isQuic = builder.isQuic;
+
+        this.dnsCache = builder.dnsCache;
     }
 
     public String getProtocol() {
@@ -160,6 +164,10 @@ public class CosXmlServiceConfig implements Parcelable {
         }
         hostBuilder += getEndpointSuffix(region, isSupportAccelerate);
         return hostBuilder;
+    }
+
+    public boolean isDnsCache() {
+        return dnsCache;
     }
 
     public Map<String, List<String>> getCommonHeaders() {
@@ -335,7 +343,7 @@ public class CosXmlServiceConfig implements Parcelable {
         private Executor executor;
 
         private boolean isQuic = false;
-        private boolean trustAllHost = false;
+        private boolean dnsCache = true;
 
         private Map<String, List<String>> commonHeaders = new HashMap<>();
         private List<String> noSignHeaders = new LinkedList<>();
@@ -445,8 +453,8 @@ public class CosXmlServiceConfig implements Parcelable {
             return this;
         }
 
-        public Builder trustAllHost(boolean trust) {
-            this.trustAllHost = trust;
+        public Builder dnsCache(boolean dnsCache) {
+            this.dnsCache = dnsCache;
             return this;
         }
 

@@ -53,6 +53,8 @@ public final class QCloudHttpClient {
 
     private final DnsRepository dnsRepository;
 
+    private boolean dnsCache = true;
+
     private static volatile QCloudHttpClient gDefault;
 
     private HostnameVerifier mHostnameVerifier = new HostnameVerifier() {
@@ -84,6 +86,11 @@ public final class QCloudHttpClient {
                 // e.printStackTrace();
                 QCloudLogger.w(HTTP_LOG_TAG, "system dns failed, retry cache dns records.");
             }
+
+            if (!dnsCache) {
+                throw new UnknownHostException("can not resolve host name " + hostname);
+            }
+
             return dnsRepository.getDnsRecord(hostname);
         }
     };
@@ -205,6 +212,7 @@ public final class QCloudHttpClient {
         NetworkClient networkClient;
         boolean enableDebugLog = false;
         List<String> prefetchHost = new LinkedList<>();
+        boolean dnsCache = false;
 
         public Builder() {
         }
@@ -252,6 +260,11 @@ public final class QCloudHttpClient {
 
         public Builder addPrefetchHost(String host) {
             prefetchHost.add(host);
+            return this;
+        }
+
+        public Builder dnsCache(boolean dnsCache) {
+            this.dnsCache = dnsCache;
             return this;
         }
 

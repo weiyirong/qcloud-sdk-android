@@ -38,6 +38,12 @@ final public class DeleteMultiObjectRequest extends ObjectRequest {
         setObjectList(deleteObjectList);
     }
 
+    public DeleteMultiObjectRequest(String bucket) {
+        super(bucket, null);
+        delete = new Delete();
+        delete.deleteObjects = new ArrayList<Delete.DeleteObject>();
+    }
+
     public DeleteMultiObjectRequest(){
         super(null, null);
         delete = new Delete();

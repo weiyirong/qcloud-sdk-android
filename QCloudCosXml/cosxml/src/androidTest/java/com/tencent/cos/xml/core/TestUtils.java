@@ -26,8 +26,29 @@ public class TestUtils {
 
         RandomAccessFile accessFile = new RandomAccessFile(absolutePath, "rws");
         accessFile.setLength(fileLength);
-        accessFile.write(new Random().nextInt(200));
         accessFile.seek(fileLength/2);
+        accessFile.write(new Random().nextInt(200));
+        accessFile.seek(fileLength - 1);
+        accessFile.write(new Random().nextInt(200));
+        accessFile.close();
+        return true;
+    }
+
+    public static boolean createRandomComplexFile(String absolutePath, long fileLength) throws IOException {
+
+        File file = new File(absolutePath);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        RandomAccessFile accessFile = new RandomAccessFile(absolutePath, "rws");
+        accessFile.setLength(fileLength);
+
+        for (int i = 0; i < fileLength; i += 1024) {
+            accessFile.seek(i);
+            accessFile.write(new Random().nextInt(200));
+        }
+        accessFile.seek(fileLength - 1);
         accessFile.write(new Random().nextInt(200));
         accessFile.close();
         return true;
@@ -39,6 +60,7 @@ public class TestUtils {
                 .isHttps(true)
                 .setAppidAndRegion(TestConfigs.TERMINAL_APPID, TestConfigs.TERMINAL_DEFAULT_REGION)
                 .setDebuggable(true)
+                .dnsCache(false)
                 .builder();
 
         return new CosXmlService(InstrumentationRegistry.getContext(), cosXmlServiceConfig,
@@ -50,6 +72,15 @@ public class TestUtils {
 
         CosXmlService cosXmlService = newDefaultTerminalService();
         TransferConfig transferConfig = new TransferConfig.Builder().build();
+        return new TransferManager(cosXmlService, transferConfig);
+    }
+
+    public static TransferManager newDefaultTerminalTransferManager(long sliceSize) {
+
+        CosXmlService cosXmlService = newDefaultTerminalService();
+        TransferConfig transferConfig = new TransferConfig.Builder()
+                .setSliceSizeForUpload(sliceSize)
+                .build();
         return new TransferManager(cosXmlService, transferConfig);
     }
 

@@ -191,6 +191,7 @@ public class CosXmlSimpleService implements SimpleCosXml {
         }else {
             builder.setNetworkClient(new OkHttpClientImpl());
         }
+        builder.dnsCache(configuration.isDnsCache());
         builder.addPrefetchHost(configuration.getEndpointSuffix());
     }
 

@@ -33,6 +33,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketLocationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLoggingRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLoggingResult;
+import com.tencent.cos.xml.model.bucket.GetBucketObjectVersionsRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketObjectVersionsResult;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
@@ -2935,5 +2937,9 @@ public interface CosXml extends SimpleCosXml {
     SelectObjectContentResult selectObjectContent(SelectObjectContentRequest request) throws CosXmlClientException, CosXmlServiceException;
 
     void selectObjectContentAsync(SelectObjectContentRequest request, CosXmlResultListener cosXmlResultListener);
+
+    GetBucketObjectVersionsResult getBucketObjectVersions(GetBucketObjectVersionsRequest getBucketObjectVersionsRequest) throws CosXmlClientException, CosXmlServiceException;
+
+    void getBucketObjectVersionsAsync(GetBucketObjectVersionsRequest getBucketObjectVersionsRequest, CosXmlResultListener cosXmlResultListener);
 
 }

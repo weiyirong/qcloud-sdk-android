@@ -6,6 +6,7 @@ import android.util.Log;
 import android.util.Xml;
 
 
+import com.tencent.cos.xml.model.bucket.GetBucketObjectVersionsResult;
 import com.tencent.cos.xml.model.tag.AccessControlPolicy;
 import com.tencent.cos.xml.model.tag.BucketLoggingStatus;
 import com.tencent.cos.xml.model.tag.CORSConfiguration;
@@ -19,6 +20,7 @@ import com.tencent.cos.xml.model.tag.ListBucket;
 import com.tencent.cos.xml.model.tag.ListBucketVersions;
 import com.tencent.cos.xml.model.tag.ListInventoryConfiguration;
 import com.tencent.cos.xml.model.tag.ListMultipartUploads;
+import com.tencent.cos.xml.model.tag.ListVersionResult;
 import com.tencent.cos.xml.model.tag.LocationConstraint;
 import com.tencent.cos.xml.model.tag.ReplicationConfiguration;
 import com.tencent.cos.xml.model.tag.Tagging;
@@ -94,6 +96,162 @@ public class XmlParser extends XmlSlimParser {
         }
     }
 
+    public static void parseGetBucketObjectVersionsResult(InputStream inputStream, ListVersionResult listVersionResult) throws XmlPullParserException, IOException {
+
+
+        XmlPullParser xmlPullParser =  Xml.newPullParser();
+        xmlPullParser.setInput(inputStream, "UTF-8");
+        int eventType = xmlPullParser.getEventType();
+        String tagName;
+
+        List<ListVersionResult.CommonPrefixes> commonPrefixesList = new LinkedList<>();
+        List<ListVersionResult.Version> versions = new LinkedList<>();
+        List<ListVersionResult.DeleteMarker> deleteMarkers = new LinkedList<>();
+        ListVersionResult.CommonPrefixes commonPrefixes = null;
+        ListVersionResult.Version version = null;
+        ListVersionResult.DeleteMarker deleteMarker = null;
+        ListVersionResult.Owner owner = null;
+        listVersionResult.commonPrefixes = commonPrefixesList;
+        listVersionResult.deleteMarkers = deleteMarkers;
+        listVersionResult.versions = versions;
+
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            switch(eventType){
+                case XmlPullParser.START_TAG:
+                    tagName = xmlPullParser.getName();
+                    if (tagName.equalsIgnoreCase("Name")){
+                        xmlPullParser.next();
+                        listVersionResult.name = xmlPullParser.getText();
+                    } else if(tagName.equalsIgnoreCase("Encoding-Type")){
+                        xmlPullParser.next();
+                        listVersionResult.encodingType = xmlPullParser.getText();
+                    } else if(tagName.equalsIgnoreCase("KeyMarker")){
+                        xmlPullParser.next();
+                        listVersionResult.keyMarker = xmlPullParser.getText();
+                    } else if(tagName.equalsIgnoreCase("VersionIdMarker")){
+                        xmlPullParser.next();
+                        listVersionResult.versionIdMarker = xmlPullParser.getText();
+                    } else if(tagName.equalsIgnoreCase("MaxKeys")){
+                        xmlPullParser.next();
+                        listVersionResult.maxKeys = Integer.parseInt(xmlPullParser.getText());
+                    }else if(tagName.equalsIgnoreCase("Delimiter")){
+                        xmlPullParser.next();
+                        listVersionResult.delimiter = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("NextKeyMarker")){
+                        xmlPullParser.next();
+                        listVersionResult.nextKeyMarker = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("IsTruncated")){
+                        xmlPullParser.next();
+                        listVersionResult.isTruncated = Boolean.parseBoolean(xmlPullParser.getText());
+                    }else if(tagName.equalsIgnoreCase("NextVersionIdMarker")){
+                        xmlPullParser.next();
+                        listVersionResult.nextVersionIdMarker = xmlPullParser.getText();
+                    }else if(tagName.equalsIgnoreCase("Prefix")){
+                        xmlPullParser.next();
+                        if(commonPrefixes == null){
+                            listVersionResult.prefix = xmlPullParser.getText();
+                        }else {
+                            commonPrefixes.prefix =  xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("Key")){
+                        xmlPullParser.next();
+                        if (version != null) {
+                            version.key = xmlPullParser.getText();
+                        } else if (deleteMarker != null) {
+                            deleteMarker.key = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("VersionId")){
+                        xmlPullParser.next();
+                        if (version != null) {
+                            version.versionID = xmlPullParser.getText();
+                        } else if (deleteMarker != null) {
+                            deleteMarker.versionId = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("IsLatest")){
+                        xmlPullParser.next();
+                        if (version != null) {
+                            version.isLatest = Boolean.valueOf(xmlPullParser.getText());
+                        } else if (deleteMarker != null) {
+                            deleteMarker.isLatest = Boolean.valueOf(xmlPullParser.getText());
+                        }
+                    }else if(tagName.equalsIgnoreCase("LastModified")){
+                        xmlPullParser.next();
+                        if (version != null) {
+                            version.lastModified = xmlPullParser.getText();
+                        } else if (deleteMarker != null) {
+                            deleteMarker.lastModified = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("ETag")){
+                        xmlPullParser.next();
+                        if (version != null) {
+                            version.etag = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("Size")){
+                        xmlPullParser.next();
+                        if (version != null) {
+                            version.size = Long.valueOf(xmlPullParser.getText());
+                        }
+                    }else if(tagName.equalsIgnoreCase("StorageClass")){
+                        xmlPullParser.next();
+                        if (version != null) {
+                            version.storageClass = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("Owner")){
+                        owner = new ListVersionResult.Owner();
+                    }else if(tagName.equalsIgnoreCase("ID")){
+                        xmlPullParser.next();
+                        if (owner != null) {
+                            owner.id = xmlPullParser.getText();
+                        }
+                    }else if(tagName.equalsIgnoreCase("DisplayName")){
+                        xmlPullParser.next();
+                        if (owner != null) {
+                            owner.displayName = xmlPullParser.getText();
+                        }
+
+
+                    }else if(tagName.equalsIgnoreCase("DeleteMarker")){
+                        deleteMarker = new ListVersionResult.DeleteMarker();
+                    }else if(tagName.equalsIgnoreCase("Version")){
+                        version = new ListVersionResult.Version();
+                    }else if(tagName.equalsIgnoreCase("CommonPrefixes")){
+                        commonPrefixes = new ListVersionResult.CommonPrefixes();
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    tagName = xmlPullParser.getName();
+                    if(tagName.equalsIgnoreCase("Owner")){
+                        if (owner != null) {
+                            if (deleteMarker != null) {
+                                deleteMarker.owner = owner;
+                            } else if (version != null) {
+                                version.owner = owner;
+                            }
+                            owner = null;
+                        }
+                    }else if(tagName.equalsIgnoreCase("DeleteMarker")) {
+                        if (deleteMarker != null) {
+                            deleteMarkers.add(deleteMarker);
+                            deleteMarker = null;
+                        }
+                    }else if(tagName.equalsIgnoreCase("Version")) {
+                        if (version != null) {
+                            versions.add(version);
+                            version = null;
+                        }
+                    }else if(tagName.equalsIgnoreCase("CommonPrefixes")) {
+                        if (commonPrefixes != null) {
+                            commonPrefixesList.add(commonPrefixes);
+                            commonPrefixes = null;
+                        }
+                    }
+                    break;
+            }
+            eventType = xmlPullParser.next();
+        }
+
+    }
+
     //bucket
     public static void parseListBucketResult(InputStream inputStream, ListBucket result) throws XmlPullParserException, IOException {
         XmlPullParser xmlPullParser =  Xml.newPullParser();
@@ -105,7 +263,7 @@ public class XmlParser extends XmlSlimParser {
         ListBucket.Owner owner = null;
         result.contentsList = new ArrayList<ListBucket.Contents>();
         result.commonPrefixesList = new ArrayList<ListBucket.CommonPrefixes>();
-        while (eventType != XmlPullParser.END_DOCUMENT){
+        while (eventType != XmlPullParser.END_DOCUMENT) {
             switch(eventType){
                 case XmlPullParser.START_TAG:
                     tagName = xmlPullParser.getName();

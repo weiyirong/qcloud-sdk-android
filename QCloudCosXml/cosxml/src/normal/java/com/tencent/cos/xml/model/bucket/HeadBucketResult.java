@@ -6,6 +6,7 @@ import com.tencent.cos.xml.model.CosXmlResult;
 import com.tencent.qcloud.core.http.HttpResponse;
 
 public class HeadBucketResult extends CosXmlResult {
+
     @Override
     public void parseResponseBody(HttpResponse response) throws  CosXmlServiceException, CosXmlClientException {
         super.parseResponseBody(response);

@@ -39,6 +39,8 @@ import com.tencent.cos.xml.model.bucket.GetBucketLocationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLocationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketLoggingRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketLoggingResult;
+import com.tencent.cos.xml.model.bucket.GetBucketObjectVersionsRequest;
+import com.tencent.cos.xml.model.bucket.GetBucketObjectVersionsResult;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationRequest;
 import com.tencent.cos.xml.model.bucket.GetBucketReplicationResult;
 import com.tencent.cos.xml.model.bucket.GetBucketRequest;
@@ -1242,6 +1244,16 @@ public class CosXmlService extends CosXmlSimpleService implements CosXml {
     @Override
     public void selectObjectContentAsync(SelectObjectContentRequest request, CosXmlResultListener cosXmlResultListener) {
         schedule(request, new SelectObjectContentResult(), cosXmlResultListener);
+    }
+
+    @Override
+    public GetBucketObjectVersionsResult getBucketObjectVersions(GetBucketObjectVersionsRequest getBucketObjectVersionsRequest) throws CosXmlClientException, CosXmlServiceException {
+        return execute(getBucketObjectVersionsRequest, new GetBucketObjectVersionsResult());
+    }
+
+    @Override
+    public void getBucketObjectVersionsAsync(GetBucketObjectVersionsRequest getBucketObjectVersionsRequest, CosXmlResultListener cosXmlResultListener) {
+        schedule(getBucketObjectVersionsRequest, new GetBucketObjectVersionsResult(), cosXmlResultListener);
     }
 
 

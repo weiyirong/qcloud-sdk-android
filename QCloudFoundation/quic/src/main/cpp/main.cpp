@@ -163,7 +163,7 @@ void destory(JNIEnv *env, jobject thiz){
         }
     }
     pthread_mutex_unlock(&g_mut);
-    LOGI(debug, "remain %lu", cos_quic_map.size());
+//    LOGI(debug, "remain %lu", cos_quic_map.size());
 }
 
 void clear(JNIEnv *env, jobject thiz, jint handle_id){

@@ -10,8 +10,8 @@ android {
         minSdkVersion 15
         targetSdkVersion 28
 
-        versionCode sdkVersionCode
-        versionName "5.5.1"
+        versionCode 50502
+        versionName "5.5.2"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -79,7 +79,7 @@ dependencies {
     api project(path: ':foundation')
     api project(path: ':mtaUtils')
     api project(path: ':logUtils')
-    // api project(path: ':quic')
+//    api project(path: ':quic')
 }
 
 // 发布到 bintray

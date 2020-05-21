@@ -243,7 +243,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
     }
 
     private void multiUpload(CosXmlSimpleService cosXmlService){
-        initSlicePart(fileLength, 1);
+        initSlicePart(0, fileLength, 1);
         if(uploadId != null){
             listMultiUpload(cosXmlService);
         }else {
@@ -609,25 +609,34 @@ public final class COSXMLUploadTask extends COSXMLTask {
     }
 
     /**
-     * init slice part
+     * 初始化上传任务
+     * @param fileOffset 源文件的偏移量
+     * @param uploadSize 需要上传的大小
+     * @param startNumber upload part 的起始 number
      */
-    private void initSlicePart(long fileLength, int startNumber){
-        int count = (int) (fileLength / sliceSize);
-        for(; startNumber < count; ++ startNumber){
+    private void initSlicePart(long fileOffset, long uploadSize, int startNumber){
+        int count = (int) (uploadSize / sliceSize);
+
+        for(int numberOffset = 0; numberOffset < count; numberOffset++){
             SlicePartStruct slicePartStruct = new SlicePartStruct();
             slicePartStruct.isAlreadyUpload = false;
-            slicePartStruct.partNumber = startNumber;
-            slicePartStruct.offset = (startNumber - 1) * sliceSize;
+            slicePartStruct.partNumber = startNumber + numberOffset;
+            slicePartStruct.offset = fileOffset + numberOffset * sliceSize;
             slicePartStruct.sliceSize = sliceSize;
-            partStructMap.put(startNumber, slicePartStruct);
+            partStructMap.put(slicePartStruct.partNumber, slicePartStruct);
         }
-        SlicePartStruct slicePartStruct = new SlicePartStruct();
-        slicePartStruct.isAlreadyUpload = false;
-        slicePartStruct.partNumber = startNumber;
-        slicePartStruct.offset = (startNumber - 1) * sliceSize;
-        slicePartStruct.sliceSize = fileLength - slicePartStruct.offset;
-        partStructMap.put(startNumber, slicePartStruct);
-        UPLOAD_PART_COUNT.set(startNumber);
+
+        if (uploadSize % sliceSize != 0) { // 还有部分不足一个分片
+            SlicePartStruct slicePartStruct = new SlicePartStruct();
+            slicePartStruct.isAlreadyUpload = false;
+            slicePartStruct.partNumber = startNumber + count;
+            slicePartStruct.offset = fileOffset + count * sliceSize;
+            slicePartStruct.sliceSize = fileOffset + uploadSize - slicePartStruct.offset;
+            partStructMap.put(slicePartStruct.partNumber, slicePartStruct);
+            count++;
+        }
+
+        UPLOAD_PART_COUNT.set(startNumber + count - 1);
         if(IS_EXIT.get())return;
     }
 
@@ -686,7 +695,7 @@ public final class COSXMLUploadTask extends COSXMLTask {
                     }
                     //重新计算剩下的分片
                     ALREADY_SEND_DATA_LEN.addAndGet(completed);
-                    initSlicePart(fileLength - completed, index + 2);
+                    initSlicePart(completed, fileLength - completed, index + 2);
                     for(int i = 0; i <= index; i ++){
                         UPLOAD_PART_COUNT.decrementAndGet();
                     }
